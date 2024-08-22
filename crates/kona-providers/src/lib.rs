@@ -6,3 +6,6 @@
 #![cfg_attr(not(any(test, feature = "online")), no_std)]
 
 extern crate alloc;
+
+/// Re-export kona's derivation traits
+pub use kona_derive::traits::*;
