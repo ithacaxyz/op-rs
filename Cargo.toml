@@ -9,7 +9,10 @@ keywords = ["ethereum", "crypto"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 
 [workspace]
-members = ["bin/kona-exex"]
+members = [
+  "bin/kona-exex",
+  "crates/kona-providers",
+]
 default-members = ["bin/kona-exex"]
 
 # Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
@@ -110,7 +113,8 @@ incremental = false
 
 [workspace.dependencies]
 # optimism
-superchain-registry = { version = "0.2.2", default-features = false }
+superchain-registry = { version = "0.2.6", default-features = false }
+kona-derive = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
 
 # alloy
 alloy = { version = "0.2", features = [

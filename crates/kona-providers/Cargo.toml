@@ -1,0 +1,18 @@
+[package]
+name = "kona-providers"
+description = "Provider implementations for Kona trait abstractions"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+kona-derive.workspace = true
+
+[features]
+default = ["online"]
+online = ["kona-derive/online"]
