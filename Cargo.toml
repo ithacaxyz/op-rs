@@ -9,8 +9,8 @@ keywords = ["ethereum", "crypto"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 
 [workspace]
-members = []
-default-members = []
+members = ["bin/kona-exex"]
+default-members = ["bin/kona-exex"]
 
 # Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
 # https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
@@ -142,3 +142,4 @@ reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" 
 
 # misc
 tracing = "0.1.0"
+eyre = "0.6.12"
