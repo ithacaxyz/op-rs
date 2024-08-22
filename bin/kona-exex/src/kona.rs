@@ -7,7 +7,9 @@ use superchain_registry::RollupConfig;
 
 use crate::cli::KonaArgsExt;
 
+/// The Kona Execution Extension.
 #[derive(Debug)]
+#[allow(unused)]
 pub(crate) struct KonaExEx<Node: FullNodeComponents> {
     /// The rollup configuration
     cfg: Arc<RollupConfig>,
@@ -15,10 +17,11 @@ pub(crate) struct KonaExEx<Node: FullNodeComponents> {
     ctx: ExExContext<Node>,
 }
 
+#[allow(unused)]
 impl<Node: FullNodeComponents> KonaExEx<Node> {
     /// Creates a new instance of the Kona Execution Extension.
-    pub async fn new(ctx: ExExContext<Node>, args: KonaArgsExt) -> Self {
-        unimplemented!()
+    pub async fn new(ctx: ExExContext<Node>, args: KonaArgsExt, cfg: Arc<RollupConfig>) -> Self {
+        Self { ctx, cfg }
     }
 
     /// Starts the Kona Execution Extension loop.
