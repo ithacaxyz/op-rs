@@ -147,3 +147,4 @@ reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" 
 # misc
 tracing = "0.1.0"
 eyre = "0.6.12"
+clap = "4" 
