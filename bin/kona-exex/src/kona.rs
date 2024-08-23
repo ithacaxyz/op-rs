@@ -30,7 +30,7 @@ impl<Node: FullNodeComponents> KonaExEx<Node> {
         loop {
             if let Some(notification) = self.ctx.notifications.recv().await {
                 if let Some(committed_chain) = notification.committed_chain() {
-                    let tip = committed_chain.tip().block.header.header().number;
+                    let tip = committed_chain.tip().block.header().number;
                     // TODO: commit the chain to a local buffered provider
                     // self.chain_provider.commit_chain(committed_chain);
 
