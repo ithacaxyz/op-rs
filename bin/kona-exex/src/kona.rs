@@ -34,14 +34,14 @@ impl<Node: FullNodeComponents> KonaExEx<Node> {
                     // TODO: commit the chain to a local buffered provider
                     // self.chain_provider.commit_chain(committed_chain);
 
+                    if let Err(err) = self.ctx.events.send(ExExEvent::FinishedHeight(tip)) {
+                        bail!("Critical: Failed to send ExEx event: {:?}", err);
+                    }
+
                     if tip >= self.cfg.genesis.l1.number {
                         break Ok(());
                     } else {
                         debug!(target: "kona", "Chain not yet synced to rollup genesis. L1 block number: {}", tip);
-                    }
-
-                    if let Err(err) = self.ctx.events.send(ExExEvent::FinishedHeight(tip)) {
-                        bail!("Critical: Failed to send ExEx event: {:?}", err);
                     }
                 }
             }
