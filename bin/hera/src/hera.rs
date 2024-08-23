@@ -30,8 +30,8 @@ impl HeraCli {
                 };
 
                 let node = EthereumNode::default();
-                let kona = move |ctx| async { Ok(HeraExEx::new(ctx, args, cfg).await.start()) };
-                let handle = builder.node(node).install_exex(crate::EXEX_ID, kona).launch().await?;
+                let hera = move |ctx| async { Ok(HeraExEx::new(ctx, args, cfg).await.start()) };
+                let handle = builder.node(node).install_exex(crate::EXEX_ID, hera).launch().await?;
                 handle.wait_for_node_exit().await
             }),
             HeraSubCmd::Bin => unimplemented!(),
@@ -63,15 +63,15 @@ pub const DEFAULT_L1_BEACON_CLIENT_URL: &str = "http://localhost:5052/";
 #[derive(Debug, Clone, Args)]
 pub(crate) struct HeraArgsExt {
     /// Chain ID of the L2 network
-    #[clap(long = "kona.l2-chain-id", default_value_t = DEFAULT_L2_CHAIN_ID)]
+    #[clap(long = "hera.l2-chain-id", default_value_t = DEFAULT_L2_CHAIN_ID)]
     pub l2_chain_id: u64,
 
     /// RPC URL of an L2 execution client
-    #[clap(long = "kona.l2-rpc-url", default_value = DEFAULT_L2_RPC_URL)]
+    #[clap(long = "hera.l2-rpc-url", default_value = DEFAULT_L2_RPC_URL)]
     pub l2_rpc_url: Url,
 
     /// URL of an L1 beacon client to fetch blobs
-    #[clap(long = "kona.l1-beacon-client-url", default_value = DEFAULT_L1_BEACON_CLIENT_URL)]
+    #[clap(long = "hera.l1-beacon-client-url", default_value = DEFAULT_L1_BEACON_CLIENT_URL)]
     pub l1_beacon_client_url: Url,
 
     /// URL of the blob archiver to fetch blobs that are expired on
@@ -79,7 +79,7 @@ pub(crate) struct HeraArgsExt {
     ///
     /// Blob archivers need to implement the `blob_sidecars` API:
     /// <https://ethereum.github.io/beacon-APIs/#/Beacon/getBlobSidecars>
-    #[clap(long = "kona.l1-blob-archiver-url")]
+    #[clap(long = "hera.l1-blob-archiver-url")]
     pub l1_blob_archiver_url: Option<Url>,
 
     /// The payload validation mode to use.
@@ -89,7 +89,7 @@ pub(crate) struct HeraArgsExt {
     /// - Engine API: use a local or remote engine API of an L2 execution client. Validation
     ///   happens by sending the `new_payload` to the API and expecting a VALID response.
     #[clap(
-        long = "kona.validation-mode",
+        long = "hera.validation-mode",
         default_value = "trusted",
         requires_ifs([("engine-api", "l2-engine-api-url"), ("engine-api", "l2-engine-jwt-secret")]),
     )]
@@ -97,12 +97,12 @@ pub(crate) struct HeraArgsExt {
 
     /// If the mode is "engine api", we also need an URL for the engine API endpoint of
     /// the execution client to validate the payload.
-    #[clap(long = "kona.l2-engine-api-url")]
+    #[clap(long = "hera.l2-engine-api-url")]
     pub l2_engine_api_url: Option<Url>,
 
     /// If the mode is "engine api", we also need a JWT secret for the auth-rpc.
     /// This MUST be a valid path to a file containing the hex-encoded JWT secret.
-    #[clap(long = "kona.l2-engine-jwt-secret")]
+    #[clap(long = "hera.l2-engine-jwt-secret")]
     pub l2_engine_jwt_secret: Option<PathBuf>,
 }
 
@@ -136,7 +136,7 @@ pub(crate) struct HeraExEx<Node: FullNodeComponents> {
 
 #[allow(unused)]
 impl<Node: FullNodeComponents> HeraExEx<Node> {
-    /// Creates a new instance of the Kona Execution Extension.
+    /// Creates a new instance of the Hera Execution Extension.
     pub async fn new(ctx: ExExContext<Node>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         Self { ctx, cfg }
     }
@@ -157,18 +157,18 @@ impl<Node: FullNodeComponents> HeraExEx<Node> {
                     if tip >= self.cfg.genesis.l1.number {
                         break Ok(());
                     } else {
-                        debug!(target: "kona", "Chain not yet synced to rollup genesis. L1 block number: {}", tip);
+                        debug!(target: "hera", "Chain not yet synced to rollup genesis. L1 block number: {}", tip);
                     }
                 }
             }
         }
     }
 
-    /// Starts the Kona Execution Extension loop.
+    /// Starts the Hera Execution Extension loop.
     pub async fn start(mut self) -> Result<()> {
         // Step 1: Wait for the L2 origin block to be available
         self.wait_for_l2_genesis_l1_block().await?;
-        info!(target: "kona", "Chain synced to rollup genesis");
+        info!(target: "hera", "Chain synced to rollup genesis");
 
         todo!("init pipeline and start processing events");
     }
