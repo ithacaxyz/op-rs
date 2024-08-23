@@ -1,6 +1,7 @@
 [package]
-name = "kona-exex"
+name = "hera"
 version = "0.1.0"
+description = "Hera is a Rust implementation of the OP Stack Rollup Node"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
