@@ -157,7 +157,7 @@ impl<Node: FullNodeComponents> HeraExEx<Node> {
                     if tip >= self.cfg.genesis.l1.number {
                         break Ok(());
                     } else {
-                        debug!(target: "hera", "Chain not yet synced to rollup genesis. L1 block number: {}", tip);
+                        debug!("Chain not yet synced to rollup genesis. L1 block number: {}", tip);
                     }
                 }
             }
@@ -168,7 +168,7 @@ impl<Node: FullNodeComponents> HeraExEx<Node> {
     pub async fn start(mut self) -> Result<()> {
         // Step 1: Wait for the L2 origin block to be available
         self.wait_for_l2_genesis_l1_block().await?;
-        info!(target: "hera", "Chain synced to rollup genesis");
+        info!("Chain synced to rollup genesis");
 
         todo!("init pipeline and start processing events");
     }
