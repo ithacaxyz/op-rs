@@ -3380,7 +3380,11 @@ dependencies = [
 name = "kona-providers"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
+ "eyre",
  "kona-derive",
+ "parking_lot 0.12.3",
+ "reth",
 ]
 
 [[package]]

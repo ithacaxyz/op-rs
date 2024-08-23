@@ -11,6 +11,10 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+reth.workspace = true
+async-trait.workspace = true
+parking_lot.workspace = true
+eyre.workspace = true
 kona-derive.workspace = true
 
 [features]

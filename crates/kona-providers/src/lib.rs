@@ -9,3 +9,6 @@ extern crate alloc;
 
 /// Re-export kona's derivation traits
 pub use kona_derive::traits::*;
+
+pub mod chain_provider;
+pub use chain_provider::{InMemoryChainProvider, InnerChainProvider};
