@@ -17,8 +17,8 @@ use reth::{primitives::Transaction, providers::Chain};
 /// An in-memory [ChainProvider] that stores chain data,
 /// meant to be shared between multiple readers.
 ///
-/// This provider is implemented with `FIFOMap`s to avoid
-/// storing an unbounded amount of data.
+/// This provider uses a ring buffer to limit capacity
+/// to avoid storing an unbounded amount of data in memory.
 #[derive(Debug, Clone)]
 pub struct InMemoryChainProvider(Arc<RwLock<InMemoryChainProviderInner>>);
 
