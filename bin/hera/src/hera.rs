@@ -3,11 +3,12 @@
 use clap::{Args, Parser, Subcommand};
 use eyre::{bail, Result};
 use reth::cli::Cli;
-use reth_exex::ExExContext;
+use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
 use reth_node_ethereum::EthereumNode;
 use std::{path::PathBuf, sync::Arc};
 use superchain_registry::{RollupConfig, ROLLUP_CONFIGS};
+use tracing::{debug, info};
 use url::Url;
 
 /// The top-level Hera CLI Command
@@ -24,12 +25,12 @@ impl HeraCli {
     pub fn run(self) -> Result<()> {
         match self.subcmd {
             HeraSubCmd::ExEx(cli) => cli.run(|builder, args| async move {
-                let Some(cfg) = ROLLUP_CONFIGS.get(&args.l2_chain_id).cloned() else {
+                let Some(cfg) = ROLLUP_CONFIGS.get(&args.l2_chain_id).cloned().map(Arc::new) else {
                     bail!("Rollup configuration not found for L2 chain ID: {}", args.l2_chain_id);
                 };
+
                 let node = EthereumNode::default();
-                let kona =
-                    move |ctx| async { Ok(HeraExEx::new(ctx, args, Arc::new(cfg)).await.start()) };
+                let kona = move |ctx| async { Ok(HeraExEx::new(ctx, args, cfg).await.start()) };
                 let handle = builder.node(node).install_exex(crate::EXEX_ID, kona).launch().await?;
                 handle.wait_for_node_exit().await
             }),
@@ -135,13 +136,40 @@ pub(crate) struct HeraExEx<Node: FullNodeComponents> {
 
 #[allow(unused)]
 impl<Node: FullNodeComponents> HeraExEx<Node> {
-    /// Creates a new instance of the Hera Execution Extension.
+    /// Creates a new instance of the Kona Execution Extension.
     pub async fn new(ctx: ExExContext<Node>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         Self { ctx, cfg }
     }
 
-    /// Starts the Execution Extension loop.
+    /// Wait for the L2 genesis L1 block (aka "origin block") to be available in the L1 chain.
+    async fn wait_for_l2_genesis_l1_block(&mut self) -> Result<()> {
+        loop {
+            if let Some(notification) = self.ctx.notifications.recv().await {
+                if let Some(committed_chain) = notification.committed_chain() {
+                    let tip = committed_chain.tip().block.header().number;
+                    // TODO: commit the chain to a local buffered provider
+                    // self.chain_provider.commit_chain(committed_chain);
+
+                    if let Err(err) = self.ctx.events.send(ExExEvent::FinishedHeight(tip)) {
+                        bail!("Critical: Failed to send ExEx event: {:?}", err);
+                    }
+
+                    if tip >= self.cfg.genesis.l1.number {
+                        break Ok(());
+                    } else {
+                        debug!(target: "kona", "Chain not yet synced to rollup genesis. L1 block number: {}", tip);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Starts the Kona Execution Extension loop.
     pub async fn start(mut self) -> Result<()> {
-        unimplemented!()
+        // Step 1: Wait for the L2 origin block to be available
+        self.wait_for_l2_genesis_l1_block().await?;
+        info!(target: "kona", "Chain synced to rollup genesis");
+
+        todo!("init pipeline and start processing events");
     }
 }
