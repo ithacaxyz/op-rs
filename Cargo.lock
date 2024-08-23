@@ -3439,7 +3439,6 @@ dependencies = [
  "alloy-rlp",
  "anyhow",
  "async-trait",
- "eyre",
  "hashbrown 0.14.5",
  "kona-derive",
  "parking_lot 0.12.3",

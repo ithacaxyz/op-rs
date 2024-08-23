@@ -11,7 +11,6 @@ categories.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-eyre.workspace = true
 reth.workspace = true
 alloy.workspace = true
 alloy-rlp.workspace = true
