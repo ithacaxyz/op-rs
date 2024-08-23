@@ -1,16 +1,14 @@
 //! Module for the Hera CLI and its subcommands.
 
-use url::Url;
-use std::sync::Arc;
-use std::path::PathBuf;
+use clap::{Args, Parser, Subcommand};
 use eyre::{bail, Result};
 use reth::cli::Cli;
 use reth_exex::ExExContext;
 use reth_node_api::FullNodeComponents;
-use superchain_registry::RollupConfig;
-use clap::{Parser, Args, Subcommand};
 use reth_node_ethereum::EthereumNode;
-use superchain_registry::ROLLUP_CONFIGS;
+use std::{path::PathBuf, sync::Arc};
+use superchain_registry::{RollupConfig, ROLLUP_CONFIGS};
+use url::Url;
 
 /// The top-level Hera CLI Command
 #[derive(Debug, Parser)]
@@ -30,7 +28,8 @@ impl HeraCli {
                     bail!("Rollup configuration not found for L2 chain ID: {}", args.l2_chain_id);
                 };
                 let node = EthereumNode::default();
-                let kona = move |ctx| async { Ok(HeraExEx::new(ctx, args, Arc::new(cfg)).await.start()) };
+                let kona =
+                    move |ctx| async { Ok(HeraExEx::new(ctx, args, Arc::new(cfg)).await.start()) };
                 let handle = builder.node(node).install_exex(crate::EXEX_ID, kona).launch().await?;
                 handle.wait_for_node_exit().await
             }),
