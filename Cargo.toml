@@ -122,6 +122,7 @@ alloy = { version = "0.2", features = [
     "providers",
     "provider-http",
     "signers",
+    "consensus",
 ] }
 alloy-rlp = "0.3.4"
 
@@ -148,3 +149,6 @@ reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" 
 tracing = "0.1.0"
 eyre = "0.6.12"
 clap = "4" 
+async-trait = "0.1.81"
+hashbrown = "0.14.5"
+parking_lot = "0.12.3"

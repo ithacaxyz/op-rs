@@ -3,15 +3,24 @@ name = "kona-providers"
 description = "Provider implementations for Kona trait abstractions"
 version = "0.0.0"
 edition.workspace = true
-rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
-repository.workspace = true
 keywords.workspace = true
+repository.workspace = true
 categories.workspace = true
+rust-version.workspace = true
 
 [dependencies]
+reth.workspace = true
+alloy.workspace = true
+alloy-rlp.workspace = true
+hashbrown.workspace = true
+async-trait.workspace = true
+parking_lot.workspace = true
 kona-derive.workspace = true
+
+# Needed for compatibility with kona's ChainProvider trait
+anyhow = { version = "1.0.86", default-features = false }
 
 [features]
 default = ["online"]
