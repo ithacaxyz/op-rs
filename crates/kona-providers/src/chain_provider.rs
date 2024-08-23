@@ -41,7 +41,7 @@ impl InMemoryChainProvider {
 
 /// The inner state of an [InMemoryChainProvider].
 #[derive(Debug)]
-pub struct InMemoryChainProviderInner {
+struct InMemoryChainProviderInner {
     /// The maximum number of items to store in the provider.
     /// This is used to prevent unbounded memory usage.
     capacity: usize,

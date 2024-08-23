@@ -11,4 +11,4 @@ extern crate alloc;
 pub use kona_derive::traits::*;
 
 pub mod chain_provider;
-pub use chain_provider::{InMemoryChainProvider, InMemoryChainProviderInner};
+pub use chain_provider::InMemoryChainProvider;
