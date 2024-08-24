@@ -126,6 +126,7 @@ dependencies = [
  "alloy-genesis",
  "alloy-provider",
  "alloy-rpc-client",
+ "alloy-rpc-types",
  "alloy-serde",
  "alloy-signer",
  "alloy-transport",
@@ -7707,11 +7708,14 @@ checksum = "cd0b0ec5f1c1ca621c432a25813d8d60c88abe6d3e08a3eb9cf37d97a0fe3d73"
 name = "ser"
 version = "0.0.0"
 dependencies = [
+ "alloy",
  "alloy-rlp",
+ "async-trait",
  "eyre",
  "kona-derive",
  "kona-primitives",
  "rand 0.8.5",
+ "serde",
  "tracing",
 ]
 

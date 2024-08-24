@@ -16,12 +16,15 @@ kona-derive.workspace = true
 kona-primitives.workspace = true
 
 # Alloy
+alloy.workspace = true
 alloy-rlp = { workspace = true, features = ["derive"] }
 
 # Misc
 rand.workspace = true
 eyre.workspace = true
+serde.workspace = true
 tracing.workspace = true
+async-trait.workspace = true
 
 [features]
 default = ["online"]
