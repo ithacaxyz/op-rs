@@ -2690,17 +2690,11 @@ dependencies = [
 name = "hera-exex"
 version = "0.0.0"
 dependencies = [
- "anyhow",
  "clap",
  "eyre",
- "kona-derive",
- "kona-providers",
- "reth 1.0.5",
  "reth-exex",
  "reth-node-api",
- "reth-node-ethereum",
  "superchain-registry",
- "tokio",
  "tracing",
  "url",
 ]
