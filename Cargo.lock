@@ -3442,6 +3442,7 @@ dependencies = [
  "async-trait",
  "hashbrown 0.14.5",
  "kona-derive",
+ "kona-primitives",
  "parking_lot 0.12.3",
  "reth",
 ]

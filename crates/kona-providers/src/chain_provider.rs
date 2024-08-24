@@ -3,14 +3,16 @@
 use alloc::{collections::vec_deque::VecDeque, sync::Arc};
 use hashbrown::HashMap;
 
-use async_trait::async_trait;
-use kona_derive::{
-    traits::ChainProvider,
-    types::{
-        alloy_primitives::B256, BlockID, BlockInfo, Header, Receipt, Signed, TxEip1559, TxEip2930,
-        TxEip4844, TxEip4844Variant, TxEnvelope, TxLegacy,
+use alloy::{
+    consensus::{
+        Header, Receipt, Signed, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEnvelope,
+        TxLegacy,
     },
+    primitives::B256,
 };
+use async_trait::async_trait;
+use kona_derive::traits::ChainProvider;
+use kona_primitives::{BlockID, BlockInfo};
 use parking_lot::RwLock;
 use reth::{primitives::Transaction, providers::Chain};
 

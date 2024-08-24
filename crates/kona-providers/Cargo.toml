@@ -19,6 +19,8 @@ async-trait.workspace = true
 parking_lot.workspace = true
 kona-derive.workspace = true
 
+kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
+
 # Needed for compatibility with kona's ChainProvider trait
 anyhow = { version = "1.0.86", default-features = false }
 
