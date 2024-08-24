@@ -1,0 +1,36 @@
+[package]
+name = "reth"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+# Local Dependencies
+hera-exex = { path = "../../crates/hera-exex" }
+
+# Workspace
+eyre.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing.workspace = true
+clap.workspace = true
+
+# Reth Dependencies
+reth.workspace = true
+reth-exex.workspace = true
+reth-node-api.workspace = true
+reth-node-ethereum.workspace = true
+
+# OP Stack Dependencies
+superchain-registry = { workspace = true, default-features = false }
+kona-derive = { workspace = true, features = ["online", "serde"] }
+
+# Needed for compatibility with Kona's ChainProvider trait
+anyhow = { version = "1.0.86", default-features = false }
+
+# Misc
+url = "2.5.2"
