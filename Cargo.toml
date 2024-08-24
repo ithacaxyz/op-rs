@@ -13,9 +13,9 @@ members = [
   "bin/hera",
   "bin/op-rs",
   "crates/rollup",
-  "crates/kona-providers",
-  "crates/rollup",
   "crates/ser",
+  "crates/hera-exex",
+  "crates/kona-providers",
 ]
 default-members = ["bin/hera"]
 
