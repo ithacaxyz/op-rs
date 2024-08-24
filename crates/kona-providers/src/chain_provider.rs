@@ -189,9 +189,7 @@ impl InMemoryChainProviderInner {
                     let mut buf = Vec::new();
                     tx.signature.encode(&mut buf);
                     use alloy_rlp::Decodable;
-                    let sig = match kona_derive::types::alloy_primitives::Signature::decode(
-                        &mut buf.as_slice(),
-                    ) {
+                    let sig = match alloy::primitives::Signature::decode(&mut buf.as_slice()) {
                         Ok(s) => s,
                         Err(_) => return None,
                     };
