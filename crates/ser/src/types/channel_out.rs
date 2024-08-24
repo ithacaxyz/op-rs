@@ -27,7 +27,7 @@ pub struct ChannelOut<C: Compressor> {
     /// The current frame number.
     pub frame: u16,
     /// The uncompressed size of the channel.
-    /// This must be less than [kona_derive::MAX_RLP_BYTES_PER_CHANNEL].
+    /// This must be less than [kona_primitives::MAX_RLP_BYTES_PER_CHANNEL].
     pub rlp_length: u64,
     /// If the channel is closed.
     pub closed: bool,
