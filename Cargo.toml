@@ -11,6 +11,8 @@ categories = ["cryptography", "cryptography::cryptocurrencies"]
 [workspace]
 members = [
   "bin/hera",
+  "bin/op-rs",
+  "crates/rollup",
   "crates/kona-providers",
   "crates/ser",
 ]

@@ -1,6 +1,7 @@
 //! Chain Provider
 
 use alloc::{collections::vec_deque::VecDeque, sync::Arc};
+use alloy_rlp::Decodable;
 use hashbrown::HashMap;
 
 use alloy::{
@@ -9,6 +10,7 @@ use alloy::{
         TxLegacy,
     },
     primitives::B256,
+    signers::Signature,
 };
 use async_trait::async_trait;
 use kona_derive::traits::ChainProvider;
@@ -188,11 +190,7 @@ impl InMemoryChainProviderInner {
                 .flat_map(|tx| {
                     let mut buf = Vec::new();
                     tx.signature.encode(&mut buf);
-                    use alloy_rlp::Decodable;
-                    let sig = match alloy::primitives::Signature::decode(&mut buf.as_slice()) {
-                        Ok(s) => s,
-                        Err(_) => return None,
-                    };
+                    let sig = Signature::decode(&mut buf.as_slice()).ok()?;
                     let new = match &tx.transaction {
                         Transaction::Legacy(l) => {
                             let legacy_tx = TxLegacy {
