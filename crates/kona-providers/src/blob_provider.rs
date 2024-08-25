@@ -80,7 +80,7 @@ impl InnerBlobProvider {
 }
 
 impl LayeredBlobProvider {
-    /// Creates a new [InMemoryBlobProvider] with a local blob store, an online primary beacon
+    /// Creates a new [LayeredBlobProvider] with a local blob store, an online primary beacon
     /// client and an optional fallback blob archiver for fetching blobs.
     pub fn new(beacon_client_url: Url, blob_archiver_url: Option<Url>) -> Self {
         let memory = Arc::new(Mutex::new(InnerBlobProvider::with_capacity(512)));
