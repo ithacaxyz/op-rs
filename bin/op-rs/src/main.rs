@@ -54,7 +54,7 @@ fn main() -> Result<()> {
                     Arc::new(cfg)
                 }
             };
-
+            
             let node = EthereumNode::default();
             let hera = move |ctx| async { Ok(Driver::new(ctx, hera_args, cfg).await.start()) };
             let handle = builder.node(node).install_exex(HERA_EXEX_ID, hera).launch().await?;
