@@ -8,10 +8,10 @@
 use std::{fs::File, sync::Arc};
 
 use clap::Parser;
-use eyre::{bail, Context, Result};
+use eyre::{bail, Result};
+use rollup::{HeraArgsExt, Driver, HERA_EXEX_ID};
 use reth::cli::Cli;
 use reth_node_ethereum::EthereumNode;
-use serde_json::from_reader;
 use superchain_registry::ROLLUP_CONFIGS;
 use tracing::{debug, info, warn};
 
@@ -39,22 +39,11 @@ fn main() -> Result<()> {
             let Some(hera_args) = args.hera_config else {
                 bail!("Hera Execution Extension configuration is required when the `hera` flag is set");
             };
-
-            let cfg = match &hera_args.l2_config_file {
-                Some(path) => {
-                    info!("Loading l2 config from file: {:?}", path);
-                    let file = File::open(path).wrap_err("Failed to open l2 config file")?;
-                    Arc::new(from_reader(file).wrap_err("Failed to read l2 config file")?)
-                }
-                None => {
-                    debug!("Loading l2 config from superchain registry");
-                    let Some(cfg) = ROLLUP_CONFIGS.get(&hera_args.l2_chain_id).cloned() else {
-                        bail!("Failed to find l2 config for chain ID {}", hera_args.l2_chain_id);
-                    };
-                    Arc::new(cfg)
-                }
+            
+            let Some(cfg) = ROLLUP_CONFIGS.get(&hera_args.l2_chain_id).cloned().map(Arc::new) else {
+                bail!("Rollup configuration not found for L2 chain ID: {}", hera_args.l2_chain_id);
             };
-
+            
             let node = EthereumNode::default();
             let hera = move |ctx| async { Ok(Driver::new(ctx, hera_args, cfg).await.start()) };
             let handle = builder.node(node).install_exex(HERA_EXEX_ID, hera).launch().await?;

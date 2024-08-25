@@ -11,11 +11,11 @@ categories = ["cryptography", "cryptography::cryptocurrencies"]
 [workspace]
 members = [
   "bin/hera",
-  "bin/reth",
+  "bin/op-rs",
+  "crates/rollup",
   "crates/kona-providers",
   "crates/rollup",
   "crates/ser",
-  "crates/hera-exex",
 ]
 default-members = ["bin/hera"]
 
