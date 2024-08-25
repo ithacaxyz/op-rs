@@ -18,7 +18,7 @@ pub struct GossipDriverBuilder {
     unsafe_block_signer: Option<Address>,
     /// The socket address that the service is listening on.
     socket: Option<SocketAddr>,
-    /// The [ConfigBuilder] constructs the [Config] for `gossipsub`.
+    /// The [ConfigBuilder] constructs the config for `gossipsub`.
     inner: Option<ConfigBuilder>,
     /// The [Keypair] for the node.
     keypair: Option<Keypair>,

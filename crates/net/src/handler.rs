@@ -28,7 +28,7 @@ pub struct BlockHandler {
     chain_id: u64,
     /// A channel sender to forward new blocks to other modules
     block_sender: Sender<ExecutionPayloadEnvelope>,
-    /// A [watch::Receiver] to monitor changes to the unsafe block signer.
+    /// A [Receiver] to monitor changes to the unsafe block signer.
     unsafe_signer_recv: Receiver<Address>,
     /// The libp2p topic for pre Canyon/Shangai blocks.
     blocks_v1_topic: IdentTopic,
