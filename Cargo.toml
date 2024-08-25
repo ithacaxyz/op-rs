@@ -125,8 +125,11 @@ alloy = { version = "0.2", features = [
     "provider-http",
     "signers",
     "consensus",
+    "rpc-types",
 ] }
 alloy-rlp = "0.3.4"
+# TODO: once op-alloy-rpc-types is published with sync module, we can use versioned release
+op-alloy-rpc-types = { git = "https://github.com/alloy-rs/op-alloy" }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }
@@ -155,3 +158,4 @@ async-trait = "0.1.81"
 hashbrown = "0.14.5"
 parking_lot = "0.12.3"
 rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
+serde = { version = "1.0", features = ["derive"] }
