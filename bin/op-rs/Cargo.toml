@@ -24,3 +24,6 @@ reth-node-ethereum.workspace = true
 
 # OP Stack Dependencies
 superchain-registry = { workspace = true, default-features = false }
+
+# Misc
+serde_json = "1"
