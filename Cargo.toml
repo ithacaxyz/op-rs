@@ -12,6 +12,7 @@ categories = ["cryptography", "cryptography::cryptocurrencies"]
 members = [
   "bin/hera",
   "bin/op-rs",
+  "crates/net",
   "crates/kona-providers",
   "crates/rollup",
   "crates/ser",
@@ -115,6 +116,9 @@ codegen-units = 1
 incremental = false
 
 [workspace.dependencies]
+# Workspace
+op-net = { path = "crates/net" }
+
 # Optimism
 superchain-registry = { version = "0.2.6", default-features = false }
 kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }

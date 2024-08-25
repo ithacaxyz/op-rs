@@ -2873,6 +2873,7 @@ dependencies = [
  "hyper-util",
  "log",
  "rustls",
+ "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -4235,6 +4236,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "op-alloy-network"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e45aa09913f11e914fbd60535133d079529e726ad4605edd3d3047678d37b548"
+dependencies = [
+ "alloy-consensus",
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-rpc-types-eth",
+ "op-alloy-consensus",
+ "op-alloy-rpc-types",
+]
+
+[[package]]
+name = "op-alloy-rpc-types"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48bf0c126082234c15b6051c1f06d2d666adf68e7de305a5352022f06a84be78"
+dependencies = [
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-rpc-types-eth",
+ "alloy-serde",
+ "op-alloy-consensus",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "op-net"
+version = "0.0.0"
+dependencies = [
+ "alloy",
+ "kona-primitives",
+]
+
+[[package]]
 name = "op-rs"
 version = "0.1.0"
 dependencies = [
@@ -4990,6 +5028,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
+ "rustls-native-certs",
  "rustls-pemfile",
  "rustls-pki-types",
  "serde",
@@ -5022,7 +5061,7 @@ dependencies = [
 [[package]]
 name = "reth"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "aquamarine",
@@ -5066,6 +5105,7 @@ dependencies = [
  "reth-node-events",
  "reth-node-metrics",
  "reth-optimism-primitives",
+ "reth-optimism-rpc",
  "reth-payload-builder",
  "reth-payload-primitives",
  "reth-payload-validator",
@@ -5102,7 +5142,7 @@ dependencies = [
 [[package]]
 name = "reth-auto-seal-consensus"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures-util",
  "reth-beacon-consensus",
@@ -5129,7 +5169,7 @@ dependencies = [
 [[package]]
 name = "reth-basic-payload-builder"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "futures-core",
@@ -5152,7 +5192,7 @@ dependencies = [
 [[package]]
 name = "reth-beacon-consensus"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures",
  "itertools 0.13.0",
@@ -5186,7 +5226,7 @@ dependencies = [
 [[package]]
 name = "reth-blockchain-tree"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "aquamarine",
  "linked_hash_set",
@@ -5217,7 +5257,7 @@ dependencies = [
 [[package]]
 name = "reth-blockchain-tree-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-consensus",
  "reth-execution-errors",
@@ -5229,7 +5269,7 @@ dependencies = [
 [[package]]
 name = "reth-chain-state"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "auto_impl",
  "derive_more 1.0.0",
@@ -5251,7 +5291,7 @@ dependencies = [
 [[package]]
 name = "reth-chainspec"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-chains",
  "alloy-eips",
@@ -5271,7 +5311,7 @@ dependencies = [
 [[package]]
 name = "reth-cli-commands"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "ahash",
  "backon",
@@ -5325,7 +5365,7 @@ dependencies = [
 [[package]]
 name = "reth-cli-runner"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-tasks",
  "tokio",
@@ -5335,7 +5375,7 @@ dependencies = [
 [[package]]
 name = "reth-cli-util"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-eips",
  "alloy-primitives",
@@ -5350,7 +5390,7 @@ dependencies = [
 [[package]]
 name = "reth-codecs"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5366,7 +5406,7 @@ dependencies = [
 [[package]]
 name = "reth-codecs-derive"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -5377,7 +5417,7 @@ dependencies = [
 [[package]]
 name = "reth-config"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "eyre",
  "humantime-serde",
@@ -5391,7 +5431,7 @@ dependencies = [
 [[package]]
 name = "reth-consensus"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "auto_impl",
  "derive_more 1.0.0",
@@ -5401,7 +5441,7 @@ dependencies = [
 [[package]]
 name = "reth-consensus-common"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-consensus",
@@ -5411,7 +5451,7 @@ dependencies = [
 [[package]]
 name = "reth-consensus-debug-client"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5434,7 +5474,7 @@ dependencies = [
 [[package]]
 name = "reth-db"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "bytes",
  "derive_more 1.0.0",
@@ -5464,7 +5504,7 @@ dependencies = [
 [[package]]
 name = "reth-db-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "bytes",
  "derive_more 1.0.0",
@@ -5485,7 +5525,7 @@ dependencies = [
 [[package]]
 name = "reth-db-common"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-genesis",
  "boyer-moore-magiclen",
@@ -5511,7 +5551,7 @@ dependencies = [
 [[package]]
 name = "reth-db-models"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "bytes",
  "modular-bitfield",
@@ -5523,7 +5563,7 @@ dependencies = [
 [[package]]
 name = "reth-discv4"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -5547,7 +5587,7 @@ dependencies = [
 [[package]]
 name = "reth-discv5"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -5573,7 +5613,7 @@ dependencies = [
 [[package]]
 name = "reth-dns-discovery"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "data-encoding",
@@ -5595,7 +5635,7 @@ dependencies = [
 [[package]]
 name = "reth-downloaders"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "futures",
@@ -5622,7 +5662,7 @@ dependencies = [
 [[package]]
 name = "reth-ecies"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "aes 0.8.4",
  "alloy-primitives",
@@ -5653,7 +5693,7 @@ dependencies = [
 [[package]]
 name = "reth-engine-primitives"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-payload-primitives",
@@ -5663,7 +5703,7 @@ dependencies = [
 [[package]]
 name = "reth-engine-service"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures",
  "pin-project",
@@ -5687,7 +5727,7 @@ dependencies = [
 [[package]]
 name = "reth-engine-tree"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures",
  "metrics",
@@ -5722,7 +5762,7 @@ dependencies = [
 [[package]]
 name = "reth-engine-util"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "eyre",
  "futures",
@@ -5751,7 +5791,7 @@ dependencies = [
 [[package]]
 name = "reth-errors"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-blockchain-tree-api",
  "reth-consensus",
@@ -5764,7 +5804,7 @@ dependencies = [
 [[package]]
 name = "reth-eth-wire"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -5789,7 +5829,7 @@ dependencies = [
 [[package]]
 name = "reth-eth-wire-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-chains",
  "alloy-genesis",
@@ -5805,7 +5845,7 @@ dependencies = [
 [[package]]
 name = "reth-ethereum-consensus"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-consensus",
@@ -5817,7 +5857,7 @@ dependencies = [
 [[package]]
 name = "reth-ethereum-engine-primitives"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "reth-chainspec",
@@ -5835,7 +5875,7 @@ dependencies = [
 [[package]]
 name = "reth-ethereum-forks"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-chains",
  "alloy-primitives",
@@ -5852,7 +5892,7 @@ dependencies = [
 [[package]]
 name = "reth-ethereum-payload-builder"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-basic-payload-builder",
  "reth-errors",
@@ -5871,7 +5911,7 @@ dependencies = [
 [[package]]
 name = "reth-etl"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "rayon",
  "reth-db-api",
@@ -5881,7 +5921,7 @@ dependencies = [
 [[package]]
 name = "reth-evm"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-eips",
  "auto_impl",
@@ -5899,7 +5939,7 @@ dependencies = [
 [[package]]
 name = "reth-evm-ethereum"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-eips",
  "alloy-sol-types",
@@ -5915,9 +5955,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "reth-evm-optimism"
+version = "1.0.5"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
+dependencies = [
+ "reth-chainspec",
+ "reth-ethereum-forks",
+ "reth-evm",
+ "reth-execution-errors",
+ "reth-execution-types",
+ "reth-optimism-consensus",
+ "reth-primitives",
+ "reth-prune-types",
+ "reth-revm",
+ "revm",
+ "revm-primitives",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "reth-execution-errors"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-eips",
  "alloy-primitives",
@@ -5933,7 +5993,7 @@ dependencies = [
 [[package]]
 name = "reth-execution-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-execution-errors",
  "reth-primitives",
@@ -5945,7 +6005,7 @@ dependencies = [
 [[package]]
 name = "reth-exex"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "eyre",
  "futures",
@@ -5972,7 +6032,7 @@ dependencies = [
 [[package]]
 name = "reth-exex-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "reth-provider",
@@ -5982,7 +6042,7 @@ dependencies = [
 [[package]]
 name = "reth-fs-util"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "serde",
  "serde_json",
@@ -5992,7 +6052,7 @@ dependencies = [
 [[package]]
 name = "reth-ipc"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "async-trait",
  "bytes",
@@ -6013,7 +6073,7 @@ dependencies = [
 [[package]]
 name = "reth-libmdbx"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "bitflags 2.6.0",
  "byteorder",
@@ -6029,7 +6089,7 @@ dependencies = [
 [[package]]
 name = "reth-mdbx-sys"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "bindgen",
  "cc",
@@ -6038,7 +6098,7 @@ dependencies = [
 [[package]]
 name = "reth-metrics"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures",
  "metrics",
@@ -6050,7 +6110,7 @@ dependencies = [
 [[package]]
 name = "reth-metrics-derive"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6061,7 +6121,7 @@ dependencies = [
 [[package]]
 name = "reth-net-banlist"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
 ]
@@ -6069,7 +6129,7 @@ dependencies = [
 [[package]]
 name = "reth-net-nat"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures-util",
  "reqwest",
@@ -6081,7 +6141,7 @@ dependencies = [
 [[package]]
 name = "reth-network"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "aquamarine",
@@ -6129,7 +6189,7 @@ dependencies = [
 [[package]]
 name = "reth-network-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "alloy-rpc-types-admin",
@@ -6152,7 +6212,7 @@ dependencies = [
 [[package]]
 name = "reth-network-p2p"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "auto_impl",
  "derive_more 1.0.0",
@@ -6170,7 +6230,7 @@ dependencies = [
 [[package]]
 name = "reth-network-peers"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -6185,7 +6245,7 @@ dependencies = [
 [[package]]
 name = "reth-network-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "humantime-serde",
  "reth-ethereum-forks",
@@ -6199,7 +6259,7 @@ dependencies = [
 [[package]]
 name = "reth-nippy-jar"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "anyhow",
  "bincode",
@@ -6219,7 +6279,7 @@ dependencies = [
 [[package]]
 name = "reth-node-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-db-api",
@@ -6237,7 +6297,7 @@ dependencies = [
 [[package]]
 name = "reth-node-builder"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-network",
  "aquamarine",
@@ -6294,7 +6354,7 @@ dependencies = [
 [[package]]
 name = "reth-node-core"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-genesis",
  "alloy-rpc-types-engine",
@@ -6344,7 +6404,7 @@ dependencies = [
 [[package]]
 name = "reth-node-ethereum"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "eyre",
  "reth-auto-seal-consensus",
@@ -6368,7 +6428,7 @@ dependencies = [
 [[package]]
 name = "reth-node-events"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rpc-types-engine",
  "futures",
@@ -6390,7 +6450,7 @@ dependencies = [
 [[package]]
 name = "reth-node-metrics"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "eyre",
  "http",
@@ -6412,14 +6472,58 @@ dependencies = [
 ]
 
 [[package]]
+name = "reth-optimism-consensus"
+version = "1.0.5"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
+dependencies = [
+ "reth-chainspec",
+ "reth-consensus",
+ "reth-consensus-common",
+ "reth-primitives",
+ "tracing",
+]
+
+[[package]]
 name = "reth-optimism-primitives"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
+
+[[package]]
+name = "reth-optimism-rpc"
+version = "1.0.5"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
+dependencies = [
+ "alloy-primitives",
+ "jsonrpsee-types",
+ "op-alloy-network",
+ "parking_lot 0.12.3",
+ "reqwest",
+ "reth-chainspec",
+ "reth-evm",
+ "reth-evm-optimism",
+ "reth-network-api",
+ "reth-node-api",
+ "reth-node-builder",
+ "reth-primitives",
+ "reth-provider",
+ "reth-rpc",
+ "reth-rpc-eth-api",
+ "reth-rpc-eth-types",
+ "reth-rpc-server-types",
+ "reth-rpc-types",
+ "reth-tasks",
+ "reth-transaction-pool",
+ "revm",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "reth-payload-builder"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures-util",
  "metrics",
@@ -6441,7 +6545,7 @@ dependencies = [
 [[package]]
 name = "reth-payload-primitives"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chain-state",
  "reth-chainspec",
@@ -6457,7 +6561,7 @@ dependencies = [
 [[package]]
 name = "reth-payload-validator"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-primitives",
@@ -6468,7 +6572,7 @@ dependencies = [
 [[package]]
 name = "reth-primitives"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -6498,7 +6602,7 @@ dependencies = [
 [[package]]
 name = "reth-primitives-traits"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -6518,7 +6622,7 @@ dependencies = [
 [[package]]
 name = "reth-provider"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rpc-types-engine",
  "auto_impl",
@@ -6556,7 +6660,7 @@ dependencies = [
 [[package]]
 name = "reth-prune"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "itertools 0.13.0",
@@ -6582,7 +6686,7 @@ dependencies = [
 [[package]]
 name = "reth-prune-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "bytes",
@@ -6596,7 +6700,7 @@ dependencies = [
 [[package]]
 name = "reth-revm"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "reth-chainspec",
  "reth-consensus-common",
@@ -6611,7 +6715,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-genesis",
@@ -6667,7 +6771,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-json-rpc",
  "jsonrpsee",
@@ -6681,7 +6785,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-builder"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "http",
  "jsonrpsee",
@@ -6714,7 +6818,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-engine-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "async-trait",
  "jsonrpsee-core",
@@ -6742,7 +6846,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-eth-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-rpc",
@@ -6778,7 +6882,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-eth-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-sol-types",
  "derive_more 1.0.0",
@@ -6816,7 +6920,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-layer"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rpc-types-engine",
  "http",
@@ -6829,7 +6933,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-server-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "jsonrpsee-core",
@@ -6845,7 +6949,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "alloy-rpc-types",
@@ -6863,7 +6967,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-types-compat"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "alloy-rpc-types",
@@ -6875,7 +6979,7 @@ dependencies = [
 [[package]]
 name = "reth-stages"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "futures-util",
  "itertools 0.13.0",
@@ -6909,7 +7013,7 @@ dependencies = [
 [[package]]
 name = "reth-stages-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "aquamarine",
@@ -6936,7 +7040,7 @@ dependencies = [
 [[package]]
 name = "reth-stages-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "bytes",
@@ -6949,7 +7053,7 @@ dependencies = [
 [[package]]
 name = "reth-static-file"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "parking_lot 0.12.3",
@@ -6969,7 +7073,7 @@ dependencies = [
 [[package]]
 name = "reth-static-file-types"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-primitives",
  "clap",
@@ -6981,7 +7085,7 @@ dependencies = [
 [[package]]
 name = "reth-storage-api"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "auto_impl",
  "reth-chainspec",
@@ -6998,7 +7102,7 @@ dependencies = [
 [[package]]
 name = "reth-storage-errors"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "derive_more 1.0.0",
@@ -7009,7 +7113,7 @@ dependencies = [
 [[package]]
 name = "reth-tasks"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "auto_impl",
  "dyn-clone",
@@ -7027,7 +7131,7 @@ dependencies = [
 [[package]]
 name = "reth-tokio-util"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -7037,7 +7141,7 @@ dependencies = [
 [[package]]
 name = "reth-tracing"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "clap",
  "eyre",
@@ -7052,7 +7156,7 @@ dependencies = [
 [[package]]
 name = "reth-transaction-pool"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "aquamarine",
@@ -7084,7 +7188,7 @@ dependencies = [
 [[package]]
 name = "reth-trie"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "auto_impl",
@@ -7106,7 +7210,7 @@ dependencies = [
 [[package]]
 name = "reth-trie-common"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-consensus",
  "alloy-genesis",
@@ -7126,7 +7230,7 @@ dependencies = [
 [[package]]
 name = "reth-trie-db"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "auto_impl",
@@ -7150,7 +7254,7 @@ dependencies = [
 [[package]]
 name = "reth-trie-parallel"
 version = "1.0.5"
-source = "git+https://github.com/paradigmxyz/reth#ec31b247e9ba927a5efd15b22340cf8abab749a2"
+source = "git+https://github.com/paradigmxyz/reth#498ced8be9d1340a9a79f2dbd84e676dc2381888"
 dependencies = [
  "alloy-rlp",
  "derive_more 1.0.0",
