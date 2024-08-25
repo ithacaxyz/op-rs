@@ -1,8 +1,9 @@
 //! Traits for interacting with serialization stages.
 
-use crate::types::{BatchTransaction, L1BlockRef};
 use alloc::boxed::Box;
 use async_trait::async_trait;
+use op_alloy_rpc_types::sync::L1BlockRef;
+use crate::types::BatchTransaction;
 
 /// Updates the stages that a new L1 block is canonical.
 pub trait OriginReceiver {

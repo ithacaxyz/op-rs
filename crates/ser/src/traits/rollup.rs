@@ -1,6 +1,6 @@
 //! Contains the [RollupNode] trait.
 
-use crate::types::SyncStatus;
+use op_alloy_rpc_types::sync::SyncStatus;
 use alloc::boxed::Box;
 use async_trait::async_trait;
 use eyre::Result;

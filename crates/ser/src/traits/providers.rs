@@ -1,6 +1,6 @@
 //! Providers for the serialization input.
 
-use crate::types::L2BlockRef;
+use op_alloy_rpc_types::sync::L2BlockRef;
 use alloc::boxed::Box;
 use alloy::{
     primitives::Address,

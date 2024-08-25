@@ -1,4 +1,4 @@
-//! Transaction Types
+//! Batch Transaction Types
 
 use alloc::vec::Vec;
 use alloy::primitives::Bytes;
@@ -24,12 +24,11 @@ impl BatchTransaction {
     pub fn is_full(&self, max_frames: u16) -> bool {
         self.frames.len() as u16 >= max_frames
     }
-}
 
-impl From<&BatchTransaction> for Bytes {
-    fn from(tx: &BatchTransaction) -> Self {
+    /// Returns the concatenated encoding of the batch transaction frames as bytes.
+    pub fn to_bytes(&self) -> Bytes {
         let mut buf: Vec<u8> = Vec::new();
-        for frame in tx.frames.iter() {
+        for frame in self.frames.iter() {
             buf.append(&mut frame.encode());
         }
         buf.into()

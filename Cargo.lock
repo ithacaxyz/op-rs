@@ -4224,6 +4224,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "op-alloy-rpc-types"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48bf0c126082234c15b6051c1f06d2d666adf68e7de305a5352022f06a84be78"
+dependencies = [
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-rpc-types-eth",
+ "alloy-serde",
+ "op-alloy-consensus",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7714,6 +7729,7 @@ dependencies = [
  "eyre",
  "kona-derive",
  "kona-primitives",
+ "op-alloy-rpc-types",
  "rand 0.8.5",
  "serde",
  "tracing",

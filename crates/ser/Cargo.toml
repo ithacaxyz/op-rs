@@ -17,6 +17,7 @@ kona-primitives.workspace = true
 
 # Alloy
 alloy.workspace = true
+op-alloy-rpc-types.workspace = true
 alloy-rlp = { workspace = true, features = ["derive"] }
 
 # Misc
