@@ -94,11 +94,13 @@ impl LayeredBlobProvider {
     }
 
     /// Inserts multiple blobs into the in-memory provider.
+    #[inline]
     pub fn insert_blobs(&mut self, block_hash: B256, blobs: Vec<Blob>) {
         self.memory.lock().insert_blobs(block_hash, blobs);
     }
 
     /// Attempts to fetch blobs using the in-memory blob store.
+    #[inline]
     async fn memory_blob_load(
         &mut self,
         block_ref: &BlockInfo,
@@ -122,7 +124,7 @@ impl LayeredBlobProvider {
     }
 
     /// Attempts to fetch blobs using the online blob provider.
-    #[allow(unused)]
+    #[inline]
     async fn online_blob_load(
         &mut self,
         block_ref: &BlockInfo,
@@ -144,7 +146,7 @@ impl BlobProvider for LayeredBlobProvider {
             return Ok(b);
         } else {
             warn!("Blob provider falling back to online provider");
-            self.online.get_blobs(block_ref, blob_hashes).await
+            self.online_blob_load(block_ref, blob_hashes).await
         }
     }
 }
