@@ -21,6 +21,11 @@ pub struct HeraArgsExt {
     #[clap(long = "hera.l2-chain-id", default_value_t = DEFAULT_L2_CHAIN_ID)]
     pub l2_chain_id: u64,
 
+    /// Path to a custom L2 rollup configuration file
+    /// (overrides the default rollup configuration from the registry)
+    #[clap(long = "hera.l2-config-file")]
+    pub l2_config_file: Option<PathBuf>,
+
     /// RPC URL of an L2 execution client
     #[clap(long = "hera.l2-rpc-url", default_value = DEFAULT_L2_RPC_URL)]
     pub l2_rpc_url: Url,
@@ -46,7 +51,7 @@ pub struct HeraArgsExt {
     #[clap(
         long = "hera.validation-mode",
         default_value = "trusted",
-        requires_ifs([("engine-api", "l2-engine-api-url"), ("engine-api", "l2-engine-jwt-secret")]),
+        requires_ifs([("engine-api", "l2_engine_api_url"), ("engine-api", "l2_engine_jwt_secret")]),
     )]
     pub validation_mode: ValidationMode,
 
