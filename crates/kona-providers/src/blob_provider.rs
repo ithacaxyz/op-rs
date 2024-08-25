@@ -1,9 +1,9 @@
 use alloc::{collections::VecDeque, sync::Arc};
-use async_trait::async_trait;
 use hashbrown::HashMap;
 
 use alloy::primitives::B256;
-use eyre::eyre;
+use async_trait::async_trait;
+use eyre::{eyre, Result};
 use kona_derive::{
     errors::BlobProviderError,
     online::{
@@ -14,6 +14,7 @@ use kona_derive::{
 };
 use kona_primitives::{Blob, BlockInfo, IndexedBlobHash};
 use parking_lot::Mutex;
+use reth::primitives::BlobTransactionSidecar;
 use tracing::warn;
 use url::Url;
 
@@ -50,8 +51,8 @@ pub struct InnerBlobProvider {
     capacity: usize,
     /// Order of key insertion for oldest entry eviction.
     key_order: VecDeque<B256>,
-    /// Maps block hashes to blobs.
-    blocks_to_blob: HashMap<B256, Vec<Blob>>,
+    /// Maps block hashes to blob hashes to blob sidecars.
+    blocks_to_blob_sidecars: HashMap<B256, Vec<BlobTransactionSidecar>>,
 }
 
 impl InnerBlobProvider {
@@ -59,22 +60,26 @@ impl InnerBlobProvider {
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             capacity: cap,
-            blocks_to_blob: HashMap::with_capacity(cap),
+            blocks_to_blob_sidecars: HashMap::with_capacity(cap),
             key_order: VecDeque::with_capacity(cap),
         }
     }
 
-    /// Inserts multiple blobs into the provider.
-    pub fn insert_blobs(&mut self, block_hash: B256, blobs: Vec<Blob>) {
-        if let Some(existing_blobs) = self.blocks_to_blob.get_mut(&block_hash) {
-            existing_blobs.extend(blobs);
+    /// Inserts multiple blob sidecars nto the provider.
+    pub fn insert_blob_sidecars(
+        &mut self,
+        block_hash: B256,
+        sidecars: Vec<BlobTransactionSidecar>,
+    ) {
+        if let Some(existing_blobs) = self.blocks_to_blob_sidecars.get_mut(&block_hash) {
+            existing_blobs.extend(sidecars);
         } else {
-            if self.blocks_to_blob.len() >= self.capacity {
+            if self.blocks_to_blob_sidecars.len() >= self.capacity {
                 if let Some(oldest) = self.key_order.pop_front() {
-                    self.blocks_to_blob.remove(&oldest);
+                    self.blocks_to_blob_sidecars.remove(&oldest);
                 }
             }
-            self.blocks_to_blob.insert(block_hash, blobs);
+            self.blocks_to_blob_sidecars.insert(block_hash, sidecars);
         }
     }
 }
@@ -93,10 +98,14 @@ impl LayeredBlobProvider {
         Self { memory, online }
     }
 
-    /// Inserts multiple blobs into the in-memory provider.
+    /// Inserts multiple blob sidecars into the in-memory provider.
     #[inline]
-    pub fn insert_blobs(&mut self, block_hash: B256, blobs: Vec<Blob>) {
-        self.memory.lock().insert_blobs(block_hash, blobs);
+    pub fn insert_blob_sidecars(
+        &mut self,
+        block_hash: B256,
+        sidecars: Vec<BlobTransactionSidecar>,
+    ) {
+        self.memory.lock().insert_blob_sidecars(block_hash, sidecars);
     }
 
     /// Attempts to fetch blobs using the in-memory blob store.
@@ -104,19 +113,25 @@ impl LayeredBlobProvider {
     async fn memory_blob_load(
         &mut self,
         block_ref: &BlockInfo,
-        hashes: &[IndexedBlobHash],
-    ) -> eyre::Result<Vec<Blob>> {
+        blob_hashes: &[IndexedBlobHash],
+    ) -> Result<Vec<Blob>> {
         let locked = self.memory.lock();
 
-        let blobs_for_block = locked
-            .blocks_to_blob
+        let sidecars_for_block = locked
+            .blocks_to_blob_sidecars
             .get(&block_ref.hash)
-            .ok_or_else(|| eyre!("Blob not found for block ref: {:?}", block_ref))?;
+            .ok_or(eyre!("No blob sidecars found for block ref: {:?}", block_ref))?;
 
-        let mut blobs = Vec::new();
-        for _ in hashes {
-            for blob in blobs_for_block {
-                blobs.push(*blob);
+        // for each sidecar, get the blob hashes and check if any of them are
+        // part of the requested hashes. If they are, add the corresponding blobs
+        // to the blobs vector.
+        let mut blobs = Vec::with_capacity(blob_hashes.len());
+        let requested_hashes = blob_hashes.iter().map(|h| h.hash).collect::<Vec<_>>();
+        for sidecar in sidecars_for_block {
+            for (hash, blob) in sidecar.versioned_hashes().zip(&sidecar.blobs) {
+                if requested_hashes.contains(&hash) {
+                    blobs.push(*blob);
+                }
             }
         }
 
