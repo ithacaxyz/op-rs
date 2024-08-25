@@ -13,6 +13,7 @@ use tokio::{
 
 use crate::{
     behaviour::Behaviour,
+    discovery::DiscoveryBuilder,
     event::Event,
     handler::{BlockHandler, Handler},
     types::{ExecutionPayloadEnvelope, NetworkAddress},
@@ -51,19 +52,20 @@ impl GossipDriver {
             .with_behaviour(|_| self.behaviour)?
             .build();
         let addr = NetworkAddress::try_from(self.addr)?;
-        // let mut peer_recv = discovery::start(addr, self.chain_id)?;
+        let mut peer_recv =
+            DiscoveryBuilder::new().with_address(addr).with_chain_id(self.chain_id).start()?;
         let multiaddr = Multiaddr::from(addr);
         swarm.listen_on(multiaddr).map_err(|_| eyre::eyre!("swarm listen failed"))?;
         let handler = self.handler.clone();
         tokio::spawn(async move {
             loop {
                 select! {
-                    // peer = peer_recv.recv().fuse() => {
-                    //     if let Some(peer) = peer {
-                    //         let peer = Multiaddr::from(peer);
-                    //         _ = swarm.dial(peer);
-                    //     }
-                    // },
+                    peer = peer_recv.recv() => {
+                        if let Some(peer) = peer {
+                            let peer = Multiaddr::from(peer);
+                            _ = swarm.dial(peer);
+                        }
+                    },
                     event = swarm.select_next_some() => {
                         if let SwarmEvent::Behaviour(Event::Gossipsub(libp2p::gossipsub::Event::Message {
                             propagation_source: _peer_id,
