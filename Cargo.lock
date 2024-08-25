@@ -5127,6 +5127,7 @@ name = "op-net"
 version = "0.0.0"
 dependencies = [
  "alloy",
+ "alloy-rlp",
  "discv5",
  "eyre",
  "futures",
@@ -5138,6 +5139,7 @@ dependencies = [
  "snap",
  "tokio",
  "tracing",
+ "unsigned-varint 0.8.0",
 ]
 
 [[package]]

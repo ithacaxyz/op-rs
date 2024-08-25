@@ -5,9 +5,12 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 pub mod behaviour;
+pub mod bootnodes;
 pub mod builder;
 pub mod config;
+pub mod discovery;
 pub mod driver;
 pub mod event;
 pub mod handler;
+pub mod op_enr;
 pub mod types;

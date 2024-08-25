@@ -13,6 +13,7 @@ rust-version.workspace = true
 [dependencies]
 # Alloy
 alloy.workspace = true
+alloy-rlp.workspace = true
 
 # Kona
 kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
@@ -30,3 +31,4 @@ eyre.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 lazy_static.workspace = true
+unsigned-varint.workspace = true
