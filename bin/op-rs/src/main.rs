@@ -9,9 +9,9 @@ use std::{fs::File, sync::Arc};
 
 use clap::Parser;
 use eyre::{bail, Result};
-use rollup::{HeraArgsExt, Driver, HERA_EXEX_ID};
 use reth::cli::Cli;
 use reth_node_ethereum::EthereumNode;
+use rollup::{Driver, HeraArgsExt, HERA_EXEX_ID};
 use superchain_registry::ROLLUP_CONFIGS;
 use tracing::{debug, info, warn};
 
@@ -39,11 +39,11 @@ fn main() -> Result<()> {
             let Some(hera_args) = args.hera_config else {
                 bail!("Hera Execution Extension configuration is required when the `hera` flag is set");
             };
-            
+
             let Some(cfg) = ROLLUP_CONFIGS.get(&hera_args.l2_chain_id).cloned().map(Arc::new) else {
                 bail!("Rollup configuration not found for L2 chain ID: {}", hera_args.l2_chain_id);
             };
-            
+
             let node = EthereumNode::default();
             let hera = move |ctx| async { Ok(Driver::new(ctx, hera_args, cfg).await.start()) };
             let handle = builder.node(node).install_exex(HERA_EXEX_ID, hera).launch().await?;
