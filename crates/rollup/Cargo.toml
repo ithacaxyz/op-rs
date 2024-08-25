@@ -31,3 +31,7 @@ superchain-registry = { workspace = true, default-features = false }
 url = "2.5.2"
 serde_json = "1"
 reqwest = "0.12.7"
+
+[features]
+default = ["online"]
+online = ["kona-derive/online"]
