@@ -153,10 +153,19 @@ reth-revm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-evm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 
+# Networking
+snap = "1.1.1"
+discv5 = "0.6.0"
+openssl = { version = "0.10.66", features = ["vendored"] }
+libp2p-identity = { version = "0.2.9", features = [ "secp256k1" ] }
+libp2p = { version = "0.54.0", features = ["macros", "tokio", "tcp", "noise", "gossipsub", "ping", "yamux"] }
+
 # Misc
 tracing = "0.1.0"
 eyre = "0.6.12"
 clap = "4" 
+lazy_static = "1.5.0"
+futures = "0.3.30"
 async-trait = "0.1.81"
 hashbrown = "0.14.5"
 parking_lot = "0.12.3"

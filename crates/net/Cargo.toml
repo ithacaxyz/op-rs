@@ -11,5 +11,22 @@ categories.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+# Alloy
 alloy.workspace = true
+
+# Kona
 kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
+
+# Networking
+snap.workspace = true
+futures.workspace = true
+discv5.workspace = true
+libp2p.workspace = true
+openssl.workspace = true
+libp2p-identity.workspace = true
+
+# Misc
+eyre.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+lazy_static.workspace = true
