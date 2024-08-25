@@ -61,9 +61,22 @@ pub struct HeraArgsExt {
     pub l2_engine_jwt_secret: Option<PathBuf>,
 }
 
+/// The payload validation mode.
+///
+/// Every newly derived payload needs to be validated against a local
+/// execution of all transactions included inside it. This can be done
+/// in two ways:
+///
+/// - Trusted: rely on a trusted synced L2 execution client. Validation happens by fetching the same
+///   block and comparing the results.
+/// - Engine API: use the authenticated engine API of an L2 execution client. Validation happens by
+///   sending the `new_payload` to the API and expecting a VALID response. This method can also be
+///   used to verify unsafe payloads from the sequencer.
 #[derive(Debug, Clone)]
 pub enum ValidationMode {
+    /// Use a trusted synced L2 execution client.
     Trusted,
+    /// Use the authenticated engine API of an L2 execution client.
     EngineApi,
 }
 

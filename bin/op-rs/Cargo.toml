@@ -1,7 +1,6 @@
 [package]
-name = "hera-exex"
-description = "Hera Execution Extension"
-version = "0.0.0"
+name = "op-rs"
+version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
@@ -11,17 +10,17 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+# Local Dependencies
+rollup = { path = "../../crates/rollup" }
+
 # Workspace
 eyre.workspace = true
 tracing.workspace = true
 clap.workspace = true
 
 # Reth Dependencies
-reth-exex.workspace = true
-reth-node-api.workspace = true
+reth.workspace = true
+reth-node-ethereum.workspace = true
 
 # OP Stack Dependencies
 superchain-registry = { workspace = true, default-features = false }
-
-# Misc
-url = "2.5.2"

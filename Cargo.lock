@@ -2671,30 +2671,14 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "hera"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "clap",
  "eyre",
- "kona-derive",
- "kona-providers",
- "reth 1.0.5",
+ "reth",
  "reth-exex",
  "reth-node-api",
  "reth-node-ethereum",
  "superchain-registry",
  "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "hera-exex"
-version = "0.0.0"
-dependencies = [
- "clap",
- "eyre",
- "reth-exex",
- "reth-node-api",
- "superchain-registry",
  "tracing",
  "url",
 ]
@@ -3459,7 +3443,7 @@ dependencies = [
  "kona-derive",
  "kona-primitives",
  "parking_lot 0.12.3",
- "reth 1.0.5",
+ "reth",
 ]
 
 [[package]]
@@ -4236,6 +4220,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "op-rs"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "eyre",
+ "reth",
+ "reth-node-ethereum",
+ "rollup",
+ "superchain-registry",
+ "tracing",
+]
+
+[[package]]
 name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5001,25 +4998,6 @@ checksum = "52e44394d2086d010551b14b53b1f24e31647570cd1deb0379e2c21b329aba00"
 dependencies = [
  "hostname",
  "quick-error",
-]
-
-[[package]]
-name = "reth"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "eyre",
- "hera-exex",
- "kona-derive",
- "reth 1.0.5",
- "reth-exex",
- "reth-node-api",
- "reth-node-ethereum",
- "superchain-registry",
- "tokio",
- "tracing",
- "url",
 ]
 
 [[package]]
@@ -7393,6 +7371,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8395b4f860856b740f20a296ea2cd4d823e81a2658cf05ef61be22916026a906"
 dependencies = [
  "chrono",
+]
+
+[[package]]
+name = "rollup"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "clap",
+ "eyre",
+ "reth-exex",
+ "reth-node-api",
+ "superchain-registry",
+ "tokio",
+ "tracing",
+ "url",
 ]
 
 [[package]]

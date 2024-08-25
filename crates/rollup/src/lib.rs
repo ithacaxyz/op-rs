@@ -1,11 +1,11 @@
-//! Hera Execution Extension
+//! Rollup Node
 
 #![doc(issue_tracker_base_url = "https://github.com/paradigmxyz/op-rs/issues/")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
-mod exex;
-pub use exex::HeraExEx;
+mod driver;
+pub use driver::Driver;
 
 mod cli;
 pub use cli::HeraArgsExt;

@@ -11,9 +11,6 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-# Local Dependencies
-kona-providers = { path = "../../crates/kona-providers" }
-
 # Workspace
 eyre.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
@@ -28,10 +25,6 @@ reth-node-ethereum.workspace = true
 
 # OP Stack Dependencies
 superchain-registry = { workspace = true, default-features = false }
-kona-derive = { workspace = true, features = ["online", "serde"] }
-
-# Needed for compatibility with Kona's ChainProvider trait
-anyhow = { version = "1.0.86", default-features = false }
 
 # Misc
 url = "2.5.2"
