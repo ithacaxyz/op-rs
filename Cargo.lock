@@ -7340,6 +7340,7 @@ dependencies = [
  "async-trait",
  "clap",
  "eyre",
+ "kona-derive",
  "kona-primitives",
  "reqwest",
  "reth",

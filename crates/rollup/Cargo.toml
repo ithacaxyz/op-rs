@@ -24,6 +24,7 @@ reth-exex.workspace = true
 reth-node-api.workspace = true
 
 # OP Stack Dependencies
+kona-derive.workspace = true
 kona-primitives.workspace = true
 superchain-registry = { workspace = true, default-features = false }
 
