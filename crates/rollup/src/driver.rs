@@ -1,16 +1,22 @@
 //! Rollup Node Driver
 
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
 use eyre::{bail, Result};
+use kona_derive::{
+    online::AlloyL2ChainProvider,
+    traits::{BlobProvider, ChainProvider, L2ChainProvider},
+};
+use kona_primitives::BlockInfo;
+use kona_providers::{InMemoryChainProvider, LayeredBlobProvider};
 use reth_exex::{ExExContext, ExExEvent, ExExNotification};
 use reth_node_api::FullNodeComponents;
 use superchain_registry::RollupConfig;
 use tokio::sync::mpsc::error::SendError;
 use tracing::{debug, info};
 
-use crate::cli::HeraArgsExt;
+use crate::{new_rollup_pipeline, HeraArgsExt, RollupPipeline};
 
 #[async_trait]
 pub trait DriverContext {
@@ -32,20 +38,41 @@ impl<N: FullNodeComponents> DriverContext for ExExContext<N> {
 
 /// The Rollup Driver entrypoint.
 #[derive(Debug)]
-pub struct Driver<DC: DriverContext> {
+pub struct Driver<DC, CP, BP, L2CP> {
     /// The rollup configuration
     cfg: Arc<RollupConfig>,
     /// The context of the node
     ctx: DC,
+    /// The L1 chain provider
+    chain_provider: CP,
+    /// The L1 blob provider
+    blob_provider: BP,
+    /// The L2 chain provider
+    l2_chain_provider: L2CP,
+}
+
+impl<N> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider, AlloyL2ChainProvider>
+where
+    N: FullNodeComponents,
+{
+    /// Create a new Hera Execution Extension Driver
+    pub async fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+        let cp = InMemoryChainProvider::with_capacity(1024);
+        let bp = LayeredBlobProvider::new(args.l1_beacon_client_url, args.l1_blob_archiver_url);
+        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
+
+        Self { cfg, ctx, chain_provider: cp, blob_provider: bp, l2_chain_provider: l2_cp }
+    }
 }
 
 #[allow(unused)]
-impl<DC: DriverContext> Driver<DC> {
-    /// Creates a new instance of the Hera Execution Extension.
-    pub async fn new(ctx: DC, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
-        Self { ctx, cfg }
-    }
-
+impl<DC, CP, BP, L2CP> Driver<DC, CP, BP, L2CP>
+where
+    DC: DriverContext,
+    CP: ChainProvider + Clone + Send + Sync + Debug + 'static,
+    BP: BlobProvider + Clone + Send + Sync + Debug + 'static,
+    L2CP: L2ChainProvider + Clone + Send + Sync + Debug + 'static,
+{
     /// Wait for the L2 genesis L1 block (aka "origin block") to be available in the L1 chain.
     async fn wait_for_l2_genesis_l1_block(&mut self) -> Result<()> {
         loop {
@@ -69,12 +96,30 @@ impl<DC: DriverContext> Driver<DC> {
         }
     }
 
+    /// Initialize the rollup pipeline from the driver's components.
+    fn init_pipeline(&mut self) -> RollupPipeline<CP, BP, L2CP> {
+        new_rollup_pipeline(
+            self.cfg.clone(),
+            self.chain_provider.clone(),
+            self.blob_provider.clone(),
+            self.l2_chain_provider.clone(),
+            // TODO: use a dynamic "tip" block instead of genesis
+            BlockInfo {
+                hash: self.cfg.genesis.l2.hash,
+                number: self.cfg.genesis.l2.number,
+                ..Default::default()
+            },
+        )
+    }
+
     /// Starts the Hera Execution Extension loop.
     pub async fn start(mut self) -> Result<()> {
         // Step 1: Wait for the L2 origin block to be available
         self.wait_for_l2_genesis_l1_block().await?;
         info!("Chain synced to rollup genesis");
 
-        todo!("init pipeline and start processing events");
+        let pipeline = self.init_pipeline();
+
+        todo!("start processing events");
     }
 }
