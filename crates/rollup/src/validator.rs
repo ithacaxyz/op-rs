@@ -5,7 +5,6 @@ use std::fmt::Debug;
 use alloy::{
     eips::BlockNumberOrTag,
     providers::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider},
-    transports::TransportResult,
 };
 use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
@@ -18,7 +17,7 @@ use reth::rpc::types::{
     engine::{Claims, JwtSecret},
     Header,
 };
-use tracing::{error, warn};
+use tracing::error;
 use url::Url;
 
 /// AttributesValidator
@@ -66,19 +65,24 @@ impl TrustedValidator {
             .provider
             .get_block(tag.into(), BlockTransactionsKind::Hashes)
             .await
-            .map_err(|e| eyre!(e))?
+            .map_err(|e| eyre!(format!("Failed to fetch block: {:?}", e)))?
             .ok_or(eyre!("Block not found"))?;
 
         // For each transaction hash, fetch the raw transaction RLP.
         let mut txs = vec![];
         for tx in block.transactions.hashes() {
-            let tx: TransportResult<RawTransaction> =
-                self.provider.raw_request("debug_getRawTransaction".into(), [tx]).await;
-            if let Ok(tx) = tx {
-                txs.push(tx);
-            } else {
-                warn!("Failed to fetch transaction: {:?}", tx);
+            match self.provider.raw_request("debug_getRawTransaction".into(), [tx]).await {
+                Ok(tx) => txs.push(tx),
+                Err(err) => {
+                    error!(?err, "Failed to fetch RLP transaction");
+                    bail!("Failed to fetch transaction");
+                }
             }
+        }
+
+        // sanity check that we fetched all transactions
+        if txs.len() != block.transactions.len() {
+            bail!("Transaction count mismatch");
         }
 
         Ok((block.header, txs))
