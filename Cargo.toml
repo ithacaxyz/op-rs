@@ -62,6 +62,7 @@ alloy = { version = "0.4.2", features = [
 ] }
 alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3"
+alloy-eips = { version = "0.4", default-features = false }
 
 # Op-Alloy
 op-alloy-consensus = { version = "0.4.0", default-features = false }
@@ -76,7 +77,11 @@ tokio = { version = "1.21", default-features = false }
 
 # Serialization
 serde_json = "1"
-ethereum_ssz = "0.7.1"
+ethereum_ssz = "0.8.0"
+
+# RPC
+jsonrpsee = { version = "0.24", features = ["jsonrpsee-core", "client-core", "server-core", "macros"] }
+jsonrpsee-types = "0.24"
 
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
@@ -93,10 +98,12 @@ reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 
 # Networking
 snap = "1.1.1"
-discv5 = "0.6.0"
+discv5 = "0.8.0"
 openssl = { version = "0.10.66", features = ["vendored"] }
 libp2p-identity = { version = "0.2.9", features = [ "secp256k1" ] }
 libp2p = { version = "0.54.0", features = ["macros", "tokio", "tcp", "noise", "gossipsub", "ping", "yamux"] }
@@ -106,17 +113,18 @@ arbtest = "0.3"
 arbitrary = { version = "1", features = ["derive"] }
 
 # Misc
-reqwest = "0.12.7"
-tracing = "0.1.0"
+tracing = "0.1.40"
+thiserror = "1.0"
 tracing-subscriber = "0.3.18"
 eyre = "0.6.12"
 clap = { version = "4.5.4", features = ["derive", "env"] }
 lazy_static = "1.5.0"
 futures = "0.3.30"
-async-trait = "0.1.81"
-hashbrown = "0.14.5"
+async-trait = "0.1.83"
+hashbrown = "0.15.0"
 parking_lot = "0.12.3"
 unsigned-varint = "0.8.0"
+reqwest = { version = "0.12", features = ["rustls-tls-native-roots"] }
 rand = { version = "0.8.5", features = ["small_rng", "alloc", "getrandom"], default-features = false }
 url = "2.5.2"
 
