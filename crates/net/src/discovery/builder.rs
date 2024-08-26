@@ -10,6 +10,8 @@ use discv5::{
 };
 use eyre::Result;
 
+use crate::types::enr::OP_CL_KEY;
+
 /// Discovery service builder.
 #[derive(Debug, Default, Clone)]
 pub struct DiscoveryBuilder {
@@ -45,7 +47,7 @@ impl DiscoveryBuilder {
         let opstack_data: Vec<u8> = opstack.into();
 
         let key = CombinedKey::generate_secp256k1();
-        let enr = Enr::builder().add_value_rlp("opstack", opstack_data.into()).build(&key)?;
+        let enr = Enr::builder().add_value_rlp(OP_CL_KEY, opstack_data.into()).build(&key)?;
         let listen_config = ListenConfig::from_ip(addr.ip.into(), addr.port);
         let config = ConfigBuilder::new(listen_config).build();
 
