@@ -8,8 +8,10 @@ use tokio::sync::watch::{channel, Receiver, Sender};
 use crate::types::envelope::ExecutionPayloadEnvelope;
 
 /// This trait defines the functionality required to process incoming messages
-/// and determine their acceptance within the network. Implementors of this trait
-/// can specify how messages are handled and which topics they are interested in.
+/// and determine their acceptance within the network.
+///
+/// Implementors of this trait can specify how messages are handled and which
+/// topics they are interested in.
 pub trait Handler: Send {
     /// Manages validation and further processing of messages
     fn handle(&self, msg: Message) -> MessageAcceptance;
