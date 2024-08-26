@@ -16,7 +16,7 @@ alloy.workspace = true
 alloy-rlp.workspace = true
 
 # Kona
-kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
+kona-primitives.workspace = true
 
 # Networking
 ssz_rs.workspace = true
