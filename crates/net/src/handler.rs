@@ -1,4 +1,3 @@
-#![allow(unused)]
 //! Block Handler
 
 use alloy::primitives::Address;
