@@ -25,17 +25,17 @@ pub trait Handler: Send {
 pub struct BlockHandler {
     /// Chain ID of the L2 blockchain. Used to filter out gossip messages intended for other
     /// blockchains.
-    chain_id: u64,
+    pub chain_id: u64,
     /// A channel sender to forward new blocks to other modules
-    block_sender: Sender<ExecutionPayloadEnvelope>,
+    pub block_sender: Sender<ExecutionPayloadEnvelope>,
     /// A [Receiver] to monitor changes to the unsafe block signer.
-    unsafe_signer_recv: Receiver<Address>,
+    pub unsafe_signer_recv: Receiver<Address>,
     /// The libp2p topic for pre Canyon/Shangai blocks.
-    blocks_v1_topic: IdentTopic,
+    pub blocks_v1_topic: IdentTopic,
     /// The libp2p topic for Canyon/Delta blocks.
-    blocks_v2_topic: IdentTopic,
+    pub blocks_v2_topic: IdentTopic,
     /// The libp2p topic for Ecotone V3 blocks.
-    blocks_v3_topic: IdentTopic,
+    pub blocks_v3_topic: IdentTopic,
 }
 
 impl Handler for BlockHandler {

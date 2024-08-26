@@ -13,9 +13,9 @@ use crate::{event::Event, handler::Handler};
 #[behaviour(out_event = "Event")]
 pub struct Behaviour {
     /// Responds to inbound pings and send outbound pings.
-    ping: libp2p::ping::Behaviour,
+    pub ping: libp2p::ping::Behaviour,
     /// Enables gossipsub as the routing layer.
-    gossipsub: libp2p::gossipsub::Behaviour,
+    pub gossipsub: libp2p::gossipsub::Behaviour,
 }
 
 impl Behaviour {
@@ -42,5 +42,32 @@ impl Behaviour {
             .collect::<Result<Vec<bool>>>()?;
 
         Ok(Self { ping, gossipsub })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::handler::BlockHandler;
+    use alloy::primitives::Address;
+
+    #[test]
+    fn test_behaviour_no_handlers() {
+        let cfg = crate::config::default_config_builder()
+            .build()
+            .expect("Failed to build default config");
+        let handlers = vec![];
+        let _ = Behaviour::new(cfg, &handlers).unwrap();
+    }
+
+    #[test]
+    fn test_behaviour_with_handlers() {
+        let cfg = crate::config::default_config_builder()
+            .build()
+            .expect("Failed to build default config");
+        let (_, recv) = tokio::sync::watch::channel(Address::default());
+        let (block_handler, _) = BlockHandler::new(0, recv);
+        let handlers: Vec<Box<dyn Handler>> = vec![Box::new(block_handler)];
+        let _ = Behaviour::new(cfg, &handlers).unwrap();
     }
 }

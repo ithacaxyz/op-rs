@@ -1,4 +1,4 @@
-//! Driver for p2p services.
+//! Driver for network services.
 
 use alloy::primitives::Address;
 use eyre::Result;
@@ -68,16 +68,16 @@ impl GossipDriver {
                     },
                     event = swarm.select_next_some() => {
                         if let SwarmEvent::Behaviour(Event::Gossipsub(libp2p::gossipsub::Event::Message {
-                            propagation_source: _peer_id,
-                            message_id: _id,
+                            propagation_source: src,
+                            message_id: id,
                             message,
                         })) = event {
                             if handler.topics().contains(&message.topic) {
-                                let _status = handler.handle(message);
-                                // TODO: report message validation result??
-                                // _ = swarm
-                                //     .behaviour_mut()
-                                //     .report_message_validation_result(&message_id, &propagation_source, status);
+                                let status = handler.handle(message);
+                                _ = swarm
+                                    .behaviour_mut()
+                                    .gossipsub
+                                    .report_message_validation_result(&id, &src, status);
                             }
                         }
                     },
