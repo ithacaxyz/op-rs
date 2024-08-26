@@ -5,9 +5,11 @@ use alloy::primitives::Address;
 use libp2p::gossipsub::{IdentTopic, Message, MessageAcceptance, TopicHash};
 use std::time::SystemTime;
 use tokio::sync::watch::{channel, Receiver, Sender};
-// use ssz_rs::{prelude::*, List, Vector, U256};
 
-use crate::types::ExecutionPayloadEnvelope;
+use crate::{
+    ssz::{ExecutionPayloadV1SSZ, ExecutionPayloadV2SSZ, ExecutionPayloadV3SSZ},
+    types::ExecutionPayloadEnvelope,
+};
 
 /// This trait defines the functionality required to process incoming messages
 /// and determine their acceptance within the network. Implementors of this trait
@@ -44,34 +46,31 @@ impl Handler for BlockHandler {
     fn handle(&self, msg: Message) -> MessageAcceptance {
         tracing::debug!("received block");
 
-        if msg.topic == self.blocks_v1_topic.hash() {
-            // decode_pre_ecotone_block_msg::<ExecutionPayloadV1SSZ>(msg.data)
-            unimplemented!()
+        let decoded = if msg.topic == self.blocks_v1_topic.hash() {
+            ExecutionPayloadEnvelope::decode_v1(&msg.data)
         } else if msg.topic == self.blocks_v2_topic.hash() {
-            // decode_pre_ecotone_block_msg::<ExecutionPayloadV2SSZ>(msg.data)
-            unimplemented!()
+            ExecutionPayloadEnvelope::decode_v2(&msg.data)
         } else if msg.topic == self.blocks_v3_topic.hash() {
-            // decode_post_ecotone_block_msg(msg.data)
-            unimplemented!()
+            ExecutionPayloadEnvelope::decode_v3(&msg.data)
         } else {
             return MessageAcceptance::Reject;
         };
 
-        // match decoded {
-        //     Ok(envelope) => {
-        //         if self.block_valid(&envelope) {
-        //             _ = self.block_sender.send(envelope.payload);
-        //             MessageAcceptance::Accept
-        //         } else {
-        //             tracing::warn!("invalid unsafe block");
-        //             MessageAcceptance::Reject
-        //         }
-        //     }
-        //     Err(err) => {
-        //         tracing::warn!("unsafe block decode failed: {}", err);
-        //         MessageAcceptance::Reject
-        //     }
-        // }
+        match decoded {
+            Ok(envelope) => {
+                if self.block_valid(&envelope) {
+                    _ = self.block_sender.send(envelope);
+                    MessageAcceptance::Accept
+                } else {
+                    tracing::warn!("invalid unsafe block");
+                    MessageAcceptance::Reject
+                }
+            }
+            Err(err) => {
+                tracing::warn!("unsafe block decode failed: {}", err);
+                MessageAcceptance::Reject
+            }
+        }
     }
 
     /// The gossip topics accepted for new blocks

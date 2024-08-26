@@ -13,4 +13,6 @@ pub mod driver;
 pub mod event;
 pub mod handler;
 pub mod op_enr;
+pub mod ssz;
+pub mod swarm;
 pub mod types;

@@ -137,6 +137,9 @@ alloy-rlp = "0.3.4"
 # Tokio
 tokio = { version = "1.21", default-features = false }
 
+# SSZ
+ssz_rs = "0.9.0"
+
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-chainspec = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }

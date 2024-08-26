@@ -1,8 +1,11 @@
-//! Contains the OP Stack Enr Type.
+//! Contains the Optimism consensus-layer ENR Type.
 
 use discv5::enr::{CombinedKey, Enr};
 use eyre::Result;
 use unsigned_varint::{decode, encode};
+
+/// The ENR key literal string for the consensus layer.
+pub const OP_CL_KEY: &str = "opstack";
 
 /// The unique L2 network identifier
 #[derive(Debug, Clone, Copy, Default)]
@@ -21,7 +24,7 @@ impl OpStackEnr {
 
     /// Returns `true` if a node [Enr] contains an `opstack` key and is on the same network.
     pub fn is_valid_node(node: &Enr<CombinedKey>, chain_id: u64) -> bool {
-        node.get_raw_rlp("opstack")
+        node.get_raw_rlp(OP_CL_KEY)
             .map(|opstack| {
                 OpStackEnr::try_from(opstack)
                     .map(|opstack| opstack.chain_id == chain_id && opstack.version == 0)

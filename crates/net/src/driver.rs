@@ -2,79 +2,62 @@
 
 use alloy::primitives::Address;
 use eyre::Result;
-use futures::stream::StreamExt;
-use libp2p::{swarm::SwarmEvent, Multiaddr, SwarmBuilder};
-use libp2p_identity::Keypair;
-use std::net::SocketAddr;
+use libp2p::swarm::SwarmEvent;
 use tokio::{
     select,
     sync::watch::{Receiver, Sender},
 };
 
 use crate::{
-    behaviour::Behaviour,
-    discovery::DiscoveryBuilder,
+    discovery::DiscoveryDriver,
     event::Event,
     handler::{BlockHandler, Handler},
-    types::{ExecutionPayloadEnvelope, NetworkAddress},
+    swarm::SwarmDriver,
+    types::ExecutionPayloadEnvelope,
 };
 
-/// Driver contains the logic for the P2P service.
-pub struct GossipDriver {
-    /// The [Behaviour] of the node.
-    pub behaviour: Behaviour,
+/// NetworkDriver
+///
+/// Contains the logic to run Optimism's consensus-layer networking stack.
+/// There are two core services that are run by the driver:
+/// - Block gossip through Gossipsub.
+/// - Peer discovery with `discv5`.
+pub struct NetworkDriver {
     /// Channel to receive unsafe blocks.
     pub unsafe_block_recv: Receiver<ExecutionPayloadEnvelope>,
     /// Channel to send unsafe signer updates.
     pub unsafe_block_signer_sender: Sender<Address>,
-    /// The socket address that the service is listening on.
-    pub addr: SocketAddr,
     /// Block handler.
     pub handler: BlockHandler,
-    /// The chain ID of the network.
-    pub chain_id: u64,
-    /// A unique keypair to validate the node's identity
-    pub keypair: Keypair,
+    /// The swarm instance.
+    pub swarm: SwarmDriver,
+    /// The discovery service driver.
+    pub discovery: DiscoveryDriver,
 }
 
-impl GossipDriver {
+impl NetworkDriver {
     /// Starts the Discv5 peer discovery & libp2p services
     /// and continually listens for new peers and messages to handle
-    pub fn start(self) -> Result<()> {
-        // TODO: pull this swarm building out into the builder
-        let mut swarm = SwarmBuilder::with_existing_identity(self.keypair.clone())
-            .with_tokio()
-            .with_tcp(
-                libp2p::tcp::Config::default(),
-                libp2p::noise::Config::new,
-                libp2p::yamux::Config::default,
-            )?
-            .with_behaviour(|_| self.behaviour)?
-            .build();
-        let addr = NetworkAddress::try_from(self.addr)?;
-        let mut peer_recv =
-            DiscoveryBuilder::new().with_address(addr).with_chain_id(self.chain_id).start()?;
-        let multiaddr = Multiaddr::from(addr);
-        swarm.listen_on(multiaddr).map_err(|_| eyre::eyre!("swarm listen failed"))?;
-        let handler = self.handler.clone();
+    pub fn start(mut self) -> Result<()> {
+        let mut peer_recv = self.discovery.start()?;
+        self.swarm.listen()?;
         tokio::spawn(async move {
             loop {
                 select! {
                     peer = peer_recv.recv() => {
                         if let Some(peer) = peer {
-                            let peer = Multiaddr::from(peer);
-                            _ = swarm.dial(peer);
+                            _ = self.swarm.dial(peer);
                         }
                     },
-                    event = swarm.select_next_some() => {
+                    event = self.swarm.select_next_some() => {
                         if let SwarmEvent::Behaviour(Event::Gossipsub(libp2p::gossipsub::Event::Message {
                             propagation_source: src,
                             message_id: id,
                             message,
                         })) = event {
-                            if handler.topics().contains(&message.topic) {
-                                let status = handler.handle(message);
-                                _ = swarm
+                            if self.handler.topics().contains(&message.topic) {
+                                let status = self.handler.handle(message);
+                                _ = self.swarm
                                     .behaviour_mut()
                                     .gossipsub
                                     .report_message_validation_result(&id, &src, status);
