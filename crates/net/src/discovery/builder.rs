@@ -40,7 +40,7 @@ impl DiscoveryBuilder {
     }
 
     /// Builds a [DiscoveryDriver].
-    pub fn build(self) -> Result<DiscoveryDriver> {
+    pub fn build(&mut self) -> Result<DiscoveryDriver> {
         let addr = self.address.ok_or_else(|| eyre::eyre!("address not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
         let opstack = OpStackEnr::new(chain_id, 0);
