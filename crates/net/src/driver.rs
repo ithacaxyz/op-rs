@@ -9,6 +9,7 @@ use tokio::{
 };
 
 use crate::{
+    builder::NetworkDriverBuilder,
     discovery::driver::DiscoveryDriver,
     gossip::{
         driver::GossipDriver,
@@ -38,6 +39,11 @@ pub struct NetworkDriver {
 }
 
 impl NetworkDriver {
+    /// Returns a new [NetworkDriverBuilder].
+    pub fn builder() -> NetworkDriverBuilder {
+        NetworkDriverBuilder::new()
+    }
+
     /// Starts the Discv5 peer discovery & libp2p services
     /// and continually listens for new peers and messages to handle
     pub fn start(mut self) -> Result<()> {

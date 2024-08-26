@@ -96,9 +96,9 @@ impl NetworkDriverBuilder {
     }
 
     /// Builds the [NetworkDriver].
-    pub fn build(self) -> Result<NetworkDriver> {
+    pub fn build(&mut self) -> Result<NetworkDriver> {
         // Build the config for gossipsub.
-        let config = self.inner.unwrap_or(config::default_config_builder()).build()?;
+        let config = self.inner.take().unwrap_or(config::default_config_builder()).build()?;
         let unsafe_block_signer =
             self.unsafe_block_signer.ok_or_else(|| eyre::eyre!("unsafe block signer not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
@@ -111,15 +111,15 @@ impl NetworkDriverBuilder {
         let behaviour = Behaviour::new(config, &[Box::new(handler.clone())])?;
 
         // Build the swarm.
-        let keypair = self.keypair.unwrap_or(Keypair::generate_secp256k1());
+        let keypair = self.keypair.take().unwrap_or(Keypair::generate_secp256k1());
         let swarm = SwarmBuilder::with_existing_identity(keypair)
             .with_tokio()
-            .with_tcp(self.tcp_config.unwrap_or_default(), NoiseConfig::new, || {
-                self.yamux_config.unwrap_or_default()
+            .with_tcp(self.tcp_config.take().unwrap_or_default(), NoiseConfig::new, || {
+                self.yamux_config.take().unwrap_or_default()
             })?
             .with_behaviour(|_| behaviour)?
             .build();
-        let addr = self.socket.ok_or_else(|| eyre::eyre!("socket address not set"))?;
+        let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
         let addr = NetworkAddress::try_from(addr)?;
         let swarm_addr = Multiaddr::from(addr);
         let swarm = GossipDriver::new(swarm, swarm_addr);
