@@ -12,7 +12,6 @@ categories = ["cryptography", "cryptography::cryptocurrencies"]
 members = [
   "bin/hera",
   "bin/op-rs",
-  "crates/rollup",
   "crates/kona-providers",
   "crates/rollup",
   "crates/ser",

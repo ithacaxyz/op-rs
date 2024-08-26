@@ -13,5 +13,8 @@ pub use cli::HeraArgsExt;
 mod validator;
 pub use validator::AttributesValidator;
 
+mod pipeline;
+pub use pipeline::{new_rollup_pipeline, RollupPipeline};
+
 /// The identifier of the Hera Execution Extension.
 pub const HERA_EXEX_ID: &str = "hera";
