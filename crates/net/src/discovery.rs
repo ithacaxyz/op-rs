@@ -76,17 +76,23 @@ impl DiscoveryBuilder {
     /// ## Example
     ///
     /// ```no_run
-    /// use op_net::discovery::DiscoveryBuilder;
+    /// use op_net::{discovery::DiscoveryBuilder, types::NetworkAddress};
+    /// use std::net::Ipv4Addr;
     ///
-    /// let builder = DiscoveryBuilder::new()
-    ///    .with_address("")
-    ///    .with_chain_id(10) // OP Mainnet chain id
-    ///    .start()
-    ///    .expect("Failed to start discovery service");
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let network_addr = NetworkAddress { ip: Ipv4Addr::new(127, 0, 0, 1), port: 9000 };
+    ///     let mut peer_recv = DiscoveryBuilder::new()
+    ///         .with_address(network_addr)
+    ///         .with_chain_id(10) // OP Mainnet chain id
+    ///         .start()
+    ///         .expect("Failed to start discovery service");
     ///
-    /// loop {
-    ///    if let Some(peer) = builder.recv().await {
-    ///    println!("Received peer: {:?}", peer);
+    ///     loop {
+    ///         if let Some(peer) = peer_recv.recv().await {
+    ///             println!("Received peer: {:?}", peer);
+    ///         }
+    ///     }
     /// }
     /// ```
     pub fn start(self) -> Result<Receiver<Peer>> {
