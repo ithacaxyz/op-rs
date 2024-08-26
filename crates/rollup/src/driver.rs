@@ -27,21 +27,6 @@ pub trait DriverContext {
     fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>>;
 }
 
-/// The Rollup Driver entrypoint.
-#[derive(Debug)]
-pub struct Driver<DC, CP, BP, L2CP> {
-    /// The rollup configuration
-    cfg: Arc<RollupConfig>,
-    /// The context of the node
-    ctx: DC,
-    /// The L1 chain provider
-    chain_provider: CP,
-    /// The L1 blob provider
-    blob_provider: BP,
-    /// The L2 chain provider
-    l2_chain_provider: L2CP,
-}
-
 #[async_trait]
 impl<N: FullNodeComponents> DriverContext for ExExContext<N> {
     async fn recv_notification(&mut self) -> Option<ExExNotification> {
@@ -59,17 +44,33 @@ pub struct StandaloneContext;
 #[async_trait]
 impl DriverContext for StandaloneContext {
     async fn recv_notification(&mut self) -> Option<ExExNotification> {
-        // Where should we get notifications from?
-        // We could use the L1 chain provider, but it's already in the Driver struct
-        // and it doesn't work well with the ExExNotification abstraction IMO.
+        // TODO: we will need a background task to listen for new blocks
+        // (either polling or via websocket), parse them into ExExNotifications
+        // and handle reorgs for the driver to react to.
         todo!()
     }
 
     fn send_event(&mut self, _event: ExExEvent) -> Result<(), SendError<ExExEvent>> {
-        // Sending events is a no-op for standalone mode for now,
-        // really not sure if we'll need it here?
+        // TODO: When we have a better background notifier abstraction, sending
+        // FinishedHeight events will be useful to make the pipeline advance
+        // safely through reorgs (as it is currently done for ExExContext).
         Ok(())
     }
+}
+
+/// The Rollup Driver entrypoint.
+#[derive(Debug)]
+pub struct Driver<DC, CP, BP, L2CP> {
+    /// The rollup configuration
+    cfg: Arc<RollupConfig>,
+    /// The context of the node
+    ctx: DC,
+    /// The L1 chain provider
+    chain_provider: CP,
+    /// The L1 blob provider
+    blob_provider: BP,
+    /// The L2 chain provider
+    l2_chain_provider: L2CP,
 }
 
 impl<N> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider, AlloyL2ChainProvider>
@@ -77,7 +78,7 @@ where
     N: FullNodeComponents,
 {
     /// Create a new Hera Execution Extension Driver
-    pub async fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+    pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = InMemoryChainProvider::with_capacity(1024);
         let bp = LayeredBlobProvider::new(args.l1_beacon_client_url, args.l1_blob_archiver_url);
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
@@ -88,7 +89,7 @@ where
 
 impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2ChainProvider> {
     /// Create a new standalone Hera Driver
-    pub async fn std(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+    pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = AlloyChainProvider::new_http(args.l1_rpc_url);
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
         let bp = OnlineBlobProviderBuilder::new()
@@ -100,7 +101,6 @@ impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2C
     }
 }
 
-#[allow(unused)]
 impl<DC, CP, BP, L2CP> Driver<DC, CP, BP, L2CP>
 where
     DC: DriverContext,
@@ -153,7 +153,7 @@ where
         self.wait_for_l2_genesis_l1_block().await?;
         info!("Chain synced to rollup genesis");
 
-        let pipeline = self.init_pipeline();
+        let _pipeline = self.init_pipeline();
 
         todo!("start processing events");
     }
