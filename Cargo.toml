@@ -12,6 +12,7 @@ categories = ["cryptography", "cryptography::cryptocurrencies"]
 members = [
   "bin/hera",
   "bin/op-rs",
+  "crates/net",
   "crates/kona-providers",
   "crates/rollup",
   "crates/ser",
@@ -115,6 +116,9 @@ codegen-units = 1
 incremental = false
 
 [workspace.dependencies]
+# Workspace
+op-net = { path = "crates/net" }
+
 # Optimism
 superchain-registry = { version = "0.2.6", default-features = false }
 kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
@@ -133,6 +137,9 @@ alloy-rlp = "0.3.4"
 # Tokio
 tokio = { version = "1.21", default-features = false }
 
+# SSZ
+ssz_rs = "0.9.0"
+
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-chainspec = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
@@ -149,12 +156,22 @@ reth-revm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-evm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
 
+# Networking
+snap = "1.1.1"
+discv5 = "0.6.0"
+openssl = { version = "0.10.66", features = ["vendored"] }
+libp2p-identity = { version = "0.2.9", features = [ "secp256k1" ] }
+libp2p = { version = "0.54.0", features = ["macros", "tokio", "tcp", "noise", "gossipsub", "ping", "yamux"] }
+
 # Misc
 tracing = "0.1.0"
 eyre = "0.6.12"
 clap = "4" 
+lazy_static = "1.5.0"
+futures = "0.3.30"
 async-trait = "0.1.81"
 hashbrown = "0.14.5"
 parking_lot = "0.12.3"
+unsigned-varint = "0.8.0"
 rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
 url = "2.5.2"
