@@ -8,6 +8,9 @@ use url::Url;
 /// The default L2 chain ID to use. This corresponds to OP Mainnet.
 pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
 
+/// The default L1 RPC URL to use.
+pub const DEFAULT_L1_RPC_URL: &str = "https://eth.llamarpc.com/";
+
 /// The default L2 RPC URL to use.
 pub const DEFAULT_L2_RPC_URL: &str = "https://optimism.llamarpc.com/";
 
@@ -29,6 +32,11 @@ pub struct HeraArgsExt {
     /// RPC URL of an L2 execution client
     #[clap(long = "hera.l2-rpc-url", default_value = DEFAULT_L2_RPC_URL)]
     pub l2_rpc_url: Url,
+
+    /// RPC URL of an L1 execution client
+    /// (This is only needed when running in Standalone mode)
+    #[clap(long = "hera.l1-rpc-url", default_value = DEFAULT_L1_RPC_URL)]
+    pub l1_rpc_url: Url,
 
     /// URL of an L1 beacon client to fetch blobs
     #[clap(long = "hera.l1-beacon-client-url", default_value = DEFAULT_L1_BEACON_CLIENT_URL)]

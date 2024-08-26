@@ -18,6 +18,14 @@ use reth::primitives::BlobTransactionSidecar;
 use tracing::warn;
 use url::Url;
 
+/// A blob provider that first attempts to fetch blobs from a primary beacon client and
+/// falls back to a secondary blob archiver if the primary fails.
+///
+/// Any blob archiver just needs to implement the beacon
+/// [`blob_sidecars` API](https://ethereum.github.io/beacon-APIs/#/Beacon/getBlobSidecars)
+pub type DurableBlobProvider =
+    OnlineBlobProviderWithFallback<OnlineBeaconClient, OnlineBeaconClient, SimpleSlotDerivation>;
+
 /// Layered [BlobProvider] for the Kona derivation pipeline.
 ///
 /// This provider wraps different blob sources in an ordered manner:
@@ -35,13 +43,9 @@ pub struct LayeredBlobProvider {
     /// This is used primarily during sync when archived blobs
     /// aren't provided by reth since they'll be too old.
     ///
-    /// The `WithFallback` setup allows to specify two different
+    /// The `Durable` setup allows to specify two different
     /// endpoints for a primary and a fallback blob provider.
-    online: OnlineBlobProviderWithFallback<
-        OnlineBeaconClient,
-        OnlineBeaconClient,
-        SimpleSlotDerivation,
-    >,
+    online: DurableBlobProvider,
 }
 
 /// A blob provider that hold blobs in memory.

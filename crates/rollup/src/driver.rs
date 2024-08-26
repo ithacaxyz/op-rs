@@ -5,11 +5,13 @@ use std::{fmt::Debug, sync::Arc};
 use async_trait::async_trait;
 use eyre::{bail, Result};
 use kona_derive::{
-    online::AlloyL2ChainProvider,
+    online::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder},
     traits::{BlobProvider, ChainProvider, L2ChainProvider},
 };
 use kona_primitives::BlockInfo;
-use kona_providers::{InMemoryChainProvider, LayeredBlobProvider};
+use kona_providers::{
+    blob_provider::DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider,
+};
 use reth_exex::{ExExContext, ExExEvent, ExExNotification};
 use reth_node_api::FullNodeComponents;
 use superchain_registry::RollupConfig;
@@ -23,17 +25,6 @@ pub trait DriverContext {
     async fn recv_notification(&mut self) -> Option<ExExNotification>;
 
     fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>>;
-}
-
-#[async_trait]
-impl<N: FullNodeComponents> DriverContext for ExExContext<N> {
-    async fn recv_notification(&mut self) -> Option<ExExNotification> {
-        self.notifications.recv().await
-    }
-
-    fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>> {
-        self.events.send(event)
-    }
 }
 
 /// The Rollup Driver entrypoint.
@@ -51,6 +42,36 @@ pub struct Driver<DC, CP, BP, L2CP> {
     l2_chain_provider: L2CP,
 }
 
+#[async_trait]
+impl<N: FullNodeComponents> DriverContext for ExExContext<N> {
+    async fn recv_notification(&mut self) -> Option<ExExNotification> {
+        self.notifications.recv().await
+    }
+
+    fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>> {
+        self.events.send(event)
+    }
+}
+
+#[derive(Debug)]
+pub struct StandaloneContext;
+
+#[async_trait]
+impl DriverContext for StandaloneContext {
+    async fn recv_notification(&mut self) -> Option<ExExNotification> {
+        // Where should we get notifications from?
+        // We could use the L1 chain provider, but it's already in the Driver struct
+        // and it doesn't work well with the ExExNotification abstraction IMO.
+        todo!()
+    }
+
+    fn send_event(&mut self, _event: ExExEvent) -> Result<(), SendError<ExExEvent>> {
+        // Sending events is a no-op for standalone mode for now,
+        // really not sure if we'll need it here?
+        Ok(())
+    }
+}
+
 impl<N> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider, AlloyL2ChainProvider>
 where
     N: FullNodeComponents,
@@ -60,6 +81,20 @@ where
         let cp = InMemoryChainProvider::with_capacity(1024);
         let bp = LayeredBlobProvider::new(args.l1_beacon_client_url, args.l1_blob_archiver_url);
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
+
+        Self { cfg, ctx, chain_provider: cp, blob_provider: bp, l2_chain_provider: l2_cp }
+    }
+}
+
+impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2ChainProvider> {
+    /// Create a new standalone Hera Driver
+    pub async fn std(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+        let cp = AlloyChainProvider::new_http(args.l1_rpc_url);
+        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
+        let bp = OnlineBlobProviderBuilder::new()
+            .with_primary(args.l1_beacon_client_url.to_string())
+            .with_fallback(args.l1_blob_archiver_url.map(|url| url.to_string()))
+            .build();
 
         Self { cfg, ctx, chain_provider: cp, blob_provider: bp, l2_chain_provider: l2_cp }
     }
