@@ -5,10 +5,7 @@ use libp2p::gossipsub::{IdentTopic, Message, MessageAcceptance, TopicHash};
 use std::time::SystemTime;
 use tokio::sync::watch::{channel, Receiver, Sender};
 
-use crate::{
-    ssz::{ExecutionPayloadV1SSZ, ExecutionPayloadV2SSZ, ExecutionPayloadV3SSZ},
-    types::ExecutionPayloadEnvelope,
-};
+use crate::types::ExecutionPayloadEnvelope;
 
 /// This trait defines the functionality required to process incoming messages
 /// and determine their acceptance within the network. Implementors of this trait
