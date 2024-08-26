@@ -10,5 +10,8 @@ pub use driver::Driver;
 mod cli;
 pub use cli::HeraArgsExt;
 
+mod validator;
+pub use validator::AttributesValidator;
+
 /// The identifier of the Hera Execution Extension.
 pub const HERA_EXEX_ID: &str = "hera";
