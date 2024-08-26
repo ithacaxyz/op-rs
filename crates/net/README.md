@@ -27,4 +27,4 @@ println!("NetworkDriver started.");
 
 ### Acknowledgements
 
-Largely based off [magi][https://github.com/a16z/magi]'s [p2p module](https://github.com/a16z/magi/tree/master/src/network).
+Largely based off [magi](https://github.com/a16z/magi)'s [p2p module](https://github.com/a16z/magi/tree/master/src/network).
