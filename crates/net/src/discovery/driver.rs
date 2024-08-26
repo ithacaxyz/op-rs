@@ -11,7 +11,7 @@ use tracing::{trace, warn};
 use discv5::{enr::NodeId, Discv5};
 
 use crate::{
-    discovery::bootnodes::BOOTNODES,
+    discovery::{bootnodes::BOOTNODES, builder::DiscoveryBuilder},
     types::{address::Peer, enr::OpStackEnr},
 };
 
@@ -27,6 +27,11 @@ pub struct DiscoveryDriver {
 }
 
 impl DiscoveryDriver {
+    /// Returns a new [DiscoveryBuilder] instance.
+    pub fn builder() -> DiscoveryBuilder {
+        DiscoveryBuilder::new()
+    }
+
     /// Instantiates a new [DiscoveryDriver].
     pub fn new(disc: Discv5, chain_id: u64) -> Self {
         Self { disc, chain_id }
