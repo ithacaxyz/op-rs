@@ -76,7 +76,7 @@ impl Handler for BlockHandler {
 
     /// The gossip topics accepted for new blocks
     fn topics(&self) -> Vec<TopicHash> {
-        vec![self.blocks_v1_topic.hash(), self.blocks_v2_topic.hash()]
+        vec![self.blocks_v1_topic.hash(), self.blocks_v2_topic.hash(), self.blocks_v3_topic.hash()]
     }
 }
 

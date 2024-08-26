@@ -50,6 +50,15 @@ mod tests {
     use super::*;
     use crate::handler::BlockHandler;
     use alloy::primitives::Address;
+    use libp2p::gossipsub::{IdentTopic, TopicHash};
+
+    fn zero_topics() -> Vec<TopicHash> {
+        vec![
+            IdentTopic::new("/optimism/0/0/blocks").hash(),
+            IdentTopic::new("/optimism/0/1/blocks").hash(),
+            IdentTopic::new("/optimism/0/2/blocks").hash(),
+        ]
+    }
 
     #[test]
     fn test_behaviour_no_handlers() {
@@ -68,6 +77,9 @@ mod tests {
         let (_, recv) = tokio::sync::watch::channel(Address::default());
         let (block_handler, _) = BlockHandler::new(0, recv);
         let handlers: Vec<Box<dyn Handler>> = vec![Box::new(block_handler)];
-        let _ = Behaviour::new(cfg, &handlers).unwrap();
+        let behaviour = Behaviour::new(cfg, &handlers).unwrap();
+        let mut topics = behaviour.gossipsub.topics().cloned().collect::<Vec<TopicHash>>();
+        topics.sort();
+        assert_eq!(topics, zero_topics());
     }
 }
