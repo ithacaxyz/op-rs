@@ -19,6 +19,9 @@ async-trait.workspace = true
 parking_lot.workspace = true
 kona-derive.workspace = true
 kona-primitives.workspace = true
+tracing.workspace = true
+eyre.workspace = true
+url.workspace = true
 
 # Needed for compatibility with kona's ChainProvider trait
 anyhow = { version = "1.0.86", default-features = false }

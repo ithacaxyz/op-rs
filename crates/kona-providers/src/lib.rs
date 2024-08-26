@@ -12,3 +12,6 @@ pub use kona_derive::traits::*;
 
 pub mod chain_provider;
 pub use chain_provider::InMemoryChainProvider;
+
+pub mod blob_provider;
+pub use blob_provider::LayeredBlobProvider;
