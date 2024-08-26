@@ -8435,6 +8435,7 @@ dependencies = [
  "eyre",
  "kona-derive",
  "kona-primitives",
+ "kona-providers",
  "reqwest",
  "reth",
  "reth-exex",
