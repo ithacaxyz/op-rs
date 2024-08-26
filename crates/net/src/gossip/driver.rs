@@ -14,7 +14,7 @@ pub struct GossipDriver {
 }
 
 impl GossipDriver {
-    /// Creates a new [SwarmWithAddr] instance.
+    /// Creates a new [GossipDriver] instance.
     pub fn new(swarm: Swarm<Behaviour>, addr: Multiaddr) -> Self {
         Self { swarm, addr }
     }

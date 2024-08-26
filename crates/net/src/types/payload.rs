@@ -34,7 +34,7 @@ impl PayloadHash {
     }
 }
 
-/// The pre Canyon/Shanghai [ExecutionPayload] - the withdrawals field should not exist
+/// The pre Canyon/Shanghai [L2ExecutionPayload] - the withdrawals field should not exist
 #[derive(SimpleSerialize, Default)]
 pub struct ExecutionPayloadV1SSZ {
     /// Block hash of the parent block
@@ -92,7 +92,7 @@ impl From<ExecutionPayloadV1SSZ> for L2ExecutionPayload {
     }
 }
 
-/// The Canyon/Shanghai [ExecutionPayload] - the withdrawals field should be an empty [List]
+/// The Canyon/Shanghai [L2ExecutionPayload] - the withdrawals field should be an empty [List]
 #[derive(SimpleSerialize, Default)]
 pub struct ExecutionPayloadV2SSZ {
     /// Block hash of the parent block
@@ -142,8 +142,8 @@ pub struct Withdrawal {
 }
 
 impl From<ExecutionPayloadV2SSZ> for L2ExecutionPayload {
-    /// Converts an ExecutionPayloadV2SSZ received via p2p gossip into an [ExecutionPayload] used by
-    /// the engine.
+    /// Converts an ExecutionPayloadV2SSZ received via p2p gossip into an [L2ExecutionPayload] used
+    /// by the engine.
     fn from(value: ExecutionPayloadV2SSZ) -> Self {
         Self {
             parent_hash: convert_hash(value.parent_hash),
@@ -168,7 +168,7 @@ impl From<ExecutionPayloadV2SSZ> for L2ExecutionPayload {
     }
 }
 
-/// The Ecotone [ExecutionPayload] - Adds Eip 4844 fields to the payload
+/// The Ecotone [L2ExecutionPayload] - Adds Eip 4844 fields to the payload
 /// - `blob_gas_used`
 /// - `excess_blob_gas`
 #[derive(SimpleSerialize, Default)]

@@ -39,7 +39,7 @@ impl DiscoveryDriver {
     /// ## Errors
     ///
     /// Returns an error if the address or chain ID is not set
-    /// on the [DiscoveryBuilder].
+    /// on the [crate::discovery::builder::DiscoveryBuilder].
     ///
     /// ## Example
     ///
