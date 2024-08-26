@@ -12,8 +12,10 @@ use libp2p::{
 use libp2p_identity::Keypair;
 
 use crate::{
-    behaviour::Behaviour, config, discovery::DiscoveryBuilder, driver::NetworkDriver,
-    handler::BlockHandler, swarm::SwarmDriver, types::NetworkAddress,
+    discovery::builder::DiscoveryBuilder,
+    driver::NetworkDriver,
+    gossip::{behaviour::Behaviour, config, driver::GossipDriver, handler::BlockHandler},
+    types::address::NetworkAddress,
 };
 
 /// Constructs a [NetworkDriver] for Optimism's consensus-layer.
@@ -120,7 +122,7 @@ impl NetworkDriverBuilder {
         let addr = self.socket.ok_or_else(|| eyre::eyre!("socket address not set"))?;
         let addr = NetworkAddress::try_from(addr)?;
         let swarm_addr = Multiaddr::from(addr);
-        let swarm = SwarmDriver::new(swarm, swarm_addr);
+        let swarm = GossipDriver::new(swarm, swarm_addr);
 
         // Build the discovery service
         let discovery =

@@ -1,14 +1,38 @@
-//! SSZ Types
+//! Execution Payload Types
 
+use alloy::primitives::{keccak256, B256};
 use kona_primitives::L2ExecutionPayload;
 use ssz_rs::{prelude::*, List, Vector, U256};
 
 /// A type alias for a vector of 32 bytes, representing a Bytes32 hash
 type Bytes32 = Vector<u8, 32>;
+
 /// A type alias for a vector of 20 bytes, representing an address
 type VecAddress = Vector<u8, 20>;
+
 /// A type alias for a byte list, representing a transaction
 type Transaction = List<u8, 1073741824>;
+
+/// Represents the Keccak256 hash of the block
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct PayloadHash(B256);
+
+impl From<&[u8]> for PayloadHash {
+    /// Returns the Keccak256 hash of a sequence of bytes
+    fn from(value: &[u8]) -> Self {
+        Self(keccak256(value))
+    }
+}
+
+impl PayloadHash {
+    /// The expected message that should be signed by the unsafe block signer.
+    pub fn signature_message(&self, chain_id: u64) -> B256 {
+        let domain = B256::ZERO.as_slice();
+        let chain_id = B256::left_padding_from(&chain_id.to_be_bytes()[..]);
+        let payload_hash = self.0.as_slice();
+        keccak256([domain, chain_id.as_slice(), payload_hash].concat())
+    }
+}
 
 /// The pre Canyon/Shanghai [ExecutionPayload] - the withdrawals field should not exist
 #[derive(SimpleSerialize, Default)]
@@ -242,4 +266,19 @@ fn convert_uint(value: U256) -> Option<u128> {
 /// Converts [ssz_rs::List] of [Transaction] into a vector of [alloy::primitives::Bytes]
 fn convert_tx_list(value: List<Transaction, 1048576>) -> Vec<alloy::primitives::Bytes> {
     value.iter().map(|tx| alloy::primitives::Bytes::from(tx.to_vec())).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloy::primitives::b256;
+
+    #[test]
+    fn test_signature_message() {
+        let inner = b256!("9999999999999999999999999999999999999999999999999999999999999999");
+        let hash = PayloadHash::from(inner.as_slice());
+        let chain_id = 10;
+        let expected = b256!("44a0e2b1aba1aae1771eddae1dcd2ad18a8cdac8891517153f03253e49d3f206");
+        assert_eq!(hash.signature_message(chain_id), expected);
+    }
 }

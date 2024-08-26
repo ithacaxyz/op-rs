@@ -1,20 +1,21 @@
-//! Helpers for working with a [libp2p::Swarm].
+//! Consensus-layer gossipsub driver for Optimism.
 
+use crate::gossip::{behaviour::Behaviour, event::Event};
 use eyre::Result;
 use futures::stream::StreamExt;
 use libp2p::{Multiaddr, Swarm};
 
 /// A [libp2p::Swarm] instance with an associated address to listen on.
-pub struct SwarmDriver {
+pub struct GossipDriver {
     /// The [libp2p::Swarm] instance.
-    pub swarm: Swarm<crate::behaviour::Behaviour>,
+    pub swarm: Swarm<Behaviour>,
     /// The address to listen on.
     pub addr: Multiaddr,
 }
 
-impl SwarmDriver {
+impl GossipDriver {
     /// Creates a new [SwarmWithAddr] instance.
-    pub fn new(swarm: Swarm<crate::behaviour::Behaviour>, addr: Multiaddr) -> Self {
+    pub fn new(swarm: Swarm<Behaviour>, addr: Multiaddr) -> Self {
         Self { swarm, addr }
     }
 
@@ -25,12 +26,12 @@ impl SwarmDriver {
     }
 
     /// Returns a mutable reference to the Swarm's behaviour.
-    pub fn behaviour_mut(&mut self) -> &mut crate::behaviour::Behaviour {
+    pub fn behaviour_mut(&mut self) -> &mut Behaviour {
         self.swarm.behaviour_mut()
     }
 
     /// Attempts to select the next event from the Swarm.
-    pub async fn select_next_some(&mut self) -> libp2p::swarm::SwarmEvent<crate::event::Event> {
+    pub async fn select_next_some(&mut self) -> libp2p::swarm::SwarmEvent<Event> {
         self.swarm.select_next_some().await
     }
 

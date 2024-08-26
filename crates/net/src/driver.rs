@@ -9,11 +9,13 @@ use tokio::{
 };
 
 use crate::{
-    discovery::DiscoveryDriver,
-    event::Event,
-    handler::{BlockHandler, Handler},
-    swarm::SwarmDriver,
-    types::ExecutionPayloadEnvelope,
+    discovery::driver::DiscoveryDriver,
+    gossip::{
+        driver::GossipDriver,
+        event::Event,
+        handler::{BlockHandler, Handler},
+    },
+    types::envelope::ExecutionPayloadEnvelope,
 };
 
 /// NetworkDriver
@@ -30,7 +32,7 @@ pub struct NetworkDriver {
     /// Block handler.
     pub handler: BlockHandler,
     /// The swarm instance.
-    pub swarm: SwarmDriver,
+    pub swarm: GossipDriver,
     /// The discovery service driver.
     pub discovery: DiscoveryDriver,
 }

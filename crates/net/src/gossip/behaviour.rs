@@ -6,7 +6,7 @@ use libp2p::{
     swarm::NetworkBehaviour,
 };
 
-use crate::{event::Event, handler::Handler};
+use super::{event::Event, handler::Handler};
 
 /// Specifies the [NetworkBehaviour] of the node
 #[derive(NetworkBehaviour)]
@@ -48,7 +48,7 @@ impl Behaviour {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::handler::BlockHandler;
+    use crate::gossip::{config, handler::BlockHandler};
     use alloy::primitives::Address;
     use libp2p::gossipsub::{IdentTopic, TopicHash};
 
@@ -62,18 +62,14 @@ mod tests {
 
     #[test]
     fn test_behaviour_no_handlers() {
-        let cfg = crate::config::default_config_builder()
-            .build()
-            .expect("Failed to build default config");
+        let cfg = config::default_config_builder().build().expect("Failed to build default config");
         let handlers = vec![];
         let _ = Behaviour::new(cfg, &handlers).unwrap();
     }
 
     #[test]
     fn test_behaviour_with_handlers() {
-        let cfg = crate::config::default_config_builder()
-            .build()
-            .expect("Failed to build default config");
+        let cfg = config::default_config_builder().build().expect("Failed to build default config");
         let (_, recv) = tokio::sync::watch::channel(Address::default());
         let (block_handler, _) = BlockHandler::new(0, recv);
         let handlers: Vec<Box<dyn Handler>> = vec![Box::new(block_handler)];
