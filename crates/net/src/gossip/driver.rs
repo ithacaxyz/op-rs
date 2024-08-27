@@ -8,6 +8,7 @@ use crate::gossip::{
 use eyre::Result;
 use futures::stream::StreamExt;
 use libp2p::{swarm::SwarmEvent, Multiaddr, Swarm};
+use tracing::{debug, error, info};
 
 /// A [libp2p::Swarm] instance with an associated address to listen on.
 pub struct GossipDriver {
@@ -28,7 +29,7 @@ impl GossipDriver {
     /// Listens on the address.
     pub fn listen(&mut self) -> Result<()> {
         self.swarm.listen_on(self.addr.clone()).map_err(|_| eyre::eyre!("swarm listen failed"))?;
-        tracing::info!("Swarm listening on: {:?}", self.addr);
+        info!("Swarm listening on: {:?}", self.addr);
         Ok(())
     }
 
@@ -48,7 +49,7 @@ impl GossipDriver {
             return;
         };
         if let Err(e) = self.dial(addr).await {
-            tracing::error!("Failed to dial peer: {:?}", e);
+            error!("Failed to dial peer: {:?}", e);
         }
     }
 
@@ -67,11 +68,11 @@ impl GossipDriver {
             message,
         })) = event
         {
-            tracing::debug!("Received message with topic: {}", message.topic);
+            debug!("Received message with topic: {}", message.topic);
             if self.handler.topics().contains(&message.topic) {
-                tracing::debug!("Handling message with topic: {}", message.topic);
+                debug!("Handling message with topic: {}", message.topic);
                 let status = self.handler.handle(message);
-                tracing::debug!("Reporting message validation result: {:?}", status);
+                debug!("Reporting message validation result: {:?}", status);
                 _ = self
                     .swarm
                     .behaviour_mut()
