@@ -11,6 +11,9 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+# Local Dependencies
+rollup = { path = "../../crates/rollup" }
+
 # Workspace
 eyre.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
