@@ -7,5 +7,9 @@
 use eyre::Result;
 
 fn main() -> Result<()> {
-    unimplemented!()
+    rollup::init_telemetry_stack(8090)?;
+
+    tracing::info!("Hera OP Stack Rollup node");
+
+    Ok(())
 }
