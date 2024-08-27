@@ -33,8 +33,8 @@ pub struct NetworkDriverBuilder {
     keypair: Option<Keypair>,
     /// The [TcpConfig] for the swarm.
     tcp_config: Option<TcpConfig>,
-    // /// The [NoiseConfig] for the swarm.
-    // noise_config: Option<NoiseConfig>,
+    /// The [NoiseConfig] for the swarm.
+    noise_config: Option<NoiseConfig>,
     /// The [YamuxConfig] for the swarm.
     yamux_config: Option<YamuxConfig>,
 }
@@ -75,11 +75,11 @@ impl NetworkDriverBuilder {
         self
     }
 
-    // /// Specifies the [NoiseConfig] for the swarm.
-    // pub fn with_noise_config(&mut self, noise_config: NoiseConfig) -> &mut Self {
-    //     self.noise_config = Some(noise_config);
-    //     self
-    // }
+    /// Specifies the [NoiseConfig] for the swarm.
+    pub fn with_noise_config(&mut self, noise_config: NoiseConfig) -> &mut Self {
+        self.noise_config = Some(noise_config);
+        self
+    }
 
     /// Specifies the [YamuxConfig] for the swarm.
     pub fn with_yamux_config(&mut self, yamux_config: YamuxConfig) -> &mut Self {
@@ -111,12 +111,18 @@ impl NetworkDriverBuilder {
         let behaviour = Behaviour::new(config, &[Box::new(handler.clone())])?;
 
         // Build the swarm.
+        let noise_config = self.noise_config.take();
         let keypair = self.keypair.take().unwrap_or(Keypair::generate_secp256k1());
         let swarm = SwarmBuilder::with_existing_identity(keypair)
             .with_tokio()
-            .with_tcp(self.tcp_config.take().unwrap_or_default(), NoiseConfig::new, || {
-                self.yamux_config.take().unwrap_or_default()
-            })?
+            .with_tcp(
+                self.tcp_config.take().unwrap_or_default(),
+                |i: &Keypair| match noise_config {
+                    Some(cfg) => Ok(cfg),
+                    None => NoiseConfig::new(i),
+                },
+                || self.yamux_config.take().unwrap_or_default(),
+            )?
             .with_behaviour(|_| behaviour)?
             .build();
         let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
