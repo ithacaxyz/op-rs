@@ -41,7 +41,7 @@ impl GossipDriver {
         self.swarm.select_next_some().await
     }
 
-    /// Dials the given [Option<Multiaddr>].
+    /// Dials the given [`Option<Multiaddr>`].
     pub async fn dial_opt(&mut self, peer: Option<impl Into<Multiaddr>>) {
         let Some(addr) = peer else {
             return;
