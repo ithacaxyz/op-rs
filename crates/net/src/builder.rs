@@ -128,18 +128,12 @@ impl NetworkDriverBuilder {
         let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
         let addr = NetworkAddress::try_from(addr)?;
         let swarm_addr = Multiaddr::from(addr);
-        let swarm = GossipDriver::new(swarm, swarm_addr);
+        let gossip = GossipDriver::new(swarm, swarm_addr, handler);
 
         // Build the discovery service
         let discovery =
             DiscoveryBuilder::new().with_address(addr).with_chain_id(chain_id).build()?;
 
-        Ok(NetworkDriver {
-            unsafe_block_recv,
-            unsafe_block_signer_sender,
-            handler,
-            swarm,
-            discovery,
-        })
+        Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
     }
 }

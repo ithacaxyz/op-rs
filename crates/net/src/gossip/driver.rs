@@ -1,9 +1,13 @@
 //! Consensus-layer gossipsub driver for Optimism.
 
-use crate::gossip::{behaviour::Behaviour, event::Event};
+use crate::gossip::{
+    behaviour::Behaviour,
+    event::Event,
+    handler::{BlockHandler, Handler},
+};
 use eyre::Result;
 use futures::stream::StreamExt;
-use libp2p::{Multiaddr, Swarm};
+use libp2p::{swarm::SwarmEvent, Multiaddr, Swarm};
 
 /// A [libp2p::Swarm] instance with an associated address to listen on.
 pub struct GossipDriver {
@@ -11,12 +15,14 @@ pub struct GossipDriver {
     pub swarm: Swarm<Behaviour>,
     /// The address to listen on.
     pub addr: Multiaddr,
+    /// Block handler.
+    pub handler: BlockHandler,
 }
 
 impl GossipDriver {
     /// Creates a new [GossipDriver] instance.
-    pub fn new(swarm: Swarm<Behaviour>, addr: Multiaddr) -> Self {
-        Self { swarm, addr }
+    pub fn new(swarm: Swarm<Behaviour>, addr: Multiaddr, handler: BlockHandler) -> Self {
+        Self { swarm, addr, handler }
     }
 
     /// Listens on the address.
@@ -31,8 +37,18 @@ impl GossipDriver {
     }
 
     /// Attempts to select the next event from the Swarm.
-    pub async fn select_next_some(&mut self) -> libp2p::swarm::SwarmEvent<Event> {
+    pub async fn select_next_some(&mut self) -> SwarmEvent<Event> {
         self.swarm.select_next_some().await
+    }
+
+    /// Dials the given [`Option<Multiaddr>`].
+    pub async fn dial_opt(&mut self, peer: Option<impl Into<Multiaddr>>) {
+        let Some(addr) = peer else {
+            return;
+        };
+        if let Err(e) = self.dial(addr).await {
+            tracing::error!("Failed to dial peer: {:?}", e);
+        }
     }
 
     /// Dials the given [Multiaddr].
@@ -40,5 +56,24 @@ impl GossipDriver {
         let addr: Multiaddr = peer.into();
         self.swarm.dial(addr).map_err(|_| eyre::eyre!("dial failed"))?;
         Ok(())
+    }
+
+    /// Handles the [`SwarmEvent<Event>`].
+    pub fn handle_event(&mut self, event: SwarmEvent<Event>) {
+        if let SwarmEvent::Behaviour(Event::Gossipsub(libp2p::gossipsub::Event::Message {
+            propagation_source: src,
+            message_id: id,
+            message,
+        })) = event
+        {
+            if self.handler.topics().contains(&message.topic) {
+                let status = self.handler.handle(message);
+                _ = self
+                    .swarm
+                    .behaviour_mut()
+                    .gossipsub
+                    .report_message_validation_result(&id, &src, status);
+            }
+        }
     }
 }
