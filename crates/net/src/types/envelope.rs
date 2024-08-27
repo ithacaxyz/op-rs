@@ -1,13 +1,13 @@
 //! Execution Payload Envelope Type
 
-use super::payload::{
-    ExecutionPayloadV1SSZ, ExecutionPayloadV2SSZ, ExecutionPayloadV3SSZ, PayloadHash,
-};
 use alloy::primitives::{Signature, B256};
 use eyre::Result;
 use kona_primitives::L2ExecutionPayload;
 use ssz_rs::prelude::*;
-use std::str::FromStr;
+
+use super::payload::{
+    ExecutionPayloadV1SSZ, ExecutionPayloadV2SSZ, ExecutionPayloadV3SSZ, PayloadHash,
+};
 
 /// An envelope around the execution payload for L2.
 #[derive(Debug, Clone)]
@@ -75,19 +75,5 @@ impl ExecutionPayloadEnvelope {
         let hash = PayloadHash::from(block_data);
 
         Ok(ExecutionPayloadEnvelope { parent_beacon_block_root, signature, payload, hash })
-    }
-}
-
-impl Default for ExecutionPayloadEnvelope {
-    fn default() -> Self {
-        Self {
-            payload: L2ExecutionPayload::default(),
-            // Generic signature taken from `alloy_primitives` tests.
-            //
-            // https://github.com/alloy-rs/core/blob/main/crates/primitives/src/signature/sig.rs#L614
-            signature: Signature::from_str("48b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c8041b").unwrap(),
-            hash: PayloadHash::default(),
-            parent_beacon_block_root: None,
-        }
     }
 }

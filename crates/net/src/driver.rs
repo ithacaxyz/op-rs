@@ -1,13 +1,5 @@
 //! Driver for network services.
 
-use alloy::primitives::Address;
-use eyre::Result;
-use libp2p::swarm::SwarmEvent;
-use tokio::{
-    select,
-    sync::watch::{Receiver, Sender},
-};
-
 use crate::{
     builder::NetworkDriverBuilder,
     discovery::driver::DiscoveryDriver,
@@ -18,6 +10,11 @@ use crate::{
     },
     types::envelope::ExecutionPayloadEnvelope,
 };
+use alloy::primitives::Address;
+use eyre::Result;
+use libp2p::swarm::SwarmEvent;
+use std::sync::mpsc::Receiver;
+use tokio::{select, sync::watch};
 
 /// NetworkDriver
 ///
@@ -29,7 +26,7 @@ pub struct NetworkDriver {
     /// Channel to receive unsafe blocks.
     pub unsafe_block_recv: Receiver<ExecutionPayloadEnvelope>,
     /// Channel to send unsafe signer updates.
-    pub unsafe_block_signer_sender: Sender<Address>,
+    pub unsafe_block_signer_sender: watch::Sender<Address>,
     /// Block handler.
     pub handler: BlockHandler,
     /// The swarm instance.
