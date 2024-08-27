@@ -1,11 +1,13 @@
 //! Block Handler
 
+use crate::types::envelope::ExecutionPayloadEnvelope;
 use alloy::primitives::Address;
 use libp2p::gossipsub::{IdentTopic, Message, MessageAcceptance, TopicHash};
-use std::time::SystemTime;
-use tokio::sync::watch::{channel, Receiver, Sender};
-
-use crate::types::envelope::ExecutionPayloadEnvelope;
+use std::{
+    sync::mpsc::{channel, Receiver, Sender},
+    time::SystemTime,
+};
+use tokio::sync::watch;
 
 /// This trait defines the functionality required to process incoming messages
 /// and determine their acceptance within the network.
@@ -29,7 +31,7 @@ pub struct BlockHandler {
     /// A channel sender to forward new blocks to other modules
     pub block_sender: Sender<ExecutionPayloadEnvelope>,
     /// A [Receiver] to monitor changes to the unsafe block signer.
-    pub unsafe_signer_recv: Receiver<Address>,
+    pub unsafe_signer_recv: watch::Receiver<Address>,
     /// The libp2p topic for pre Canyon/Shangai blocks.
     pub blocks_v1_topic: IdentTopic,
     /// The libp2p topic for Canyon/Delta blocks.
@@ -81,9 +83,9 @@ impl BlockHandler {
     /// Creates a new [BlockHandler] and opens a channel
     pub fn new(
         chain_id: u64,
-        unsafe_recv: Receiver<Address>,
+        unsafe_recv: watch::Receiver<Address>,
     ) -> (Self, Receiver<ExecutionPayloadEnvelope>) {
-        let (sender, recv) = channel(ExecutionPayloadEnvelope::default());
+        let (sender, recv) = channel();
 
         let handler = Self {
             chain_id,
