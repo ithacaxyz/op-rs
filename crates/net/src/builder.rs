@@ -118,7 +118,7 @@ impl NetworkDriverBuilder {
             .with_tcp(
                 self.tcp_config.take().unwrap_or_default(),
                 |i: &Keypair| match noise_config {
-                    Some(cfg) => core::result::Result::Ok(cfg),
+                    Some(cfg) => Ok(cfg),
                     None => NoiseConfig::new(i),
                 },
                 || self.yamux_config.take().unwrap_or_default(),
