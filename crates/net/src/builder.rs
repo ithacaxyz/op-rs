@@ -137,3 +137,66 @@ impl NetworkDriverBuilder {
         Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use libp2p::gossipsub::IdentTopic;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    #[test]
+    fn test_build_missing_unsafe_block_signer() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.build() else {
+            panic!("expected error when building NetworkDriver without unsafe block signer");
+        };
+        assert_eq!(err.to_string(), "unsafe block signer not set");
+    }
+
+    #[test]
+    fn test_build_missing_chain_id() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.with_unsafe_block_signer(Address::random()).build() else {
+            panic!("expected error when building NetworkDriver without chain id");
+        };
+        assert_eq!(err.to_string(), "chain ID not set");
+    }
+
+    #[test]
+    fn test_build_missing_socket() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.with_unsafe_block_signer(Address::random()).with_chain_id(1).build()
+        else {
+            panic!("expected error when building NetworkDriver without socket");
+        };
+        assert_eq!(err.to_string(), "socket address not set");
+    }
+
+    #[test]
+    fn test_build_default_network_driver() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_socket(socket)
+            .build()
+            .unwrap();
+        let signer_net_addr = NetworkAddress::try_from(socket).expect("network address");
+        let signer_multiaddr = Multiaddr::from(signer_net_addr);
+
+        // Driver Assertions
+        assert_eq!(driver.gossip.addr, signer_multiaddr);
+        assert_eq!(driver.discovery.chain_id, id);
+
+        // Block Handler Assertions
+        assert_eq!(driver.gossip.handler.chain_id, id);
+        let v1 = IdentTopic::new(format!("/optimism/{}/0/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v1_topic.hash(), v1.hash());
+        let v2 = IdentTopic::new(format!("/optimism/{}/1/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v2_topic.hash(), v2.hash());
+        let v3 = IdentTopic::new(format!("/optimism/{}/2/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v3_topic.hash(), v3.hash());
+    }
+}

@@ -21,9 +21,9 @@ const DISCOVERY_PEER_CHANNEL_SIZE: usize = 256;
 /// The discovery driver handles running the discovery service.
 pub struct DiscoveryDriver {
     /// The [Discv5] discovery service.
-    disc: Discv5,
+    pub disc: Discv5,
     /// The chain ID of the network.
-    chain_id: u64,
+    pub chain_id: u64,
 }
 
 impl DiscoveryDriver {
