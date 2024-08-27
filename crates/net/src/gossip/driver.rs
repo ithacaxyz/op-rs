@@ -28,6 +28,7 @@ impl GossipDriver {
     /// Listens on the address.
     pub fn listen(&mut self) -> Result<()> {
         self.swarm.listen_on(self.addr.clone()).map_err(|_| eyre::eyre!("swarm listen failed"))?;
+        tracing::info!("Swarm listening on: {:?}", self.addr);
         Ok(())
     }
 
@@ -54,7 +55,7 @@ impl GossipDriver {
     /// Dials the given [Multiaddr].
     pub async fn dial(&mut self, peer: impl Into<Multiaddr>) -> Result<()> {
         let addr: Multiaddr = peer.into();
-        self.swarm.dial(addr).map_err(|_| eyre::eyre!("dial failed"))?;
+        self.swarm.dial(addr).map_err(|e| eyre::eyre!("dial failed: {:?}", e))?;
         Ok(())
     }
 
@@ -66,8 +67,11 @@ impl GossipDriver {
             message,
         })) = event
         {
+            tracing::debug!("Received message with topic: {}", message.topic);
             if self.handler.topics().contains(&message.topic) {
+                tracing::debug!("Handling message with topic: {}", message.topic);
                 let status = self.handler.handle(message);
+                tracing::debug!("Reporting message validation result: {:?}", status);
                 _ = self
                     .swarm
                     .behaviour_mut()
