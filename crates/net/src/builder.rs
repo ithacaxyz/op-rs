@@ -22,21 +22,21 @@ use crate::{
 #[derive(Default)]
 pub struct NetworkDriverBuilder {
     /// The chain ID of the network.
-    chain_id: Option<u64>,
+    pub chain_id: Option<u64>,
     /// The unsafe block signer.
-    unsafe_block_signer: Option<Address>,
+    pub unsafe_block_signer: Option<Address>,
     /// The socket address that the service is listening on.
-    socket: Option<SocketAddr>,
+    pub socket: Option<SocketAddr>,
     /// The [GossipConfig] constructs the config for `gossipsub`.
-    gossip_config: Option<GossipConfig>,
+    pub gossip_config: Option<GossipConfig>,
     /// The [Keypair] for the node.
-    keypair: Option<Keypair>,
+    pub keypair: Option<Keypair>,
     /// The [TcpConfig] for the swarm.
-    tcp_config: Option<TcpConfig>,
+    pub tcp_config: Option<TcpConfig>,
     /// The [NoiseConfig] for the swarm.
-    noise_config: Option<NoiseConfig>,
+    pub noise_config: Option<NoiseConfig>,
     /// The [YamuxConfig] for the swarm.
-    yamux_config: Option<YamuxConfig>,
+    pub yamux_config: Option<YamuxConfig>,
 }
 
 impl NetworkDriverBuilder {
