@@ -6,7 +6,7 @@ use std::{net::SocketAddr, time::Duration};
 use tokio::sync::watch::channel;
 
 use libp2p::{
-    gossipsub::ConfigBuilder, noise::Config as NoiseConfig, tcp::Config as TcpConfig,
+    gossipsub::Config as GossipConfig, noise::Config as NoiseConfig, tcp::Config as TcpConfig,
     yamux::Config as YamuxConfig, Multiaddr, SwarmBuilder,
 };
 use libp2p_identity::Keypair;
@@ -22,23 +22,23 @@ use crate::{
 #[derive(Default)]
 pub struct NetworkDriverBuilder {
     /// The chain ID of the network.
-    chain_id: Option<u64>,
+    pub chain_id: Option<u64>,
     /// The unsafe block signer.
-    unsafe_block_signer: Option<Address>,
+    pub unsafe_block_signer: Option<Address>,
     /// The socket address that the service is listening on.
-    socket: Option<SocketAddr>,
-    /// The [ConfigBuilder] constructs the config for `gossipsub`.
-    inner: Option<ConfigBuilder>,
+    pub socket: Option<SocketAddr>,
+    /// The [GossipConfig] constructs the config for `gossipsub`.
+    pub gossip_config: Option<GossipConfig>,
     /// The [Keypair] for the node.
-    keypair: Option<Keypair>,
+    pub keypair: Option<Keypair>,
     /// The [TcpConfig] for the swarm.
-    tcp_config: Option<TcpConfig>,
-    // /// The [NoiseConfig] for the swarm.
-    // noise_config: Option<NoiseConfig>,
+    pub tcp_config: Option<TcpConfig>,
+    /// The [NoiseConfig] for the swarm.
+    pub noise_config: Option<NoiseConfig>,
     /// The [YamuxConfig] for the swarm.
-    yamux_config: Option<YamuxConfig>,
+    pub yamux_config: Option<YamuxConfig>,
     /// The idle connection timeout.
-    timeout: Option<Duration>,
+    pub timeout: Option<Duration>,
 }
 
 impl NetworkDriverBuilder {
@@ -77,11 +77,11 @@ impl NetworkDriverBuilder {
         self
     }
 
-    // /// Specifies the [NoiseConfig] for the swarm.
-    // pub fn with_noise_config(&mut self, noise_config: NoiseConfig) -> &mut Self {
-    //     self.noise_config = Some(noise_config);
-    //     self
-    // }
+    /// Specifies the [NoiseConfig] for the swarm.
+    pub fn with_noise_config(&mut self, noise_config: NoiseConfig) -> &mut Self {
+        self.noise_config = Some(noise_config);
+        self
+    }
 
     /// Specifies the [YamuxConfig] for the swarm.
     pub fn with_yamux_config(&mut self, yamux_config: YamuxConfig) -> &mut Self {
@@ -95,18 +95,73 @@ impl NetworkDriverBuilder {
         self
     }
 
-    // TODO: extend builder with [ConfigBuilder] methods.
-
-    /// Specifies the [ConfigBuilder] for the `gossipsub` configuration.
-    pub fn with_gossip_config(&mut self, inner: ConfigBuilder) -> &mut Self {
-        self.inner = Some(inner);
+    /// Specifies the [GossipConfig] for the `gossipsub` configuration.
+    ///
+    /// If not set, the [NetworkDriverBuilder] will use the default gossipsub
+    /// configuration defined in [config::default_config]. These defaults can
+    /// be extended by using the [config::default_config_builder] method to
+    /// build a custom [GossipConfig].
+    ///
+    /// ## Example
+    ///
+    /// ```rust,ignore
+    /// use op_net::gossip::config;
+    /// use op_net::NetworkDriverBuilder;
+    /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    ///
+    /// let chain_id = 10;
+    /// let signer = Address::random();
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    ///
+    /// // Let's say we want to enable flood publishing and use all other default settings.
+    /// let cfg = config::default_config_builder().flood_publish(true).build().unwrap();
+    /// let mut builder = NetworkDriverBuilder::new()
+    ///    .with_unsafe_block_signer(signer)
+    ///    .with_chain_id(chain_id)
+    ///    .with_socket(socket)
+    ///    .with_gossip_config(cfg);
+    ///    .build()
+    ///    .unwrap();
+    /// ```
+    pub fn with_gossip_config(&mut self, cfg: GossipConfig) -> &mut Self {
+        self.gossip_config = Some(cfg);
         self
     }
 
     /// Builds the [NetworkDriver].
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error if any of the following required fields are not set:
+    /// - [NetworkDriverBuilder::unsafe_block_signer]
+    /// - [NetworkDriverBuilder::chain_id]
+    /// - [NetworkDriverBuilder::socket]
+    ///
+    /// Set these fields using the respective methods on the [NetworkDriverBuilder]
+    /// before calling this method.
+    ///
+    /// ## Example
+    ///
+    /// ```rust,ignore
+    /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    /// use op_net::NetworkDriverBuilder;
+    ///
+    /// let chain_id = 10;
+    /// let signer = Address::random();
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    /// let driver = NetworkDriverBuilder::new()
+    ///    .with_unsafe_block_signer(signer)
+    ///    .with_chain_id(chain_id)
+    ///    .with_socket(socket)
+    ///    .build()
+    ///    .unwrap();
+    /// ```
     pub fn build(&mut self) -> Result<NetworkDriver> {
         // Build the config for gossipsub.
-        let config = self.inner.take().unwrap_or(config::default_config_builder()).build()?;
+        let config = match self.gossip_config.take() {
+            Some(cfg) => cfg,
+            None => config::default_config()?,
+        };
         let unsafe_block_signer =
             self.unsafe_block_signer.ok_or_else(|| eyre::eyre!("unsafe block signer not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
@@ -120,30 +175,123 @@ impl NetworkDriverBuilder {
 
         // Build the swarm.
         let timeout = self.timeout.take().unwrap_or(Duration::from_secs(60));
+        let noise_config = self.noise_config.take();
         let keypair = self.keypair.take().unwrap_or(Keypair::generate_secp256k1());
         let swarm = SwarmBuilder::with_existing_identity(keypair)
             .with_tokio()
-            .with_tcp(self.tcp_config.take().unwrap_or_default(), NoiseConfig::new, || {
-                self.yamux_config.take().unwrap_or_default()
-            })?
+            .with_tcp(
+                self.tcp_config.take().unwrap_or_default(),
+                |i: &Keypair| match noise_config {
+                    Some(cfg) => Ok(cfg),
+                    None => NoiseConfig::new(i),
+                },
+                || self.yamux_config.take().unwrap_or_default(),
+            )?
             .with_behaviour(|_| behaviour)?
             .with_swarm_config(|c| c.with_idle_connection_timeout(timeout))
             .build();
         let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
         let addr = NetworkAddress::try_from(addr)?;
         let swarm_addr = Multiaddr::from(addr);
-        let swarm = GossipDriver::new(swarm, swarm_addr);
+        let gossip = GossipDriver::new(swarm, swarm_addr, handler);
 
         // Build the discovery service
         let discovery =
             DiscoveryBuilder::new().with_address(addr).with_chain_id(chain_id).build()?;
 
-        Ok(NetworkDriver {
-            unsafe_block_recv,
-            unsafe_block_signer_sender,
-            handler,
-            swarm,
-            discovery,
-        })
+        Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use libp2p::gossipsub::IdentTopic;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    #[test]
+    fn test_build_missing_unsafe_block_signer() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.build() else {
+            panic!("expected error when building NetworkDriver without unsafe block signer");
+        };
+        assert_eq!(err.to_string(), "unsafe block signer not set");
+    }
+
+    #[test]
+    fn test_build_missing_chain_id() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.with_unsafe_block_signer(Address::random()).build() else {
+            panic!("expected error when building NetworkDriver without chain id");
+        };
+        assert_eq!(err.to_string(), "chain ID not set");
+    }
+
+    #[test]
+    fn test_build_missing_socket() {
+        let mut builder = NetworkDriverBuilder::new();
+        let Err(err) = builder.with_unsafe_block_signer(Address::random()).with_chain_id(1).build()
+        else {
+            panic!("expected error when building NetworkDriver without socket");
+        };
+        assert_eq!(err.to_string(), "socket address not set");
+    }
+
+    #[test]
+    fn test_build_custom_gossip_config() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let cfg = config::default_config_builder().flood_publish(true).build().unwrap();
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_socket(socket)
+            .with_gossip_config(cfg)
+            .build()
+            .unwrap();
+        let signer_net_addr = NetworkAddress::try_from(socket).expect("network address");
+        let signer_multiaddr = Multiaddr::from(signer_net_addr);
+
+        // Driver Assertions
+        assert_eq!(driver.gossip.addr, signer_multiaddr);
+        assert_eq!(driver.discovery.chain_id, id);
+
+        // Block Handler Assertions
+        assert_eq!(driver.gossip.handler.chain_id, id);
+        let v1 = IdentTopic::new(format!("/optimism/{}/0/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v1_topic.hash(), v1.hash());
+        let v2 = IdentTopic::new(format!("/optimism/{}/1/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v2_topic.hash(), v2.hash());
+        let v3 = IdentTopic::new(format!("/optimism/{}/2/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v3_topic.hash(), v3.hash());
+    }
+
+    #[test]
+    fn test_build_default_network_driver() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_socket(socket)
+            .build()
+            .unwrap();
+        let signer_net_addr = NetworkAddress::try_from(socket).expect("network address");
+        let signer_multiaddr = Multiaddr::from(signer_net_addr);
+
+        // Driver Assertions
+        assert_eq!(driver.gossip.addr, signer_multiaddr);
+        assert_eq!(driver.discovery.chain_id, id);
+
+        // Block Handler Assertions
+        assert_eq!(driver.gossip.handler.chain_id, id);
+        let v1 = IdentTopic::new(format!("/optimism/{}/0/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v1_topic.hash(), v1.hash());
+        let v2 = IdentTopic::new(format!("/optimism/{}/1/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v2_topic.hash(), v2.hash());
+        let v3 = IdentTopic::new(format!("/optimism/{}/2/blocks", id));
+        assert_eq!(driver.gossip.handler.blocks_v3_topic.hash(), v3.hash());
     }
 }

@@ -1,23 +1,13 @@
 //! Driver for network services.
 
+use crate::{
+    builder::NetworkDriverBuilder, discovery::driver::DiscoveryDriver,
+    gossip::driver::GossipDriver, types::envelope::ExecutionPayloadEnvelope,
+};
 use alloy::primitives::Address;
 use eyre::Result;
-use libp2p::swarm::SwarmEvent;
-use tokio::{
-    select,
-    sync::watch::{Receiver, Sender},
-};
-
-use crate::{
-    builder::NetworkDriverBuilder,
-    discovery::driver::DiscoveryDriver,
-    gossip::{
-        driver::GossipDriver,
-        event::Event,
-        handler::{BlockHandler, Handler},
-    },
-    types::envelope::ExecutionPayloadEnvelope,
-};
+use std::sync::mpsc::Receiver;
+use tokio::{select, sync::watch};
 
 /// NetworkDriver
 ///
@@ -29,11 +19,9 @@ pub struct NetworkDriver {
     /// Channel to receive unsafe blocks.
     pub unsafe_block_recv: Receiver<ExecutionPayloadEnvelope>,
     /// Channel to send unsafe signer updates.
-    pub unsafe_block_signer_sender: Sender<Address>,
-    /// Block handler.
-    pub handler: BlockHandler,
+    pub unsafe_block_signer_sender: watch::Sender<Address>,
     /// The swarm instance.
-    pub swarm: GossipDriver,
+    pub gossip: GossipDriver,
     /// The discovery service driver.
     pub discovery: DiscoveryDriver,
 }
@@ -48,29 +36,15 @@ impl NetworkDriver {
     /// and continually listens for new peers and messages to handle
     pub fn start(mut self) -> Result<()> {
         let mut peer_recv = self.discovery.start()?;
-        self.swarm.listen()?;
+        self.gossip.listen()?;
         tokio::spawn(async move {
             loop {
                 select! {
                     peer = peer_recv.recv() => {
-                        if let Some(peer) = peer {
-                            _ = self.swarm.dial(peer);
-                        }
+                        self.gossip.dial_opt(peer).await;
                     },
-                    event = self.swarm.select_next_some() => {
-                        if let SwarmEvent::Behaviour(Event::Gossipsub(libp2p::gossipsub::Event::Message {
-                            propagation_source: src,
-                            message_id: id,
-                            message,
-                        })) = event {
-                            if self.handler.topics().contains(&message.topic) {
-                                let status = self.handler.handle(message);
-                                _ = self.swarm
-                                    .behaviour_mut()
-                                    .gossipsub
-                                    .report_message_validation_result(&id, &src, status);
-                            }
-                        }
+                    event = self.gossip.select_next_some() => {
+                        self.gossip.handle_event(event);
                     },
                 }
             }
