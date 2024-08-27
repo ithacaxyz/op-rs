@@ -89,7 +89,7 @@ where
 
 impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2ChainProvider> {
     /// Create a new standalone Hera Driver
-    pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+    pub fn std(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = AlloyChainProvider::new_http(args.l1_rpc_url);
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
         let bp = OnlineBlobProviderBuilder::new()
@@ -147,14 +147,48 @@ where
         )
     }
 
-    /// Starts the Hera Execution Extension loop.
+    async fn handle_notification(
+        &mut self,
+        notif: ExExNotification,
+        pipeline: &mut RollupPipeline<CP, BP, L2CP>,
+    ) -> Result<()> {
+        if let Some(_reverted_chain) = notif.reverted_chain() {
+            // handle the reverted chain...
+        }
+
+        if let Some(committed_chain) = notif.committed_chain() {
+            let tip_number = committed_chain.tip().number;
+            // self.chain_provider.commit_chain(committed_chain);
+
+            if let Err(err) = self.ctx.send_event(ExExEvent::FinishedHeight(tip_number)) {
+                bail!("Critical: Failed to send ExEx event: {:?}", err);
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Starts the Hera derivation loop and tries to advance the driver to
+    /// the L2 chain tip.
+    ///
+    /// # Errors
+    ///
+    /// This function should never error. If it does, it means the entire driver
+    /// will shut down. If running as ExEx, the entire L1 node + all other running
+    /// execution extensions will be shutdown as well.
     pub async fn start(mut self) -> Result<()> {
         // Step 1: Wait for the L2 origin block to be available
         self.wait_for_l2_genesis_l1_block().await?;
         info!("Chain synced to rollup genesis");
 
-        let _pipeline = self.init_pipeline();
+        // Step 2: Initialize the rollup pipeline
+        let mut pipeline = self.init_pipeline();
 
-        todo!("start processing events");
+        // Step 3: Start processing events
+        loop {
+            if let Some(notification) = self.ctx.recv_notification().await {
+                self.handle_notification(notification, &mut pipeline).await?;
+            }
+        }
     }
 }
