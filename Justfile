@@ -13,9 +13,16 @@ default:
 test:
   cargo nextest run --locked --workspace -E "kind(lib) | kind(bin) | kind(proc-macro)"
 
-# Test docs
-doc:
+# Runs both `doc-tests` and `doc-lints` recipes
+doc: doc-tests doc-lints
+
+# Doc Tests
+doc-tests:
   cargo test --locked --workspace --doc
+
+# Doc Lints
+doc-lints:
+  cargo doc --document-private-items
 
 # Lint
 lint:

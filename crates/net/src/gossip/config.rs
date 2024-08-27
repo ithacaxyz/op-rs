@@ -1,7 +1,7 @@
 //! Gossipsub Configuration
 
 use lazy_static::lazy_static;
-use libp2p::gossipsub::{ConfigBuilder, Message, MessageId};
+use libp2p::gossipsub::{Config, ConfigBuilder, ConfigBuilderError, Message, MessageId};
 use openssl::sha::sha256;
 use snap::raw::Decoder;
 use std::time::Duration;
@@ -89,6 +89,11 @@ pub fn default_config_builder() -> ConfigBuilder {
         .message_id_fn(compute_message_id);
 
     builder
+}
+
+/// Returns the default [Config] for gossipsub.
+pub fn default_config() -> Result<Config, ConfigBuilderError> {
+    default_config_builder().build()
 }
 
 /// Computes the [MessageId] of a `gossipsub` message.
