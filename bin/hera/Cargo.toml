@@ -13,20 +13,12 @@ categories.workspace = true
 [dependencies]
 # Workspace
 eyre.workspace = true
+alloy.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing.workspace = true
+tracing-subscriber.workspace = true
 clap.workspace = true
 url.workspace = true
 
-# Reth Dependencies
-reth.workspace = true
-reth-exex.workspace = true
-reth-node-api.workspace = true
-reth-node-ethereum.workspace = true
-
-# OP Stack Dependencies
-superchain-registry = { workspace = true, default-features = false }
-kona-derive = { workspace = true, features = ["online", "serde"] }
-
-# Needed for compatibility with Kona's ChainProvider trait
-anyhow = { version = "1.0.86", default-features = false }
+# Workspace Crates
+op-net.workspace = true

@@ -15,8 +15,8 @@ rollup = { path = "../../crates/rollup" }
 
 # Workspace
 eyre.workspace = true
-tracing.workspace = true
 clap.workspace = true
+tracing.workspace = true
 
 # Reth Dependencies
 reth.workspace = true

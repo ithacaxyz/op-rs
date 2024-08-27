@@ -2,7 +2,7 @@
 
 use alloy::primitives::Address;
 use eyre::Result;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 use tokio::sync::watch::channel;
 
 use libp2p::{
@@ -37,6 +37,8 @@ pub struct NetworkDriverBuilder {
     // noise_config: Option<NoiseConfig>,
     /// The [YamuxConfig] for the swarm.
     yamux_config: Option<YamuxConfig>,
+    /// The idle connection timeout.
+    timeout: Option<Duration>,
 }
 
 impl NetworkDriverBuilder {
@@ -87,6 +89,12 @@ impl NetworkDriverBuilder {
         self
     }
 
+    /// Set the swarm's idle connection timeout.
+    pub fn with_idle_connection_timeout(&mut self, timeout: Duration) -> &mut Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
     // TODO: extend builder with [ConfigBuilder] methods.
 
     /// Specifies the [ConfigBuilder] for the `gossipsub` configuration.
@@ -111,6 +119,7 @@ impl NetworkDriverBuilder {
         let behaviour = Behaviour::new(config, &[Box::new(handler.clone())])?;
 
         // Build the swarm.
+        let timeout = self.timeout.take().unwrap_or(Duration::from_secs(60));
         let keypair = self.keypair.take().unwrap_or(Keypair::generate_secp256k1());
         let swarm = SwarmBuilder::with_existing_identity(keypair)
             .with_tokio()
@@ -118,6 +127,7 @@ impl NetworkDriverBuilder {
                 self.yamux_config.take().unwrap_or_default()
             })?
             .with_behaviour(|_| behaviour)?
+            .with_swarm_config(|c| c.with_idle_connection_timeout(timeout))
             .build();
         let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
         let addr = NetworkAddress::try_from(addr)?;
