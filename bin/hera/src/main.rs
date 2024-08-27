@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
 
     let signer = address!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
-    let driver = NetworkDriver::builder()
+    let mut driver = NetworkDriver::builder()
         .with_chain_id(args.l2_chain_id)
         .with_unsafe_block_signer(signer)
         .with_socket(socket)
@@ -49,15 +49,14 @@ async fn main() -> Result<()> {
         .expect("Failed to builder network driver");
 
     // Call `.start()` on the driver.
-    let mut recv = driver.unsafe_block_recv.clone();
+    let recv = driver.unsafe_block_recv.take().ok_or(eyre::eyre!("No unsafe block receiver"))?;
     driver.start().expect("Failed to start network driver");
 
     tracing::info!("NetworkDriver started successfully.");
 
     loop {
-        match recv.changed().await {
-            Ok(_) => {
-                let block = recv.borrow().clone();
+        match recv.recv() {
+            Ok(block) => {
                 tracing::info!("Received unsafe block: {:?}", block);
             }
             Err(e) => {

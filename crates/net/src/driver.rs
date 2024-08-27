@@ -17,9 +17,9 @@ use tokio::{select, sync::watch};
 /// - Peer discovery with `discv5`.
 pub struct NetworkDriver {
     /// Channel to receive unsafe blocks.
-    pub unsafe_block_recv: Receiver<ExecutionPayloadEnvelope>,
+    pub unsafe_block_recv: Option<Receiver<ExecutionPayloadEnvelope>>,
     /// Channel to send unsafe signer updates.
-    pub unsafe_block_signer_sender: watch::Sender<Address>,
+    pub unsafe_block_signer_sender: Option<watch::Sender<Address>>,
     /// The swarm instance.
     pub gossip: GossipDriver,
     /// The discovery service driver.

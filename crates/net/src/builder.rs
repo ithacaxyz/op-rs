@@ -199,7 +199,12 @@ impl NetworkDriverBuilder {
         let discovery =
             DiscoveryBuilder::new().with_address(addr).with_chain_id(chain_id).build()?;
 
-        Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
+        Ok(NetworkDriver {
+            discovery,
+            gossip,
+            unsafe_block_recv: Some(unsafe_block_recv),
+            unsafe_block_signer_sender: Some(unsafe_block_signer_sender),
+        })
     }
 }
 
