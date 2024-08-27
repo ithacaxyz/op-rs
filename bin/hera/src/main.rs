@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         .expect("Failed to builder network driver");
 
     // Call `.start()` on the driver.
-    let recv = driver.unsafe_block_recv.take().ok_or(eyre::eyre!("No unsafe block receiver"))?;
+    let recv = driver.take_unsafe_block_recv().ok_or(eyre::eyre!("No unsafe block receiver"))?;
     driver.start().expect("Failed to start network driver");
 
     tracing::info!("NetworkDriver started successfully.");
