@@ -5,11 +5,10 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
 use alloy::primitives::address;
-use clap::{ArgAction, Parser};
+use clap::Parser;
 use eyre::Result;
 use op_net::driver::NetworkDriver;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use tracing::Level;
 
 /// The default L2 chain ID to use. This corresponds to OP Mainnet.
 pub const DEFAULT_L2_CHAIN_ID: u64 = 10;

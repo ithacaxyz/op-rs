@@ -2,7 +2,10 @@
 
 use alloy::primitives::Address;
 use eyre::Result;
-use std::{net::{IpAddr, SocketAddr}, time::Duration};
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 use tokio::sync::watch::channel;
 
 use libp2p::{
