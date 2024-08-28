@@ -17,6 +17,8 @@ pub struct DiscoveryBuilder {
     address: Option<SocketAddr>,
     /// The chain ID of the network.
     chain_id: Option<u64>,
+    /// The listen config for the discovery service.
+    listen_config: Option<ListenConfig>,
 }
 
 impl DiscoveryBuilder {
@@ -37,9 +39,14 @@ impl DiscoveryBuilder {
         self
     }
 
+    /// Sets the listen config for the discovery service.
+    pub fn with_listen_config(mut self, listen_config: ListenConfig) -> Self {
+        self.listen_config = Some(listen_config);
+        self
+    }
+
     /// Builds a [DiscoveryDriver].
     pub fn build(&mut self) -> Result<DiscoveryDriver> {
-        let addr = self.address.ok_or_else(|| eyre::eyre!("address not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
         let opstack = OpStackEnr::new(chain_id, 0);
         let mut opstack_data = Vec::new();
@@ -48,7 +55,10 @@ impl DiscoveryBuilder {
 
         let key = CombinedKey::generate_secp256k1();
         let enr = Enr::builder().add_value_rlp(OP_CL_KEY, opstack_data.into()).build(&key)?;
-        let listen_config = ListenConfig::from_ip(addr.ip(), addr.port());
+        let listen_config = self.listen_config.take().unwrap_or_else(|| {
+            let addr = self.address.expect("address not set");
+            ListenConfig::from_ip(addr.ip(), addr.port())
+        });
         let config = ConfigBuilder::new(listen_config).build();
 
         let disc = Discv5::new(enr, key, config)

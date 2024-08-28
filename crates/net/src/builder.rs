@@ -3,6 +3,8 @@
 use alloy::primitives::Address;
 use eyre::Result;
 use std::net::{IpAddr, SocketAddr};
+use discv5::ListenConfig;
+use discv5::ListenConfig::{DualStack, Ipv4, Ipv6};
 use tokio::sync::watch::channel;
 
 use libp2p::{
@@ -26,6 +28,8 @@ pub struct NetworkDriverBuilder {
     pub unsafe_block_signer: Option<Address>,
     /// The socket address that the service is listening on.
     pub socket: Option<SocketAddr>,
+    /// The listen config that the service is listening on.
+    pub listen_config: Option<ListenConfig>,
     /// The [GossipConfig] constructs the config for `gossipsub`.
     pub gossip_config: Option<GossipConfig>,
     /// The [Keypair] for the node.
@@ -59,6 +63,12 @@ impl NetworkDriverBuilder {
     /// Specifies the socket address that the service is listening on.
     pub fn with_socket(&mut self, socket: SocketAddr) -> &mut Self {
         self.socket = Some(socket);
+        self
+    }
+
+    /// Specifies the listen config that the service is listening on.
+    pub fn with_listen_config(&mut self, listen_config: ListenConfig) -> &mut Self {
+        self.listen_config = Some(listen_config);
         self
     }
 
@@ -126,7 +136,10 @@ impl NetworkDriverBuilder {
     /// Returns an error if any of the following required fields are not set:
     /// - [NetworkDriverBuilder::unsafe_block_signer]
     /// - [NetworkDriverBuilder::chain_id]
+    ///
+    /// Returns an error if neither of the following required fields are set:
     /// - [NetworkDriverBuilder::socket]
+    /// - [NetworkDriverBuilder::listen_config]
     ///
     /// Set these fields using the respective methods on the [NetworkDriverBuilder]
     /// before calling this method.
@@ -179,18 +192,32 @@ impl NetworkDriverBuilder {
             )?
             .with_behaviour(|_| behaviour)?
             .build();
-        let socket = self.socket.take().ok_or(eyre::eyre!("socket address not set"))?;
+        let listen_config = self.listen_config.take().ok_or_else(|| {
+            let addr = self.socket.ok_or_else(|| eyre::eyre!("address not set"))?;
+            Ok(ListenConfig::from_ip(addr.ip(), addr.port()))
+        })?;
         let mut multiaddr = Multiaddr::empty();
-        match socket.ip() {
-            IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
-            IpAddr::V6(ip) => multiaddr.push(Protocol::Ip6(ip)),
+        match listen_config {
+            Ipv4 { ip: addr, port } => {
+                multiaddr.push(Protocol::Ip4(addr));
+                multiaddr.push(Protocol::Tcp(port));
+            }
+            Ipv6 { ip: addr, port } => {
+                multiaddr.push(Protocol::Ip6(addr));
+                multiaddr.push(Protocol::Tcp(port));
+            }
+            DualStack { ipv4: v4addr, ipv4_port: v4port, ipv6: v6addr, ipv6_port: v6port, .. } => {
+                multiaddr.push(Protocol::Ip4(v4addr));
+                multiaddr.push(Protocol::Tcp(v4port));
+                multiaddr.push(Protocol::Ip6(v6addr));
+                multiaddr.push(Protocol::Tcp(v6port));
+            }
         }
-        multiaddr.push(Protocol::Tcp(socket.port()));
         let gossip = GossipDriver::new(swarm, multiaddr, handler);
 
         // Build the discovery service
         let discovery =
-            DiscoveryBuilder::new().with_address(socket).with_chain_id(chain_id).build()?;
+            DiscoveryBuilder::new().with_listen_config(listen_config).with_chain_id(chain_id).build()?;
 
         Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
     }
