@@ -179,7 +179,7 @@ impl NetworkDriverBuilder {
             )?
             .with_behaviour(|_| behaviour)?
             .build();
-        let socket = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
+        let socket = self.socket.take().ok_or(eyre::eyre!("socket address not set"))?;
         let mut multiaddr = Multiaddr::empty();
         match socket.ip() {
             IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
