@@ -42,7 +42,9 @@ impl DiscoveryBuilder {
         let addr = self.address.ok_or_else(|| eyre::eyre!("address not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
         let opstack = OpStackEnr::new(chain_id, 0);
-        let opstack_data: Vec<u8> = opstack.into();
+        let mut opstack_data = Vec::new();
+        use alloy_rlp::Encodable;
+        opstack.encode(&mut opstack_data);
 
         let key = CombinedKey::generate_secp256k1();
         let enr = Enr::builder().add_value_rlp(OP_CL_KEY, opstack_data.into()).build(&key)?;
