@@ -4,7 +4,7 @@ Contains a gossipsub driver to run discv5 peer discovery and block gossip.
 
 ### Example
 
-```no_run
+```rust,no_run
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use alloy::primitives::address;
 use op_net::driver::NetworkDriver;
