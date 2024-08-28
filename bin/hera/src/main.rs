@@ -17,9 +17,6 @@ pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
 /// The Hera CLI Arguments.
 #[derive(Debug, Clone, Parser)]
 pub struct HeraArgs {
-    /// Verbosity level (0-4)
-    #[arg(long, short, help = "Verbosity level (0-4)", action = ArgAction::Count)]
-    pub v: u8,
     /// Chain ID of the L2 network
     #[clap(long = "hera.l2-chain-id", default_value_t = DEFAULT_L2_CHAIN_ID)]
     pub l2_chain_id: u64,
@@ -28,16 +25,9 @@ pub struct HeraArgs {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = HeraArgs::parse();
-    let subscriber = tracing_subscriber::fmt()
-        .with_max_level(match args.v {
-            0 => Level::ERROR,
-            1 => Level::WARN,
-            2 => Level::INFO,
-            3 => Level::DEBUG,
-            _ => Level::TRACE,
-        })
-        .finish();
-    tracing::subscriber::set_global_default(subscriber).map_err(|e| eyre::eyre!(e))?;
+    rollup::init_telemetry_stack(8090)?;
+
+    tracing::info!("Hera OP Stack Rollup node");
 
     let signer = address!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);

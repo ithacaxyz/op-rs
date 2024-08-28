@@ -1,14 +1,12 @@
 //! Contains a builder for the discovery service.
 
-use crate::{
-    discovery::driver::DiscoveryDriver,
-    types::{address::NetworkAddress, enr::OpStackEnr},
-};
+use crate::{discovery::driver::DiscoveryDriver, types::enr::OpStackEnr};
 use discv5::{
     enr::{CombinedKey, Enr},
     ConfigBuilder, Discv5, ListenConfig,
 };
 use eyre::Result;
+use std::net::SocketAddr;
 
 use crate::types::enr::OP_CL_KEY;
 
@@ -16,7 +14,7 @@ use crate::types::enr::OP_CL_KEY;
 #[derive(Debug, Default, Clone)]
 pub struct DiscoveryBuilder {
     /// The discovery service address.
-    address: Option<NetworkAddress>,
+    address: Option<SocketAddr>,
     /// The chain ID of the network.
     chain_id: Option<u64>,
 }
@@ -28,7 +26,7 @@ impl DiscoveryBuilder {
     }
 
     /// Sets the discovery service address.
-    pub fn with_address(mut self, address: NetworkAddress) -> Self {
+    pub fn with_address(mut self, address: SocketAddr) -> Self {
         self.address = Some(address);
         self
     }
@@ -44,11 +42,13 @@ impl DiscoveryBuilder {
         let addr = self.address.ok_or_else(|| eyre::eyre!("address not set"))?;
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
         let opstack = OpStackEnr::new(chain_id, 0);
-        let opstack_data: Vec<u8> = opstack.into();
+        let mut opstack_data = Vec::new();
+        use alloy_rlp::Encodable;
+        opstack.encode(&mut opstack_data);
 
         let key = CombinedKey::generate_secp256k1();
         let enr = Enr::builder().add_value_rlp(OP_CL_KEY, opstack_data.into()).build(&key)?;
-        let listen_config = ListenConfig::from_ip(addr.ip.into(), addr.port);
+        let listen_config = ListenConfig::from_ip(addr.ip(), addr.port());
         let config = ConfigBuilder::new(listen_config).build();
 
         let disc = Discv5::new(enr, key, config)
