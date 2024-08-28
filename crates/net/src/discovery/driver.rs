@@ -12,7 +12,7 @@ use discv5::{enr::NodeId, Discv5};
 
 use crate::{
     discovery::{bootnodes::BOOTNODES, builder::DiscoveryBuilder},
-    types::{address::Peer, enr::OpStackEnr},
+    types::{enr::OpStackEnr, peer::Peer},
 };
 
 /// The number of peers to buffer in the channel.
@@ -49,14 +49,14 @@ impl DiscoveryDriver {
     /// ## Example
     ///
     /// ```no_run
-    /// use op_net::{discovery::builder::DiscoveryBuilder, types::address::NetworkAddress};
-    /// use std::net::Ipv4Addr;
+    /// use op_net::discovery::builder::DiscoveryBuilder;
+    /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     ///
     /// #[tokio::main]
     /// async fn main() {
-    ///     let network_addr = NetworkAddress { ip: Ipv4Addr::new(127, 0, 0, 1), port: 9000 };
+    ///     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
     ///     let mut discovery = DiscoveryBuilder::new()
-    ///         .with_address(network_addr)
+    ///         .with_address(socket)
     ///         .with_chain_id(10) // OP Mainnet chain id
     ///         .build()
     ///         .expect("Failed to build discovery service");

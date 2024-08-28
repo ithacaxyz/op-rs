@@ -2,12 +2,12 @@
 
 use alloy::primitives::Address;
 use eyre::Result;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use tokio::sync::watch::channel;
 
 use libp2p::{
-    gossipsub::Config as GossipConfig, noise::Config as NoiseConfig, tcp::Config as TcpConfig,
-    yamux::Config as YamuxConfig, Multiaddr, SwarmBuilder,
+    gossipsub::Config as GossipConfig, multiaddr::Protocol, noise::Config as NoiseConfig,
+    tcp::Config as TcpConfig, yamux::Config as YamuxConfig, Multiaddr, SwarmBuilder,
 };
 use libp2p_identity::Keypair;
 
@@ -15,7 +15,6 @@ use crate::{
     discovery::builder::DiscoveryBuilder,
     driver::NetworkDriver,
     gossip::{behaviour::Behaviour, config, driver::GossipDriver, handler::BlockHandler},
-    types::address::NetworkAddress,
 };
 
 /// Constructs a [NetworkDriver] for Optimism's consensus-layer.
@@ -180,14 +179,18 @@ impl NetworkDriverBuilder {
             )?
             .with_behaviour(|_| behaviour)?
             .build();
-        let addr = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
-        let addr = NetworkAddress::try_from(addr)?;
-        let swarm_addr = Multiaddr::from(addr);
-        let gossip = GossipDriver::new(swarm, swarm_addr, handler);
+        let socket = self.socket.take().ok_or_else(|| eyre::eyre!("socket address not set"))?;
+        let mut multiaddr = Multiaddr::empty();
+        match socket.ip() {
+            IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
+            IpAddr::V6(ip) => multiaddr.push(Protocol::Ip6(ip)),
+        }
+        multiaddr.push(Protocol::Tcp(socket.port()));
+        let gossip = GossipDriver::new(swarm, multiaddr, handler);
 
         // Build the discovery service
         let discovery =
-            DiscoveryBuilder::new().with_address(addr).with_chain_id(chain_id).build()?;
+            DiscoveryBuilder::new().with_address(socket).with_chain_id(chain_id).build()?;
 
         Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
     }
@@ -240,11 +243,15 @@ mod tests {
             .with_gossip_config(cfg)
             .build()
             .unwrap();
-        let signer_net_addr = NetworkAddress::try_from(socket).expect("network address");
-        let signer_multiaddr = Multiaddr::from(signer_net_addr);
+        let mut multiaddr = Multiaddr::empty();
+        match socket.ip() {
+            IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
+            IpAddr::V6(ip) => multiaddr.push(Protocol::Ip6(ip)),
+        }
+        multiaddr.push(Protocol::Tcp(socket.port()));
 
         // Driver Assertions
-        assert_eq!(driver.gossip.addr, signer_multiaddr);
+        assert_eq!(driver.gossip.addr, multiaddr);
         assert_eq!(driver.discovery.chain_id, id);
 
         // Block Handler Assertions
@@ -268,11 +275,15 @@ mod tests {
             .with_socket(socket)
             .build()
             .unwrap();
-        let signer_net_addr = NetworkAddress::try_from(socket).expect("network address");
-        let signer_multiaddr = Multiaddr::from(signer_net_addr);
+        let mut multiaddr = Multiaddr::empty();
+        match socket.ip() {
+            IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
+            IpAddr::V6(ip) => multiaddr.push(Protocol::Ip6(ip)),
+        }
+        multiaddr.push(Protocol::Tcp(socket.port()));
 
         // Driver Assertions
-        assert_eq!(driver.gossip.addr, signer_multiaddr);
+        assert_eq!(driver.gossip.addr, multiaddr);
         assert_eq!(driver.discovery.chain_id, id);
 
         // Block Handler Assertions
