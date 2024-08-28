@@ -1,14 +1,14 @@
 //! Contains the Optimism consensus-layer ENR Type.
 
+use alloy_rlp::{Decodable, Encodable};
 use discv5::enr::{CombinedKey, Enr};
-use eyre::Result;
 use unsigned_varint::{decode, encode};
 
 /// The ENR key literal string for the consensus layer.
 pub const OP_CL_KEY: &str = "opstack";
 
 /// The unique L2 network identifier
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct OpStackEnr {
     /// Chain ID
     pub chain_id: u64,
@@ -25,8 +25,8 @@ impl OpStackEnr {
     /// Returns `true` if a node [Enr] contains an `opstack` key and is on the same network.
     pub fn is_valid_node(node: &Enr<CombinedKey>, chain_id: u64) -> bool {
         node.get_raw_rlp(OP_CL_KEY)
-            .map(|opstack| {
-                OpStackEnr::try_from(opstack)
+            .map(|mut opstack| {
+                OpStackEnr::decode(&mut opstack)
                     .map(|opstack| opstack.chain_id == chain_id && opstack.version == 0)
                     .unwrap_or_default()
             })
@@ -34,35 +34,50 @@ impl OpStackEnr {
     }
 }
 
-impl TryFrom<&[u8]> for OpStackEnr {
-    type Error = eyre::Report;
+impl Encodable for OpStackEnr {
+    fn encode(&self, out: &mut dyn alloy_rlp::BufMut) {
+        let mut chain_id_buf = encode::u128_buffer();
+        let chain_id_slice = encode::u128(self.chain_id as u128, &mut chain_id_buf);
 
-    /// Converts a slice of RLP encoded bytes to Op Stack Enr Data.
-    fn try_from(value: &[u8]) -> Result<Self> {
-        // TODO: rlp decode first?
-        // let bytes = Vec::<u8>::decode(&mut value)?;
-        let mut bytes = value;
-        let (chain_id, rest) =
-            decode::u64(bytes).map_err(|_| eyre::eyre!("could not decode chain id"))?;
-        bytes = rest;
+        let mut version_buf = encode::u128_buffer();
+        let version_slice = encode::u128(self.version as u128, &mut version_buf);
+
+        let opstack = [chain_id_slice, version_slice].concat();
+        alloy::primitives::Bytes::from(opstack).encode(out);
+    }
+}
+
+impl Decodable for OpStackEnr {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
+        let bytes = alloy::primitives::Bytes::decode(buf)?;
+        let (chain_id, rest) = decode::u64(&bytes)
+            .map_err(|_| alloy_rlp::Error::Custom("could not decode chain id"))?;
         let (version, _) =
-            decode::u64(bytes).map_err(|_| eyre::eyre!("could not decode chain id"))?;
-
+            decode::u64(rest).map_err(|_| alloy_rlp::Error::Custom("could not decode chain id"))?;
         Ok(Self { chain_id, version })
     }
 }
 
-impl From<OpStackEnr> for Vec<u8> {
-    /// Converts Op Stack Enr data to a vector of bytes.
-    fn from(value: OpStackEnr) -> Vec<u8> {
-        let mut chain_id_buf = encode::u128_buffer();
-        let chain_id_slice = encode::u128(value.chain_id as u128, &mut chain_id_buf);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloy::primitives::{bytes, Bytes};
 
-        let mut version_buf = encode::u128_buffer();
-        let version_slice = encode::u128(value.version as u128, &mut version_buf);
+    #[test]
+    fn test_encode_decode_op_enr() {
+        let op_enr = OpStackEnr::new(10, 0);
+        let bytes = alloy_rlp::encode(op_enr).to_vec();
+        assert_eq!(Bytes::from(bytes.clone()), bytes!("820A00"));
+        let decoded = OpStackEnr::decode(&mut &bytes[..]).unwrap();
+        assert_eq!(decoded, op_enr);
+    }
 
-        let opstack = [chain_id_slice, version_slice].concat();
-
-        alloy_rlp::encode(&opstack).to_vec()
+    #[test]
+    fn test_encode_decode_base_enr() {
+        let base_enr = OpStackEnr::new(8453, 0);
+        let bytes = alloy_rlp::encode(base_enr).to_vec();
+        assert_eq!(Bytes::from(bytes.clone()), bytes!("83854200"));
+        let decoded = OpStackEnr::decode(&mut &bytes[..]).unwrap();
+        assert_eq!(decoded, base_enr);
     }
 }
