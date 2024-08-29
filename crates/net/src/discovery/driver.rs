@@ -54,7 +54,7 @@ impl DiscoveryDriver {
     ///
     /// #[tokio::main]
     /// async fn main() {
-    ///     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    ///     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
     ///     let mut discovery = DiscoveryBuilder::new()
     ///         .with_address(socket)
     ///         .with_chain_id(10) // OP Mainnet chain id

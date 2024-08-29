@@ -11,7 +11,7 @@ use op_net::driver::NetworkDriver;
 
 // Build the network driver.
 let signer = address!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
 let driver = NetworkDriver::builder()
     .with_chain_id(10) // op mainnet chain id
     .with_unsafe_block_signer(signer)
@@ -24,6 +24,15 @@ driver.start().expect("Failed to start network driver");
 
 println!("NetworkDriver started.");
 ```
+
+> [!WARNING]
+>
+> Notice, the socket address uses `0.0.0.0`.
+> If you are experiencing issues connecting to peers for discovery,
+> check to make sure you are not using the loopback address,
+> `127.0.0.1` aka "localhost", which can prevent outward facing connections.
+
+[!WARNING]: ###example
 
 ### Acknowledgements
 

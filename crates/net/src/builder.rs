@@ -122,7 +122,7 @@ impl NetworkDriverBuilder {
     ///
     /// let chain_id = 10;
     /// let signer = Address::random();
-    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
     ///
     /// // Let's say we want to enable flood publishing and use all other default settings.
     /// let cfg = config::default_config_builder().flood_publish(true).build().unwrap();
@@ -163,7 +163,7 @@ impl NetworkDriverBuilder {
     ///
     /// let chain_id = 10;
     /// let signer = Address::random();
-    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
     /// let driver = NetworkDriverBuilder::new()
     ///    .with_unsafe_block_signer(signer)
     ///    .with_chain_id(chain_id)
@@ -175,8 +175,8 @@ impl NetworkDriverBuilder {
     ///
     /// let chain_id = 10;
     /// let signer = Address::random();
-    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
-    /// let listen_config = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9999);
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+    /// let listen_config = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9999);
     /// let driver = NetworkDriverBuilder::new()
     ///    .with_unsafe_block_signer(signer)
     ///    .with_chain_id(chain_id)
@@ -288,7 +288,7 @@ mod tests {
     fn test_build_custom_gossip_config() {
         let id = 10;
         let signer = Address::random();
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
         let cfg = config::default_config_builder().flood_publish(true).build().unwrap();
         let driver = NetworkDriverBuilder::new()
             .with_unsafe_block_signer(signer)
@@ -322,7 +322,7 @@ mod tests {
     fn test_build_default_network_driver() {
         let id = 10;
         let signer = Address::random();
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
         let driver = NetworkDriverBuilder::new()
             .with_unsafe_block_signer(signer)
             .with_chain_id(id)
@@ -355,8 +355,8 @@ mod tests {
     fn test_build_network_driver_with_discovery_addr() {
         let id = 10;
         let signer = Address::random();
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
-        let discovery_addr = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9098);
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+        let discovery_addr = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9098);
         let driver = NetworkDriverBuilder::new()
             .with_unsafe_block_signer(signer)
             .with_chain_id(id)
