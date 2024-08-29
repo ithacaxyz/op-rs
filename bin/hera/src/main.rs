@@ -4,60 +4,49 @@
 #![doc(issue_tracker_base_url = "https://github.com/paradigmxyz/op-rs/issues/")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use eyre::Result;
-use op_net::driver::NetworkDriver;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use superchain_registry::ROLLUP_CONFIGS;
 
-/// The default L2 chain ID to use. This corresponds to OP Mainnet.
-pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
+mod network;
+mod node;
 
 /// The Hera CLI Arguments.
-#[derive(Debug, Clone, Parser)]
-pub struct HeraArgs {
-    /// Chain ID of the L2 network
-    #[clap(long = "hera.l2-chain-id", default_value_t = DEFAULT_L2_CHAIN_ID)]
+#[derive(Parser, Clone, Debug)]
+#[command(author, version, about, long_about = None)]
+pub(crate) struct HeraArgs {
+    /// Global arguments for the Hera CLI.
+    #[clap(flatten)]
+    pub global: GlobalArgs,
+    /// The subcommand to run.
+    #[clap(subcommand)]
+    pub subcommand: HeraSubcommand,
+}
+
+/// Global arguments for the Hera CLI.
+#[derive(Parser, Clone, Debug)]
+pub(crate) struct GlobalArgs {
+    /// The L2 chain ID to use.
+    #[clap(long, short = 'c', default_value = "10", help = "The L2 chain ID to use")]
     pub l2_chain_id: u64,
+}
+
+/// Subcommands for the CLI.
+#[derive(Debug, Clone, Subcommand)]
+pub(crate) enum HeraSubcommand {
+    /// Run the standalone Hera node.
+    Node(node::NodeCommand),
+    /// Networking utility commands.
+    Network(network::NetworkCommand),
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = HeraArgs::parse();
     rollup::init_telemetry_stack(8090)?;
-
     tracing::info!("Hera OP Stack Rollup node");
-
-    let signer = ROLLUP_CONFIGS
-        .get(&args.l2_chain_id)
-        .ok_or(eyre::eyre!("No rollup config found for chain ID"))?
-        .genesis
-        .system_config
-        .as_ref()
-        .ok_or(eyre::eyre!("No system config found for chain ID"))?
-        .batcher_address;
-    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
-    let mut driver = NetworkDriver::builder()
-        .with_chain_id(args.l2_chain_id)
-        .with_unsafe_block_signer(signer)
-        .with_gossip_addr(socket)
-        .build()
-        .expect("Failed to builder network driver");
-
-    // Call `.start()` on the driver.
-    let recv = driver.take_unsafe_block_recv().ok_or(eyre::eyre!("No unsafe block receiver"))?;
-    driver.start().expect("Failed to start network driver");
-
-    tracing::info!("NetworkDriver started successfully.");
-
-    loop {
-        match recv.recv() {
-            Ok(block) => {
-                tracing::info!("Received unsafe block: {:?}", block);
-            }
-            Err(e) => {
-                tracing::warn!("Failed to receive unsafe block: {:?}", e);
-            }
-        }
+    match args.subcommand {
+        HeraSubcommand::Node(node) => node.run(&args.global).await?,
+        HeraSubcommand::Network(network) => network.run(&args.global).await?,
     }
+    Ok(())
 }
