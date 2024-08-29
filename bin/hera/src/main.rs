@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
     let mut driver = NetworkDriver::builder()
         .with_chain_id(args.l2_chain_id)
         .with_unsafe_block_signer(signer)
-        .with_socket(socket)
+        .with_gossip_addr(socket)
         .build()
         .expect("Failed to builder network driver");
 
