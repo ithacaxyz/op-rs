@@ -1,6 +1,7 @@
 //! Network Builder Module.
 
 use alloy::primitives::Address;
+use discv5::ListenConfig;
 use eyre::Result;
 use std::{
     net::{IpAddr, SocketAddr},
@@ -27,8 +28,10 @@ pub struct NetworkDriverBuilder {
     pub chain_id: Option<u64>,
     /// The unsafe block signer.
     pub unsafe_block_signer: Option<Address>,
-    /// The socket address that the service is listening on.
-    pub socket: Option<SocketAddr>,
+    /// The socket address that the gossip service is listening on.
+    pub gossip_addr: Option<SocketAddr>,
+    /// The listen config that the discovery service is listening on.
+    pub discovery_addr: Option<ListenConfig>,
     /// The [GossipConfig] constructs the config for `gossipsub`.
     pub gossip_config: Option<GossipConfig>,
     /// The [Keypair] for the node.
@@ -61,9 +64,15 @@ impl NetworkDriverBuilder {
         self
     }
 
-    /// Specifies the socket address that the service is listening on.
-    pub fn with_socket(&mut self, socket: SocketAddr) -> &mut Self {
-        self.socket = Some(socket);
+    /// Specifies the socket address that the gossip service is listening on.
+    pub fn with_gossip_addr(&mut self, socket: SocketAddr) -> &mut Self {
+        self.gossip_addr = Some(socket);
+        self
+    }
+
+    /// Specifies the listen config that the discovery service is listening on.
+    pub fn with_discovery_addr(&mut self, listen_config: ListenConfig) -> &mut Self {
+        self.discovery_addr = Some(listen_config);
         self
     }
 
@@ -120,7 +129,7 @@ impl NetworkDriverBuilder {
     /// let mut builder = NetworkDriverBuilder::new()
     ///    .with_unsafe_block_signer(signer)
     ///    .with_chain_id(chain_id)
-    ///    .with_socket(socket)
+    ///    .with_gossip_addr(socket)
     ///    .with_gossip_config(cfg);
     ///    .build()
     ///    .unwrap();
@@ -137,7 +146,11 @@ impl NetworkDriverBuilder {
     /// Returns an error if any of the following required fields are not set:
     /// - [NetworkDriverBuilder::unsafe_block_signer]
     /// - [NetworkDriverBuilder::chain_id]
-    /// - [NetworkDriverBuilder::socket]
+    /// - [NetworkDriverBuilder::gossip_addr]
+    ///
+    /// If explicitly set, the following fields are used for discovery address, otherwise the gossip
+    /// address is used:
+    /// - [NetworkDriverBuilder::discovery_addr]
     ///
     /// Set these fields using the respective methods on the [NetworkDriverBuilder]
     /// before calling this method.
@@ -154,7 +167,21 @@ impl NetworkDriverBuilder {
     /// let driver = NetworkDriverBuilder::new()
     ///    .with_unsafe_block_signer(signer)
     ///    .with_chain_id(chain_id)
-    ///    .with_socket(socket)
+    ///    .with_gossip_addr(socket)
+    ///    .build()
+    ///    .unwrap();
+    ///
+    /// Or if you want to use a different discovery address:
+    ///
+    /// let chain_id = 10;
+    /// let signer = Address::random();
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    /// let listen_config = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9999);
+    /// let driver = NetworkDriverBuilder::new()
+    ///    .with_unsafe_block_signer(signer)
+    ///    .with_chain_id(chain_id)
+    ///    .with_gossip_addr(socket)
+    ///    .with_discovery_addr(listen_config)
     ///    .build()
     ///    .unwrap();
     /// ```
@@ -192,18 +219,27 @@ impl NetworkDriverBuilder {
             .with_behaviour(|_| behaviour)?
             .with_swarm_config(|c| c.with_idle_connection_timeout(timeout))
             .build();
-        let socket = self.socket.take().ok_or(eyre::eyre!("socket address not set"))?;
+
+        let gossip_addr =
+            self.gossip_addr.take().ok_or(eyre::eyre!("gossip_addr address not set"))?;
         let mut multiaddr = Multiaddr::empty();
-        match socket.ip() {
+        match gossip_addr.ip() {
             IpAddr::V4(ip) => multiaddr.push(Protocol::Ip4(ip)),
             IpAddr::V6(ip) => multiaddr.push(Protocol::Ip6(ip)),
         }
-        multiaddr.push(Protocol::Tcp(socket.port()));
-        let gossip = GossipDriver::new(swarm, multiaddr, handler);
+        multiaddr.push(Protocol::Tcp(gossip_addr.port()));
+        let gossip = GossipDriver::new(swarm, multiaddr, handler.clone());
 
         // Build the discovery service
-        let discovery =
-            DiscoveryBuilder::new().with_address(socket).with_chain_id(chain_id).build()?;
+        let discovery_builder =
+            DiscoveryBuilder::new().with_address(gossip_addr).with_chain_id(chain_id);
+
+        let discovery = if let Some(discovery_addr) = self.discovery_addr.take() {
+            discovery_builder.with_listen_config(discovery_addr)
+        } else {
+            discovery_builder
+        }
+        .build()?;
 
         Ok(NetworkDriver {
             discovery,
@@ -245,7 +281,7 @@ mod tests {
         else {
             panic!("expected error when building NetworkDriver without socket");
         };
-        assert_eq!(err.to_string(), "socket address not set");
+        assert_eq!(err.to_string(), "gossip_addr address not set");
     }
 
     #[test]
@@ -257,7 +293,7 @@ mod tests {
         let driver = NetworkDriverBuilder::new()
             .with_unsafe_block_signer(signer)
             .with_chain_id(id)
-            .with_socket(socket)
+            .with_gossip_addr(socket)
             .with_gossip_config(cfg)
             .build()
             .unwrap();
@@ -290,7 +326,7 @@ mod tests {
         let driver = NetworkDriverBuilder::new()
             .with_unsafe_block_signer(signer)
             .with_chain_id(id)
-            .with_socket(socket)
+            .with_gossip_addr(socket)
             .build()
             .unwrap();
         let mut multiaddr = Multiaddr::empty();
@@ -303,6 +339,7 @@ mod tests {
         // Driver Assertions
         assert_eq!(driver.gossip.addr, multiaddr);
         assert_eq!(driver.discovery.chain_id, id);
+        assert_eq!(driver.discovery.disc.local_enr().tcp4().unwrap(), 9099);
 
         // Block Handler Assertions
         assert_eq!(driver.gossip.handler.chain_id, id);
@@ -312,5 +349,22 @@ mod tests {
         assert_eq!(driver.gossip.handler.blocks_v2_topic.hash(), v2.hash());
         let v3 = IdentTopic::new(format!("/optimism/{}/2/blocks", id));
         assert_eq!(driver.gossip.handler.blocks_v3_topic.hash(), v3.hash());
+    }
+
+    #[test]
+    fn test_build_network_driver_with_discovery_addr() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+        let discovery_addr = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9098);
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_gossip_addr(socket)
+            .with_discovery_addr(discovery_addr)
+            .build()
+            .unwrap();
+
+        assert_eq!(driver.discovery.disc.local_enr().tcp4().unwrap(), 9098);
     }
 }

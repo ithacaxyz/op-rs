@@ -15,7 +15,7 @@ let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
 let driver = NetworkDriver::builder()
     .with_chain_id(10) // op mainnet chain id
     .with_unsafe_block_signer(signer)
-    .with_socket(socket)
+    .with_gossip_addr(socket)
     .build()
     .expect("Failed to builder network driver");
 
