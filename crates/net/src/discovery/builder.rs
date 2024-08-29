@@ -5,7 +5,7 @@ use discv5::{
     enr::{CombinedKey, Enr},
     ConfigBuilder, Discv5, ListenConfig,
 };
-use eyre::Result;
+use eyre::{Report, Result};
 use std::net::SocketAddr;
 
 use crate::types::enr::OP_CL_KEY;
@@ -54,11 +54,28 @@ impl DiscoveryBuilder {
         opstack.encode(&mut opstack_data);
 
         let key = CombinedKey::generate_secp256k1();
-        let enr = Enr::builder().add_value_rlp(OP_CL_KEY, opstack_data.into()).build(&key)?;
-        let listen_config = self.listen_config.take().unwrap_or_else(|| {
-            let addr = self.address.expect("address not set");
-            ListenConfig::from_ip(addr.ip(), addr.port())
-        });
+        let mut enr_builder = Enr::builder();
+        enr_builder.add_value_rlp(OP_CL_KEY, opstack_data.into());
+        let listen_config = self.listen_config.take().map_or_else(
+            || {
+                let addr = self.address.ok_or(eyre::eyre!("address not set"))?;
+                Ok::<ListenConfig, Report>(ListenConfig::from(addr))
+            },
+            Ok,
+        )?;
+        match listen_config {
+            ListenConfig::Ipv4 { ip, port } => {
+                enr_builder.ip4(ip).tcp4(port);
+            }
+            ListenConfig::Ipv6 { ip, port } => {
+                enr_builder.ip6(ip).tcp6(port);
+            }
+            ListenConfig::DualStack { ipv4, ipv4_port, ipv6, ipv6_port } => {
+                enr_builder.ip4(ipv4).tcp4(ipv4_port);
+                enr_builder.ip6(ipv6).tcp6(ipv6_port);
+            }
+        }
+        let enr = enr_builder.build(&key)?;
         let config = ConfigBuilder::new(listen_config).build();
 
         let disc = Discv5::new(enr, key, config)
