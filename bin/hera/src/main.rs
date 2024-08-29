@@ -4,11 +4,11 @@
 #![doc(issue_tracker_base_url = "https://github.com/paradigmxyz/op-rs/issues/")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 
-use alloy::primitives::address;
 use clap::Parser;
 use eyre::Result;
 use op_net::driver::NetworkDriver;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use superchain_registry::ROLLUP_CONFIGS;
 
 /// The default L2 chain ID to use. This corresponds to OP Mainnet.
 pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
@@ -28,7 +28,13 @@ async fn main() -> Result<()> {
 
     tracing::info!("Hera OP Stack Rollup node");
 
-    let signer = address!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    let signer = ROLLUP_CONFIGS
+        .get(&args.l2_chain_id)
+        .ok_or(eyre::eyre!("No rollup config found for chain ID"))?
+        .genesis
+        .system_config.as_ref()
+        .ok_or(eyre::eyre!("No system config found for chain ID"))?
+        .batcher_address;
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
     let mut driver = NetworkDriver::builder()
         .with_chain_id(args.l2_chain_id)

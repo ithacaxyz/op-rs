@@ -191,9 +191,9 @@ impl NetworkDriverBuilder {
             Some(cfg) => cfg,
             None => config::default_config()?,
         };
+        let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
         let unsafe_block_signer =
             self.unsafe_block_signer.ok_or_else(|| eyre::eyre!("unsafe block signer not set"))?;
-        let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
 
         // Create the block handler.
         let (unsafe_block_signer_sender, unsafe_block_signer_recv) = channel(unsafe_block_signer);
