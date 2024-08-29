@@ -32,6 +32,8 @@ println!("NetworkDriver started.");
 > check to make sure you are not using the loopback address,
 > `127.0.0.1` aka "localhost", which can prevent outward facing connections.
 
+[!WARNING]: ###example
+
 ### Acknowledgements
 
 Largely based off [magi](https://github.com/a16z/magi)'s [p2p module](https://github.com/a16z/magi/tree/master/src/network).
