@@ -32,7 +32,8 @@ async fn main() -> Result<()> {
         .get(&args.l2_chain_id)
         .ok_or(eyre::eyre!("No rollup config found for chain ID"))?
         .genesis
-        .system_config.as_ref()
+        .system_config
+        .as_ref()
         .ok_or(eyre::eyre!("No system config found for chain ID"))?
         .batcher_address;
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
