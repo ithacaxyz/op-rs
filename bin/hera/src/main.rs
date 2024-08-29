@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     tracing::info!("Hera OP Stack Rollup node");
 
     let signer = address!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9099);
+    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
     let mut driver = NetworkDriver::builder()
         .with_chain_id(args.l2_chain_id)
         .with_unsafe_block_signer(signer)
