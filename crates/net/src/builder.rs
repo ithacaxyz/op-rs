@@ -3,7 +3,10 @@
 use alloy::primitives::Address;
 use discv5::ListenConfig;
 use eyre::Result;
-use std::net::{IpAddr, SocketAddr};
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 use tokio::sync::watch::channel;
 
 use libp2p::{
@@ -39,6 +42,8 @@ pub struct NetworkDriverBuilder {
     pub noise_config: Option<NoiseConfig>,
     /// The [YamuxConfig] for the swarm.
     pub yamux_config: Option<YamuxConfig>,
+    /// The idle connection timeout.
+    pub timeout: Option<Duration>,
 }
 
 impl NetworkDriverBuilder {
@@ -92,6 +97,12 @@ impl NetworkDriverBuilder {
     /// Specifies the [YamuxConfig] for the swarm.
     pub fn with_yamux_config(&mut self, yamux_config: YamuxConfig) -> &mut Self {
         self.yamux_config = Some(yamux_config);
+        self
+    }
+
+    /// Set the swarm's idle connection timeout.
+    pub fn with_idle_connection_timeout(&mut self, timeout: Duration) -> &mut Self {
+        self.timeout = Some(timeout);
         self
     }
 
@@ -192,6 +203,7 @@ impl NetworkDriverBuilder {
         let behaviour = Behaviour::new(config, &[Box::new(handler.clone())])?;
 
         // Build the swarm.
+        let timeout = self.timeout.take().unwrap_or(Duration::from_secs(60));
         let noise_config = self.noise_config.take();
         let keypair = self.keypair.take().unwrap_or(Keypair::generate_secp256k1());
         let swarm = SwarmBuilder::with_existing_identity(keypair)
@@ -205,6 +217,7 @@ impl NetworkDriverBuilder {
                 || self.yamux_config.take().unwrap_or_default(),
             )?
             .with_behaviour(|_| behaviour)?
+            .with_swarm_config(|c| c.with_idle_connection_timeout(timeout))
             .build();
 
         let gossip_addr =
@@ -227,7 +240,13 @@ impl NetworkDriverBuilder {
             discovery_builder
         }
         .build()?;
-        Ok(NetworkDriver { unsafe_block_recv, unsafe_block_signer_sender, gossip, discovery })
+
+        Ok(NetworkDriver {
+            discovery,
+            gossip,
+            unsafe_block_recv: Some(unsafe_block_recv),
+            unsafe_block_signer_sender: Some(unsafe_block_signer_sender),
+        })
     }
 }
 
