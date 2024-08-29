@@ -8507,6 +8507,7 @@ dependencies = [
  "async-trait",
  "clap",
  "eyre",
+ "hashbrown 0.14.5",
  "kona-derive",
  "kona-primitives",
  "kona-providers",
