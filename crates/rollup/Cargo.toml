@@ -19,6 +19,7 @@ clap.workspace = true
 async-trait.workspace = true
 tokio.workspace = true
 alloy.workspace = true
+hashbrown.workspace = true
 
 # Reth Dependencies
 reth.workspace = true
