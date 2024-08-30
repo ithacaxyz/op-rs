@@ -65,7 +65,7 @@ mod tests {
     use alloy::primitives::{bytes, Bytes};
 
     #[test]
-    fn rountrip_op_stack_enr() {
+    fn roundtrip_op_stack_enr() {
         arbtest::arbtest(|u| {
             let op_stack_enr = OpStackEnr::new(u.arbitrary()?, 0);
             let bytes = alloy_rlp::encode(op_stack_enr).to_vec();
