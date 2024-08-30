@@ -14,6 +14,9 @@ categories.workspace = true
 # Local Dependencies
 rollup = { path = "../../crates/rollup" }
 
+# Superchain
+superchain-registry.workspace = true
+
 # Workspace
 eyre.workspace = true
 alloy.workspace = true

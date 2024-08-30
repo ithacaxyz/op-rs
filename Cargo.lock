@@ -3005,6 +3005,7 @@ dependencies = [
  "eyre",
  "op-net",
  "rollup",
+ "superchain-registry",
  "tokio",
  "tracing",
  "tracing-subscriber",
