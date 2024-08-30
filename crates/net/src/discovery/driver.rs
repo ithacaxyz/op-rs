@@ -6,7 +6,7 @@ use tokio::{
     sync::mpsc::{channel, Receiver},
     time::sleep,
 };
-use tracing::{trace, warn};
+use tracing::{info, warn};
 
 use discv5::{enr::NodeId, Discv5};
 
@@ -79,9 +79,16 @@ impl DiscoveryDriver {
 
         tokio::spawn(async move {
             bootnodes.into_iter().for_each(|enr| _ = self.disc.add_enr(enr));
-            self.disc.start().await.unwrap();
+            loop {
+                if let Err(e) = self.disc.start().await {
+                    warn!("Failed to start discovery service: {:?}", e);
+                    sleep(Duration::from_secs(2)).await;
+                    continue;
+                }
+                break;
+            }
 
-            trace!("Started peer discovery");
+            info!("Started peer discovery");
 
             loop {
                 let target = NodeId::random();
