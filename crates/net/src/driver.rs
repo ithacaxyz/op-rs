@@ -1,15 +1,16 @@
 //! Driver for network services.
 
 use crate::{
-    builder::NetworkDriverBuilder, discovery::driver::DiscoveryDriver,
-    gossip::driver::GossipDriver, types::envelope::ExecutionPayloadEnvelope,
+    builder::NetworkDriverBuilder,
+    discovery::driver::DiscoveryDriver,
+    gossip::driver::GossipDriver,
+    types::{envelope::ExecutionPayloadEnvelope, peer::Peer},
 };
 use alloy::primitives::Address;
 use eyre::Result;
-use tracing::error;
 use std::sync::mpsc::Receiver;
 use tokio::{select, sync::watch};
-use crate::types::peer::Peer;
+use tracing::error;
 
 /// NetworkDriver
 ///
