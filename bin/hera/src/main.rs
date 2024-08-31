@@ -28,6 +28,14 @@ pub(crate) struct GlobalArgs {
     /// The L2 chain ID to use.
     #[clap(long, short = 'c', default_value = "10", help = "The L2 chain ID to use")]
     pub l2_chain_id: u64,
+    /// A port to serve prometheus metrics on.
+    #[clap(
+        long,
+        short = 'm',
+        default_value = "9090",
+        help = "The port to serve prometheus metrics on"
+    )]
+    pub metrics_port: u16,
 }
 
 /// Subcommands for the CLI.
@@ -42,7 +50,7 @@ pub(crate) enum HeraSubcommand {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = HeraArgs::parse();
-    rollup::init_telemetry_stack(8090)?;
+    rollup::init_telemetry_stack(args.global.metrics_port)?;
     tracing::info!("Hera OP Stack Rollup node");
     match args.subcommand {
         HeraSubcommand::Node(node) => node.run(&args.global).await?,

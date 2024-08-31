@@ -11,18 +11,21 @@ use superchain_registry::ROLLUP_CONFIGS;
 #[derive(Debug, Clone, Args)]
 #[non_exhaustive]
 pub struct NetworkCommand {
-    /// Run peer discovery.
+    /// Run the peer discovery service.
     #[clap(long, short = 'p', help = "Runs peer discovery")]
-    pub peer: bool,
+    pub disc: bool,
     /// Run the gossip driver.
     #[clap(long, short = 'g', help = "Runs the unsafe block gossipping service")]
     pub gossip: bool,
+    /// Port to listen for gossip on.
+    #[clap(long, short = 'l', default_value = "9099", help = "Port to listen for gossip on")]
+    pub gossip_port: u16,
 }
 
 impl NetworkCommand {
     /// Run the network subcommand.
     pub async fn run(&self, args: &GlobalArgs) -> Result<()> {
-        if self.peer {
+        if self.disc {
             println!("Running peer discovery");
         }
         if self.gossip {
@@ -36,7 +39,7 @@ impl NetworkCommand {
             .as_ref()
             .ok_or(eyre::eyre!("No system config found for chain ID"))?
             .batcher_address;
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), self.gossip_port);
         let mut driver = NetworkDriver::builder()
             .with_chain_id(args.l2_chain_id)
             .with_unsafe_block_signer(signer)
