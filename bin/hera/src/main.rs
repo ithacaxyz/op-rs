@@ -32,15 +32,6 @@ pub(crate) enum HeraSubcommand {
     Network(network::NetworkCommand),
 }
 
-/// Subcommands for the CLI.
-#[derive(Debug, Clone, Subcommand)]
-pub(crate) enum HeraSubcommand {
-    /// Run the standalone Hera node.
-    Node(node::NodeCommand),
-    /// Networking utility commands.
-    Network(network::NetworkCommand),
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     // Parse arguments.
