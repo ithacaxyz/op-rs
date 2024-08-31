@@ -1,6 +1,6 @@
 //! Networking subcommand for Hera.
 
-use crate::GlobalArgs;
+use crate::globals::GlobalArgs;
 use clap::Args;
 use eyre::Result;
 use op_net::driver::NetworkDriver;
