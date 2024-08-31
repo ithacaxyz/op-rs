@@ -7,6 +7,7 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
+mod globals;
 mod network;
 mod node;
 
@@ -16,18 +17,19 @@ mod node;
 pub(crate) struct HeraArgs {
     /// Global arguments for the Hera CLI.
     #[clap(flatten)]
-    pub global: GlobalArgs,
+    pub global: globals::GlobalArgs,
     /// The subcommand to run.
     #[clap(subcommand)]
     pub subcommand: HeraSubcommand,
 }
 
-/// Global arguments for the Hera CLI.
-#[derive(Parser, Clone, Debug)]
-pub(crate) struct GlobalArgs {
-    /// The L2 chain ID to use.
-    #[clap(long, short = 'c', default_value = "10", help = "The L2 chain ID to use")]
-    pub l2_chain_id: u64,
+/// Subcommands for the CLI.
+#[derive(Debug, Clone, Subcommand)]
+pub(crate) enum HeraSubcommand {
+    /// Run the standalone Hera node.
+    Node(node::NodeCommand),
+    /// Networking utility commands.
+    Network(network::NetworkCommand),
 }
 
 /// Subcommands for the CLI.
@@ -41,12 +43,17 @@ pub(crate) enum HeraSubcommand {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Parse arguments.
     let args = HeraArgs::parse();
-    rollup::init_telemetry_stack(8090)?;
-    tracing::info!("Hera OP Stack Rollup node");
+
+    // Initialize the telemetry stack.
+    rollup::init_telemetry_stack(args.global.metrics_port)?;
+
+    // Dispatch on subcommand.
     match args.subcommand {
         HeraSubcommand::Node(node) => node.run(&args.global).await?,
         HeraSubcommand::Network(network) => network.run(&args.global).await?,
     }
+
     Ok(())
 }
