@@ -9,6 +9,7 @@ pub const OP_CL_KEY: &str = "opstack";
 
 /// The unique L2 network identifier
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[cfg_attr(any(test, feature = "arbitrary"), derive(arbitrary::Arbitrary))]
 pub struct OpStackEnr {
     /// Chain ID
     pub chain_id: u64,
@@ -64,7 +65,18 @@ mod tests {
     use alloy::primitives::{bytes, Bytes};
 
     #[test]
-    fn test_encode_decode_op_enr() {
+    fn roundtrip_op_stack_enr() {
+        arbtest::arbtest(|u| {
+            let op_stack_enr = OpStackEnr::new(u.arbitrary()?, 0);
+            let bytes = alloy_rlp::encode(op_stack_enr).to_vec();
+            let decoded = OpStackEnr::decode(&mut &bytes[..]).unwrap();
+            assert_eq!(decoded, op_stack_enr);
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn test_op_mainnet_enr() {
         let op_enr = OpStackEnr::new(10, 0);
         let bytes = alloy_rlp::encode(op_enr).to_vec();
         assert_eq!(Bytes::from(bytes.clone()), bytes!("820A00"));
@@ -73,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_decode_base_enr() {
+    fn test_base_mainnet_enr() {
         let base_enr = OpStackEnr::new(8453, 0);
         let bytes = alloy_rlp::encode(base_enr).to_vec();
         assert_eq!(Bytes::from(bytes.clone()), bytes!("83854200"));
