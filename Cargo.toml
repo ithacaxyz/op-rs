@@ -134,7 +134,9 @@ alloy = { version = "0.2", features = [
     "provider-http",
     "signers",
     "consensus",
+    "rpc-types",
     "rpc-types-engine",
+    "network",
     "ssz"
 ] }
 alloy-primitives = { version = "0.8", features = ["serde"] }
