@@ -40,7 +40,8 @@ arbitrary = { workspace = true, optional = true }
 [dev-dependencies]
 arbtest.workspace = true
 arbitrary.workspace = true
+alloy = { workspace = true, features = ["arbitrary"] }
 
 [features]
 default = []
-arbitrary = ["dep:arbitrary"]
+arbitrary = ["dep:arbitrary", "alloy/arbitrary"]
