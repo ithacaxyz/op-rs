@@ -27,7 +27,8 @@ use crate::{
 };
 
 mod context;
-use context::{ChainNotification, DriverContext, StandaloneContext};
+pub use context::StandaloneContext;
+use context::{ChainNotification, DriverContext};
 
 mod cursor;
 use cursor::SyncCursor;

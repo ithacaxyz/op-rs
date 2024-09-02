@@ -12,17 +12,15 @@ categories.workspace = true
 
 [dependencies]
 # Local Dependencies
-rollup = { path = "../../crates/rollup" }
+rollup.workspace = true
 
 # Superchain
 superchain-registry.workspace = true
 
 # Workspace
 eyre.workspace = true
-alloy.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing.workspace = true
-tracing-subscriber.workspace = true
 clap.workspace = true
 url.workspace = true
 

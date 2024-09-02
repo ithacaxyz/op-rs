@@ -3,6 +3,7 @@
 #![doc = include_str!("../README.md")]
 #![doc(issue_tracker_base_url = "https://github.com/paradigmxyz/op-rs/issues/")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
+#![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 use clap::{Parser, Subcommand};
 use eyre::Result;
@@ -25,6 +26,7 @@ pub(crate) struct HeraArgs {
 
 /// Subcommands for the CLI.
 #[derive(Debug, Clone, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum HeraSubcommand {
     /// Run the standalone Hera node.
     Node(node::NodeCommand),

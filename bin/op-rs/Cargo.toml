@@ -11,7 +11,7 @@ categories.workspace = true
 
 [dependencies]
 # Local Dependencies
-rollup = { path = "../../crates/rollup" }
+rollup.workspace = true
 
 # Workspace
 eyre.workspace = true
@@ -21,9 +21,3 @@ tracing.workspace = true
 # Reth Dependencies
 reth.workspace = true
 reth-node-ethereum.workspace = true
-
-# OP Stack Dependencies
-superchain-registry = { workspace = true, default-features = false }
-
-# Misc
-serde_json = "1"

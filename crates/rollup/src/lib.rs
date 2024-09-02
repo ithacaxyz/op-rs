@@ -5,7 +5,7 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 mod driver;
-pub use driver::Driver;
+pub use driver::{Driver, StandaloneContext};
 
 mod cli;
 pub use cli::HeraArgsExt;
