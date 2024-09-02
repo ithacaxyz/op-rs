@@ -23,11 +23,10 @@ impl NetworkCommand {
     /// Run the network subcommand.
     pub async fn run(&self, args: &GlobalArgs) -> Result<()> {
         if self.only_disc {
-            self.run_discovery(args).await?;
+            self.run_discovery(args).await
         } else {
-            self.run_network(args)?;
+            self.run_network(args)
         }
-        Ok(())
     }
 
     /// Runs the full network.
