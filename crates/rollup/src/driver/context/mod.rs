@@ -9,7 +9,7 @@ use async_trait::async_trait;
 use kona_providers::chain_provider::reth_to_alloy_tx;
 use reth::rpc::types::{BlockTransactions, Header, OtherFields};
 use reth_execution_types::Chain;
-use reth_exex::{ExExEvent, ExExNotification};
+use reth_exex::ExExNotification;
 use tokio::sync::mpsc::error::SendError;
 
 mod exex;
@@ -21,11 +21,12 @@ pub use standalone::StandaloneContext;
 pub trait DriverContext {
     async fn recv_notification(&mut self) -> Option<ChainNotification>;
 
-    fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>>;
+    fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>>;
 }
 
 /// A simple notification type that represents a chain of blocks, without
 /// any EVM execution results or state.
+#[derive(Debug, Clone)]
 pub enum ChainNotification {
     New { new_blocks: Blocks },
     Revert { old_blocks: Blocks },

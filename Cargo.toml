@@ -132,6 +132,8 @@ alloy = { version = "0.2", features = [
     "contract",
     "providers",
     "provider-http",
+    "provider-ws",
+    "provider-ipc",
     "signers",
     "consensus",
     "rpc-types",

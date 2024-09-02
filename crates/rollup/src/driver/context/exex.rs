@@ -1,3 +1,4 @@
+use alloy::primitives::BlockNumber;
 use async_trait::async_trait;
 use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
@@ -12,7 +13,7 @@ impl<N: FullNodeComponents> DriverContext for ExExContext<N> {
         Some(ChainNotification::from(exex_notification))
     }
 
-    fn send_event(&mut self, event: ExExEvent) -> Result<(), SendError<ExExEvent>> {
-        self.events.send(event)
+    fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>> {
+        self.events.send(ExExEvent::FinishedHeight(tip)).map_err(|_| SendError(tip))
     }
 }

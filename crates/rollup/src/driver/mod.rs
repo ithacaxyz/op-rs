@@ -11,7 +11,7 @@ use kona_primitives::BlockInfo;
 use kona_providers::{
     blob_provider::DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider, Pipeline,
 };
-use reth_exex::{ExExContext, ExExEvent};
+use reth_exex::ExExContext;
 use reth_node_api::FullNodeComponents;
 use superchain_registry::RollupConfig;
 use tracing::{debug, info, warn};
@@ -99,8 +99,8 @@ where
                     // TODO: commit the chain to a local buffered provider
                     // self.chain_provider.commit_chain(new_chain);
 
-                    if let Err(err) = self.ctx.send_event(ExExEvent::FinishedHeight(tip)) {
-                        bail!("Critical: Failed to send ExEx event: {:?}", err);
+                    if let Err(err) = self.ctx.send_processed_tip_event(tip) {
+                        bail!("Critical: Failed to send processed tip event: {:?}", err);
                     }
 
                     if tip >= self.cfg.genesis.l1.number {
@@ -164,8 +164,8 @@ where
             let tip = new_chain.tip();
             // self.chain_provider.commit_chain(new_chain);
 
-            if let Err(err) = self.ctx.send_event(ExExEvent::FinishedHeight(tip)) {
-                bail!("Critical: Failed to send ExEx event: {:?}", err);
+            if let Err(err) = self.ctx.send_processed_tip_event(tip) {
+                bail!("Critical: Failed to send processed tip event: {:?}", err);
             }
         }
 
