@@ -15,6 +15,7 @@ type Transaction = List<u8, 1073741824>;
 
 /// Represents the Keccak256 hash of the block
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[cfg_attr(any(test, feature = "arbitrary"), derive(arbitrary::Arbitrary))]
 pub struct PayloadHash(B256);
 
 impl From<&[u8]> for PayloadHash {
@@ -280,5 +281,15 @@ mod tests {
         let chain_id = 10;
         let expected = b256!("44a0e2b1aba1aae1771eddae1dcd2ad18a8cdac8891517153f03253e49d3f206");
         assert_eq!(hash.signature_message(chain_id), expected);
+    }
+
+    #[test]
+    fn test_inner_payload_hash() {
+        arbtest::arbtest(|u| {
+            let inner = B256::from(u.arbitrary::<[u8; 32]>()?);
+            let hash = PayloadHash::from(inner.as_slice());
+            assert_eq!(hash.0, keccak256(inner.as_slice()));
+            Ok(())
+        });
     }
 }
