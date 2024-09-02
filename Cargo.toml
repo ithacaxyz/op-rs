@@ -29,6 +29,7 @@ op-alloy-protocol = { git = "https://github.com/alloy-rs/op-alloy", branch = "ma
 op-alloy-genesis = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 op-alloy-rpc-types = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 op-alloy-rpc-types-engine = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-rpc-jsonrpsee = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 
 [workspace.dependencies]
 # Workspace
@@ -68,6 +69,7 @@ op-alloy-protocol = { version = "0.4.0", default-features = false }
 op-alloy-genesis = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
+op-alloy-rpc-jsonrpsee = { version = "0.4.0", features = ["client"] }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }

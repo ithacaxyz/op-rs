@@ -19,6 +19,7 @@ alloy-rlp = { workspace = true, features = ["derive"] }
 op-alloy-rpc-types.workspace = true
 op-alloy-protocol.workspace = true
 op-alloy-genesis.workspace = true
+op-alloy-rpc-jsonrpsee.workspace = true
 
 # Misc
 rand.workspace = true
