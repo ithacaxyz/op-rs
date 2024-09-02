@@ -23,7 +23,7 @@ use super::{Blocks, ChainNotification, DriverContext};
 
 /// The number of blocks to keep in the reorg cache.
 /// Equivalent to 2 epochs at 32 slots/epoch.
-const FINALIZATION_BLOCK_THRESHOLD: u64 = 64;
+const FINALIZATION_BLOCKS: u64 = 64;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -169,7 +169,7 @@ impl DriverContext for StandaloneContext {
         } else {
             // upon a new tip, prune the reorg cache for all blocks that have been finalized,
             // as they are no longer candidates for reorgs.
-            self.reorg_cache.retain(|num, _| *num > block_num - FINALIZATION_BLOCK_THRESHOLD);
+            self.reorg_cache.retain(|num, _| *num > block_num - FINALIZATION_BLOCKS);
         }
 
         Some(ChainNotification::New { new_blocks: Blocks::from(block) })
@@ -203,9 +203,8 @@ fn parse_reth_rpc_block(block: Block) -> Block<TxEnvelope> {
 
 #[cfg(test)]
 mod tests {
-    use url::Url;
-
-    use crate::driver::context::{DriverContext, StandaloneContext};
+    use super::*;
+    use alloy::rpc::types::Header;
 
     #[tokio::test]
     async fn test_http_poller() -> eyre::Result<()> {
@@ -243,5 +242,65 @@ mod tests {
         assert!(notif.reverted_chain().is_none());
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_reorg_cache_pruning() {
+        let (_, rx) = mpsc::channel(128);
+        let handle = tokio::spawn(async {});
+        let mut ctx = StandaloneContext::with_defaults(rx, handle);
+
+        // Simulate receiving 100 blocks
+        for i in 1..=100 {
+            let block = create_mock_block(i);
+            ctx.reorg_cache.entry(i).or_default().insert(block.header.hash.unwrap(), block);
+        }
+
+        // Simulate receiving a new block that should trigger pruning
+        let new_block = create_mock_block(101);
+        ctx.l1_tip = 101;
+        ctx.reorg_cache
+            .entry(101)
+            .or_default()
+            .insert(new_block.header.hash.unwrap(), new_block.clone());
+
+        // Manually call the pruning logic
+        ctx.reorg_cache.retain(|num, _| *num > 101 - FINALIZATION_BLOCKS);
+
+        // Check that only the last FINALIZATION_BLOCKS are kept
+        assert_eq!(ctx.reorg_cache.len(), FINALIZATION_BLOCKS as usize);
+        assert!(ctx.reorg_cache.contains_key(&(101 - FINALIZATION_BLOCKS + 1)));
+        assert!(!ctx.reorg_cache.contains_key(&(101 - FINALIZATION_BLOCKS)));
+    }
+
+    #[tokio::test]
+    async fn test_send_processed_tip_event() {
+        let (_, rx) = mpsc::channel(128);
+        let handle = tokio::spawn(async {});
+        let mut ctx = StandaloneContext::with_defaults(rx, handle);
+
+        // Send a processed tip event
+        let result = ctx.send_processed_tip_event(100);
+        assert!(result.is_ok());
+
+        // Verify that the event was sent correctly
+        let received_tip = ctx.processed_block_rx.recv().await.unwrap();
+        assert_eq!(received_tip, 100);
+    }
+
+    // Helper function to create a mock Block<TxEnvelope>
+    fn create_mock_block(number: u64) -> Block<TxEnvelope> {
+        Block {
+            header: Header {
+                number: Some(number),
+                hash: Some(B256::random()),
+                ..Default::default()
+            },
+            transactions: BlockTransactions::Full(vec![]),
+            uncles: vec![],
+            size: None,
+            withdrawals: None,
+            other: Default::default(),
+        }
     }
 }
