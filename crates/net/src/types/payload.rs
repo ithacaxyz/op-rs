@@ -27,8 +27,9 @@ impl PayloadHash {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use alloy::primitives::b256;
+
+    use super::*;
 
     #[test]
     fn test_signature_message() {
