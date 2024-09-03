@@ -47,7 +47,7 @@ where
 {
     /// Create a new Hera Execution Extension Driver
     pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
-        let cp = InMemoryChainProvider::with_capacity(1024);
+        let cp = InMemoryChainProvider::with_capacity(args.in_mem_chain_provider_capacity);
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
         let bp = LayeredBlobProvider::new(args.l1_beacon_client_url, args.l1_blob_archiver_url);
 

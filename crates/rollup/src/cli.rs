@@ -72,6 +72,13 @@ pub struct HeraArgsExt {
     /// This MUST be a valid path to a file containing the hex-encoded JWT secret.
     #[clap(long = "hera.l2-engine-jwt-secret")]
     pub l2_engine_jwt_secret: Option<PathBuf>,
+
+    /// The maximum number of blocks to keep in memory in the chain provider.
+    ///
+    /// This is used to limit the memory usage of the chain provider.
+    /// When the limit is reached, the oldest blocks are discarded.
+    #[clap(long = "hera.in-mem-chain-provider-capacity", default_value_t = 256)]
+    pub in_mem_chain_provider_capacity: usize,
 }
 
 /// The payload validation mode.

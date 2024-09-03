@@ -1,3 +1,5 @@
+//! Context abstraction for the rollup driver.
+
 use std::{collections::BTreeMap, sync::Arc};
 
 use alloy::{
@@ -24,16 +26,22 @@ pub trait DriverContext {
     fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>>;
 }
 
-/// A simple notification type that represents a chain of blocks, without
-/// any EVM execution results or state.
+/// A notification representing a chain of blocks that come from an execution client.
+/// This is used to make progress in the rollup driver.
 #[derive(Debug, Clone)]
 pub enum ChainNotification {
+    /// A new chain of blocks has been processed.
     New { new_blocks: Blocks },
+    /// Some blocks have been reverted and are no longer part of the chain.
     Revert { old_blocks: Blocks },
+    /// The chain has been reorganized with new canonical blocks.
     Reorg { old_blocks: Blocks, new_blocks: Blocks },
 }
 
 impl ChainNotification {
+    /// Returns the new chain of blocks contained in the notification event.
+    ///
+    /// For reorgs, this returns the new chain of blocks that replaced the old one.
     pub fn new_chain(&self) -> Option<Blocks> {
         match self {
             ChainNotification::New { new_blocks } => Some(new_blocks.clone()),
@@ -42,6 +50,9 @@ impl ChainNotification {
         }
     }
 
+    /// Returns the old chain of blocks contained in the notification event.
+    ///
+    /// For reorgs, this returns the old canonical chain that was reorged.
     pub fn reverted_chain(&self) -> Option<Blocks> {
         match self {
             ChainNotification::Revert { old_blocks } => Some(old_blocks.clone()),
@@ -51,14 +62,17 @@ impl ChainNotification {
     }
 }
 
+/// A collection of blocks that form a chain.
 #[derive(Debug, Clone, Default)]
 pub struct Blocks(Arc<BTreeMap<BlockNumber, Block<TxEnvelope>>>);
 
 impl Blocks {
+    /// Returns the tip of the chain.
     pub fn tip(&self) -> BlockNumber {
         *self.0.last_key_value().expect("Blocks should have at least one block").0
     }
 
+    /// Returns the block at the fork point of the chain.
     pub fn fork_block(&self) -> BlockNumber {
         let first = self.0.first_key_value().expect("Blocks should have at least one block").0;
         first.saturating_sub(1)
@@ -85,11 +99,9 @@ impl From<Vec<Block<TxEnvelope>>> for Blocks {
 
 impl From<Arc<Chain>> for Blocks {
     fn from(value: Arc<Chain>) -> Self {
-        // annoyingly, we must convert from reth::primitives::SealedBlockWithSenders
-        // to alloy::rpc::types::Block
-
         let mut blocks = BTreeMap::new();
         for (block_number, sealed_block) in value.blocks() {
+            // from reth::primitives::SealedBlock to alloy::rpc::types::Block
             let block = Block {
                 header: parse_reth_rpc_header(sealed_block),
                 uncles: sealed_block.ommers.iter().map(|x| x.hash_slow()).collect(),
@@ -97,7 +109,7 @@ impl From<Arc<Chain>> for Blocks {
                     sealed_block.transactions().flat_map(reth_to_alloy_tx).collect(),
                 ),
                 size: Some(U256::from(sealed_block.size())),
-                withdrawals: None, // TODO: parse withdrawals
+                withdrawals: sealed_block.withdrawals.clone().map(|w| w.into_inner()),
                 other: OtherFields::default(),
             };
             blocks.insert(*block_number, block);
