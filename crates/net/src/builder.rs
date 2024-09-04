@@ -1,7 +1,7 @@
 //! Network Builder Module.
 
 use alloy::primitives::Address;
-use discv5::ListenConfig;
+use discv5::{Config, ListenConfig};
 use eyre::Result;
 use std::{
     net::{IpAddr, SocketAddr},
@@ -34,6 +34,9 @@ pub struct NetworkDriverBuilder {
     pub discovery_addr: Option<ListenConfig>,
     /// The [GossipConfig] constructs the config for `gossipsub`.
     pub gossip_config: Option<GossipConfig>,
+
+    /// The [Config] constructs the config for `discv5`.
+    pub discovery_config: Option<Config>,
     /// The [Keypair] for the node.
     pub keypair: Option<Keypair>,
     /// The [TcpConfig] for the swarm.
@@ -139,6 +142,39 @@ impl NetworkDriverBuilder {
         self
     }
 
+    /// Specifies the [Config] for the `discv5` configuration.
+    ///
+    /// If not set, the [NetworkDriverBuilder] will fall back to use the [ListenConfig]
+    /// to construct [Config]. These defaults can be extended by using the
+    /// [discv5::ConfigBuilder::new] method to build a custom [Config].
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use discv5::{ConfigBuilder, ListenConfig};
+    /// use kona_primitives::alloy_primitives::{address, Address};
+    /// use op_net::builder::NetworkDriverBuilder;
+    /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    ///
+    /// let id = 10;
+    /// let signer = Address::random();
+    /// let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+    /// let discovery_config =
+    ///     ConfigBuilder::new(ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9098))
+    ///         .build();
+    /// let driver = NetworkDriverBuilder::new()
+    ///     .with_unsafe_block_signer(signer)
+    ///     .with_chain_id(id)
+    ///     .with_gossip_addr(socket)
+    ///     .with_discovery_config(discovery_config)
+    ///     .build()
+    ///     .unwrap();
+    /// ```
+    pub fn with_discovery_config(&mut self, cfg: Config) -> &mut Self {
+        self.discovery_config = Some(cfg);
+        self
+    }
+
     /// Builds the [NetworkDriver].
     ///
     /// ## Errors
@@ -231,15 +267,18 @@ impl NetworkDriverBuilder {
         let gossip = GossipDriver::new(swarm, multiaddr, handler.clone());
 
         // Build the discovery service
-        let discovery_builder =
+        let mut discovery_builder =
             DiscoveryBuilder::new().with_address(gossip_addr).with_chain_id(chain_id);
 
-        let discovery = if let Some(discovery_addr) = self.discovery_addr.take() {
-            discovery_builder.with_listen_config(discovery_addr)
-        } else {
-            discovery_builder
+        if let Some(discovery_addr) = self.discovery_addr.take() {
+            discovery_builder = discovery_builder.with_listen_config(discovery_addr);
         }
-        .build()?;
+
+        if let Some(discovery_config) = self.discovery_config.take() {
+            discovery_builder = discovery_builder.with_discovery_config(discovery_config);
+        }
+
+        let discovery = discovery_builder.build()?;
 
         Ok(NetworkDriver {
             discovery,
@@ -253,6 +292,7 @@ impl NetworkDriverBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use discv5::ConfigBuilder;
     use libp2p::gossipsub::IdentTopic;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
@@ -366,5 +406,45 @@ mod tests {
             .unwrap();
 
         assert_eq!(driver.discovery.disc.local_enr().tcp4().unwrap(), 9098);
+    }
+
+    #[test]
+    fn test_build_network_driver_with_discovery_config() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+        let discovery_config =
+            ConfigBuilder::new(ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9098))
+                .build();
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_gossip_addr(socket)
+            .with_discovery_config(discovery_config)
+            .build()
+            .unwrap();
+
+        assert_eq!(driver.discovery.disc.local_enr().tcp4().unwrap(), 9098);
+    }
+
+    #[test]
+    fn test_build_network_driver_with_discovery_config_and_listen_config() {
+        let id = 10;
+        let signer = Address::random();
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9099);
+        let discovery_config =
+            ConfigBuilder::new(ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9098))
+                .build();
+        let discovery_addr = ListenConfig::from_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 9097);
+        let driver = NetworkDriverBuilder::new()
+            .with_unsafe_block_signer(signer)
+            .with_chain_id(id)
+            .with_gossip_addr(socket)
+            .with_discovery_addr(discovery_addr)
+            .with_discovery_config(discovery_config)
+            .build()
+            .unwrap();
+
+        assert_eq!(driver.discovery.disc.local_enr().tcp4().unwrap(), 9097);
     }
 }

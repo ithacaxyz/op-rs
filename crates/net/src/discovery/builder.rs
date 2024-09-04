@@ -3,7 +3,7 @@
 use crate::{discovery::driver::DiscoveryDriver, types::enr::OpStackEnr};
 use discv5::{
     enr::{CombinedKey, Enr},
-    ConfigBuilder, Discv5, ListenConfig,
+    Config, ConfigBuilder, Discv5, ListenConfig,
 };
 use eyre::{Report, Result};
 use std::net::SocketAddr;
@@ -19,6 +19,9 @@ pub struct DiscoveryBuilder {
     chain_id: Option<u64>,
     /// The listen config for the discovery service.
     listen_config: Option<ListenConfig>,
+
+    /// The discovery config for the discovery service.
+    discovery_config: Option<Config>,
 }
 
 impl DiscoveryBuilder {
@@ -45,6 +48,12 @@ impl DiscoveryBuilder {
         self
     }
 
+    /// Sets the discovery config for the discovery service.
+    pub fn with_discovery_config(mut self, config: Config) -> Self {
+        self.discovery_config = Some(config);
+        self
+    }
+
     /// Builds a [DiscoveryDriver].
     pub fn build(&mut self) -> Result<DiscoveryDriver> {
         let chain_id = self.chain_id.ok_or_else(|| eyre::eyre!("chain ID not set"))?;
@@ -53,17 +62,24 @@ impl DiscoveryBuilder {
         use alloy_rlp::Encodable;
         opstack.encode(&mut opstack_data);
 
+        let config = if let Some(mut discovery_config) = self.discovery_config.take() {
+            if let Some(listen_config) = self.listen_config.take() {
+                discovery_config.listen_config = listen_config;
+            }
+            Ok::<Config, Report>(discovery_config)
+        } else {
+            let listen_config = self
+                .listen_config
+                .take()
+                .or_else(|| self.address.map(ListenConfig::from))
+                .ok_or_else(|| eyre::eyre!("listen config not set"))?;
+            Ok(ConfigBuilder::new(listen_config).build())
+        }?;
+
         let key = CombinedKey::generate_secp256k1();
         let mut enr_builder = Enr::builder();
         enr_builder.add_value_rlp(OP_CL_KEY, opstack_data.into());
-        let listen_config = self.listen_config.take().map_or_else(
-            || {
-                let addr = self.address.ok_or(eyre::eyre!("address not set"))?;
-                Ok::<ListenConfig, Report>(ListenConfig::from(addr))
-            },
-            Ok,
-        )?;
-        match listen_config {
+        match config.listen_config {
             ListenConfig::Ipv4 { ip, port } => {
                 enr_builder.ip4(ip).tcp4(port);
             }
@@ -76,7 +92,6 @@ impl DiscoveryBuilder {
             }
         }
         let enr = enr_builder.build(&key)?;
-        let config = ConfigBuilder::new(listen_config).build();
 
         let disc = Discv5::new(enr, key, config)
             .map_err(|_| eyre::eyre!("could not create disc service"))?;
