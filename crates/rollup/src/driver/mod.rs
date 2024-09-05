@@ -57,7 +57,7 @@ where
             chain_provider: cp,
             blob_provider: bp,
             l2_chain_provider: l2_cp,
-            cursor: SyncCursor::new(),
+            cursor: SyncCursor::new(cfg.channel_timeout),
         }
     }
 }
@@ -78,7 +78,7 @@ impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2C
             chain_provider: cp,
             blob_provider: bp,
             l2_chain_provider: l2_cp,
-            cursor: SyncCursor::new(),
+            cursor: SyncCursor::new(cfg.channel_timeout),
         }
     }
 }

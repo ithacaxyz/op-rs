@@ -1,7 +1,11 @@
-use std::collections::{BTreeMap, VecDeque};
-
 use hashbrown::HashMap;
+use std::{
+    collections::{BTreeMap, VecDeque},
+    sync::Arc,
+};
+
 use kona_primitives::{BlockInfo, L2BlockInfo};
+use superchain_registry::RollupConfig;
 
 /// A cursor that keeps track of the L2 tip block for a given L1 origin block.
 ///
@@ -12,6 +16,8 @@ pub struct SyncCursor {
     /// The block cache capacity before evicting old entries
     /// (to avoid unbounded memory growth)
     capacity: usize,
+    /// The channel timeout for the [RollupConfig] used to create the cursor.
+    channel_timeout: u64,
     /// The L1 origin block numbers for which we have an L2 block in the cache.
     /// Used to keep track of the order of insertion and evict the oldest entry.
     l1_origin_key_order: VecDeque<u64>,
@@ -21,21 +27,15 @@ pub struct SyncCursor {
     l1_origin_to_l2_blocks: BTreeMap<u64, L2BlockInfo>,
 }
 
-#[allow(unused)]
 impl SyncCursor {
     /// Create a new cursor with the default cache capacity.
-    pub fn new() -> Self {
-        // NOTE: this value must be greater than the `CHANNEL_TIMEOUT` to allow
-        // for derivation to proceed through a deep reorg. This value is set
-        // to 300 blocks before the Granite hardfork and 50 blocks after it.
-        // Ref: <https://specs.optimism.io/protocol/derivation.html#timeouts>
-        Self::with_capacity(350)
-    }
-
-    /// Create a new cursor with the given cache capacity.
-    fn with_capacity(capacity: usize) -> Self {
+    pub fn new(channel_timeout: u64) -> Self {
         Self {
-            capacity,
+            // NOTE: capacity must be greater than the `channel_timeout` to allow
+            // for derivation to proceed through a deep reorg.
+            // Ref: <https://specs.optimism.io/protocol/derivation.html#timeouts>
+            capacity: channel_timeout + 5,
+            channel_timeout,
             l1_origin_key_order: VecDeque::with_capacity(capacity),
             l1_origin_block_info: HashMap::with_capacity(capacity),
             l1_origin_to_l2_blocks: BTreeMap::new(),
@@ -66,22 +66,25 @@ impl SyncCursor {
         self.l1_origin_to_l2_blocks.insert(l1_origin_block.number, l2_tip_block);
     }
 
-    /// When the L1 undergoes a reorg, we need to reset the cursor to the fork block.
-    /// This is the last L1 block for which we have a corresponding L2 block in the cache.
+    /// When the L1 undergoes a reorg, we need to reset the cursor to the fork block minus
+    /// the channel timeout, because an L2 block might have started to be derived at the
+    /// beginning of the channel.
     ///
     /// Returns the (L2 block info, L1 origin block info) tuple for the new cursor state.
     pub fn reset(&mut self, fork_block: u64) -> (BlockInfo, BlockInfo) {
-        match self.l1_origin_to_l2_blocks.get(&fork_block) {
+        let channel_start = fork_block - self.channel_timeout;
+
+        match self.l1_origin_to_l2_blocks.get(&channel_start) {
             Some(l2_safe_tip) => {
-                // The fork block is in the cache, we can use it to reset the cursor.
-                (l2_safe_tip.block_info, self.l1_origin_block_info[&fork_block])
+                // The channel start block is in the cache, we can use it to reset the cursor.
+                (l2_safe_tip.block_info, self.l1_origin_block_info[&channel_start])
             }
             None => {
-                // If the fork block is not in the cache, we reset the cursor
-                // to the last known L1 block for which we have a corresponding L2 block.
+                // If the channel start block is not in the cache, we reset the cursor
+                // to the closest known L1 block for which we have a corresponding L2 block.
                 let (last_l1_known_tip, l2_known_tip) = self
                     .l1_origin_to_l2_blocks
-                    .range(..=fork_block)
+                    .range(..=channel_start)
                     .next_back()
                     .expect("walked back to genesis without finding anchor origin block");
 

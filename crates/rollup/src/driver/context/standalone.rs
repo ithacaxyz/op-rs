@@ -22,8 +22,8 @@ use url::Url;
 use super::{Blocks, ChainNotification, DriverContext};
 
 /// The number of blocks to keep in the reorg cache.
-/// Equivalent to 2 epochs at 32 slots/epoch.
-const FINALIZATION_BLOCKS: u64 = 64;
+/// Equivalent to 2 epochs at 32 slots/epoch on Ethereum Mainnet.
+const FINALIZATION_TIMEOUT: u64 = 64;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -36,11 +36,8 @@ pub struct StandaloneContext {
     /// We can safely prune all cached blocks below this tip once they
     /// become finalized on L1.
     processed_tip: BlockNumber,
-    /// The channel to send processed block numbers to the driver
-    processed_block_tx: mpsc::Sender<BlockNumber>,
-    /// The channel to receive processed block numbers from the driver
-    processed_block_rx: mpsc::Receiver<BlockNumber>,
-    /// Cache of blocks that might be reorged out
+    /// Cache of blocks that might be reorged out. In normal conditions,
+    /// this cache will not grow beyond [`FINALIZATION_TIMEOUT`] keys.
     reorg_cache: BTreeMap<BlockNumber, HashMap<B256, Block<TxEnvelope>>>,
     /// Handle to the background task that fetches and processes new blocks.
     _handle: JoinHandle<()>,
@@ -137,17 +134,7 @@ impl StandaloneContext {
         new_block_rx: mpsc::Receiver<Block<TxEnvelope>>,
         _handle: JoinHandle<()>,
     ) -> Self {
-        let (processed_block_tx, processed_block_rx) = mpsc::channel(128);
-
-        Self {
-            new_block_rx,
-            _handle,
-            l1_tip: 0,
-            processed_tip: 0,
-            processed_block_tx,
-            processed_block_rx,
-            reorg_cache: BTreeMap::new(),
-        }
+        Self { new_block_rx, _handle, l1_tip: 0, processed_tip: 0, reorg_cache: BTreeMap::new() }
     }
 }
 
@@ -167,16 +154,19 @@ impl DriverContext for StandaloneContext {
         if block_num <= self.l1_tip {
             todo!("handle reorgs");
         } else {
+            self.l1_tip = block_num;
+
             // upon a new tip, prune the reorg cache for all blocks that have been finalized,
             // as they are no longer candidates for reorgs.
-            self.reorg_cache.retain(|num, _| *num > block_num - FINALIZATION_BLOCKS);
+            self.reorg_cache.retain(|num, _| *num > block_num - FINALIZATION_TIMEOUT);
         }
 
         Some(ChainNotification::New { new_blocks: Blocks::from(block) })
     }
 
     fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>> {
-        self.processed_block_tx.try_send(tip).map_err(|_| SendError(tip))
+        self.processed_tip = tip;
+        Ok(())
     }
 }
 
@@ -265,12 +255,12 @@ mod tests {
             .insert(new_block.header.hash.unwrap(), new_block.clone());
 
         // Manually call the pruning logic
-        ctx.reorg_cache.retain(|num, _| *num > 101 - FINALIZATION_BLOCKS);
+        ctx.reorg_cache.retain(|num, _| *num > 101 - FINALIZATION_TIMEOUT);
 
         // Check that only the last FINALIZATION_BLOCKS are kept
-        assert_eq!(ctx.reorg_cache.len(), FINALIZATION_BLOCKS as usize);
-        assert!(ctx.reorg_cache.contains_key(&(101 - FINALIZATION_BLOCKS + 1)));
-        assert!(!ctx.reorg_cache.contains_key(&(101 - FINALIZATION_BLOCKS)));
+        assert_eq!(ctx.reorg_cache.len(), FINALIZATION_TIMEOUT as usize);
+        assert!(ctx.reorg_cache.contains_key(&(101 - FINALIZATION_TIMEOUT + 1)));
+        assert!(!ctx.reorg_cache.contains_key(&(101 - FINALIZATION_TIMEOUT)));
     }
 
     #[tokio::test]
