@@ -19,15 +19,21 @@ mod exex;
 mod standalone;
 pub use standalone::StandaloneContext;
 
+/// Context for the rollup driver.
+///
+/// The context is responsible for handling notifications from the state of the
+/// canonical chain updates (new blocks, reorgs, etc) and translating them into
+/// events that the rollup driver can use to make progress.
 #[async_trait]
 pub trait DriverContext {
+    /// Receives a notification from the execution client.
     async fn recv_notification(&mut self) -> Option<ChainNotification>;
 
+    /// Sends an event indicating that the processed tip has been updated.
     fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>>;
 }
 
 /// A notification representing a chain of blocks that come from an execution client.
-/// This is used to make progress in the rollup driver.
 #[derive(Debug, Clone)]
 pub enum ChainNotification {
     /// A new chain of blocks has been processed.
