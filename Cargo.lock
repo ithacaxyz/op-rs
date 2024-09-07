@@ -4250,7 +4250,7 @@ dependencies = [
 [[package]]
 name = "kona-derive"
 version = "0.0.2"
-source = "git+https://github.com/ethereum-optimism/kona#edd7081acc321122889e99b352e05df8f255f058"
+source = "git+https://github.com/ethereum-optimism/kona?rev=f4a8e6a#f4a8e6a35b26667956e9d4c3a1110302b036d9a6"
 dependencies = [
  "alloc-no-stdlib",
  "alloy-consensus 0.2.1",
@@ -4258,23 +4258,17 @@ dependencies = [
  "alloy-primitives 0.7.7",
  "alloy-provider",
  "alloy-rlp",
- "alloy-rpc-client",
  "alloy-transport",
- "alloy-transport-http",
  "anyhow",
  "async-trait",
  "brotli",
- "c-kzg",
  "hashbrown 0.14.5",
  "kona-primitives",
  "lru",
- "miniz_oxide 0.7.4",
+ "miniz_oxide 0.8.0",
  "op-alloy-consensus 0.1.5",
  "reqwest",
- "revm",
  "serde",
- "sha2 0.10.8",
- "spin 0.9.8",
  "tracing",
  "unsigned-varint 0.8.0",
 ]
@@ -4282,7 +4276,7 @@ dependencies = [
 [[package]]
 name = "kona-primitives"
 version = "0.0.1"
-source = "git+https://github.com/ethereum-optimism/kona#edd7081acc321122889e99b352e05df8f255f058"
+source = "git+https://github.com/ethereum-optimism/kona?rev=f4a8e6a#f4a8e6a35b26667956e9d4c3a1110302b036d9a6"
 dependencies = [
  "alloy-consensus 0.2.1",
  "alloy-eips 0.2.1",

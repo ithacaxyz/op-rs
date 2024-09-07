@@ -124,8 +124,8 @@ ser = { path = "crates/ser" }
 
 # Optimism
 superchain-registry = { version = "0.2.6", default-features = false }
-kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
-kona-derive = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
+kona-primitives = { git = "https://github.com/ethereum-optimism/kona",rev = "f4a8e6a", default-features = true }
+kona-derive = { git = "https://github.com/ethereum-optimism/kona",rev = "f4a8e6a", default-features = true }
 
 # Alloy
 alloy = { version = "0.2", features = [
