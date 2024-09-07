@@ -115,8 +115,9 @@ panic = "unwind"
 codegen-units = 1
 incremental = false
 
+# TODO(nico): remove this once we have a new release
 [patch.crates-io]
-op-alloy-protocol = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-protocol = { git = "https://github.com/alloy-rs/op-alloy", rev = "cf27ad9" }
 
 [workspace.dependencies]
 # Workspace
@@ -126,9 +127,9 @@ rollup = { path = "crates/rollup" }
 ser = { path = "crates/ser" }
 
 # Optimism
-superchain-registry = { version = "0.3", default-features = false }
-kona-primitives = { git = "https://github.com/anton-rs/kona", default-features = true }
-kona-derive = { git = "https://github.com/anton-rs/kona", default-features = true }
+superchain-registry = { version = "0.3.4", default-features = false }
+kona-primitives = { git = "https://github.com/anton-rs/kona", rev = "4ba2812", default-features = true }
+kona-derive = { git = "https://github.com/anton-rs/kona", rev = "4ba2812", default-features = true }
 
 # Alloy
 alloy = { version = "0.3", features = [

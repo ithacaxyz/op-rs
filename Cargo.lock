@@ -3984,7 +3984,7 @@ dependencies = [
 [[package]]
 name = "kona-derive"
 version = "0.0.3"
-source = "git+https://github.com/anton-rs/kona#4ba28121ac0665f268876d6bbf15f1b4dfcbc011"
+source = "git+https://github.com/anton-rs/kona?rev=4ba2812#4ba28121ac0665f268876d6bbf15f1b4dfcbc011"
 dependencies = [
  "alloc-no-stdlib",
  "alloy-consensus",
@@ -4010,7 +4010,7 @@ dependencies = [
 [[package]]
 name = "kona-primitives"
 version = "0.0.2"
-source = "git+https://github.com/anton-rs/kona#4ba28121ac0665f268876d6bbf15f1b4dfcbc011"
+source = "git+https://github.com/anton-rs/kona?rev=4ba2812#4ba28121ac0665f268876d6bbf15f1b4dfcbc011"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5171,7 +5171,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-protocol"
 version = "0.2.8"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#cf27ad92281235a073c2f77c9ffe3ce93a800b26"
+source = "git+https://github.com/alloy-rs/op-alloy?rev=cf27ad9#cf27ad92281235a073c2f77c9ffe3ce93a800b26"
 dependencies = [
  "alloy-primitives",
  "hashbrown 0.14.5",
