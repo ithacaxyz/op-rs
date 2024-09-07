@@ -12,7 +12,7 @@ pub struct SyncCursor {
     /// The block cache capacity before evicting old entries
     /// (to avoid unbounded memory growth)
     capacity: usize,
-    /// The channel timeout for the [RollupConfig] used to create the cursor.
+    /// The channel timeout used to create the cursor.
     channel_timeout: u64,
     /// The L1 origin block numbers for which we have an L2 block in the cache.
     /// Used to keep track of the order of insertion and evict the oldest entry.
