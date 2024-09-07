@@ -9,7 +9,7 @@ use alloy::{
 };
 use async_trait::async_trait;
 use kona_providers::chain_provider::reth_to_alloy_tx;
-use reth::rpc::types::{BlockTransactions, Header, OtherFields};
+use reth::rpc::types::{BlockTransactions, Header};
 use reth_execution_types::Chain;
 use reth_exex::ExExNotification;
 use tokio::sync::mpsc::error::SendError;
@@ -88,7 +88,7 @@ impl Blocks {
 impl From<Block<TxEnvelope>> for Blocks {
     fn from(value: Block<TxEnvelope>) -> Self {
         let mut blocks = BTreeMap::new();
-        blocks.insert(value.header.number.unwrap(), value);
+        blocks.insert(value.header.number, value);
         Self(Arc::new(blocks))
     }
 }
@@ -97,7 +97,7 @@ impl From<Vec<Block<TxEnvelope>>> for Blocks {
     fn from(value: Vec<Block<TxEnvelope>>) -> Self {
         let mut blocks = BTreeMap::new();
         for block in value {
-            blocks.insert(block.header.number.unwrap(), block);
+            blocks.insert(block.header.number, block);
         }
         Self(Arc::new(blocks))
     }
@@ -116,7 +116,6 @@ impl From<Arc<Chain>> for Blocks {
                 ),
                 size: Some(U256::from(sealed_block.size())),
                 withdrawals: sealed_block.withdrawals.clone().map(|w| w.into_inner()),
-                other: OtherFields::default(),
             };
             blocks.insert(*block_number, block);
         }
@@ -139,7 +138,7 @@ impl From<ExExNotification> for ChainNotification {
 // from reth::primitives::SealedBlock to alloy::rpc::types::Header
 fn parse_reth_rpc_header(block: &reth::primitives::SealedBlock) -> Header {
     Header {
-        hash: Some(block.header.hash()),
+        hash: block.header.hash(),
         parent_hash: block.parent_hash,
         uncles_hash: block.ommers_hash,
         miner: block.beneficiary,
@@ -148,7 +147,7 @@ fn parse_reth_rpc_header(block: &reth::primitives::SealedBlock) -> Header {
         receipts_root: block.receipts_root,
         logs_bloom: block.logs_bloom,
         difficulty: block.difficulty,
-        number: Some(block.number),
+        number: block.number,
         gas_limit: block.gas_limit as u128,
         gas_used: block.gas_used as u128,
         timestamp: block.timestamp,

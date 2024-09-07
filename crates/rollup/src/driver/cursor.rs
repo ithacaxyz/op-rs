@@ -1,11 +1,7 @@
 use hashbrown::HashMap;
-use std::{
-    collections::{BTreeMap, VecDeque},
-    sync::Arc,
-};
+use std::collections::{BTreeMap, VecDeque};
 
 use kona_primitives::{BlockInfo, L2BlockInfo};
-use superchain_registry::RollupConfig;
 
 /// A cursor that keeps track of the L2 tip block for a given L1 origin block.
 ///
@@ -30,11 +26,13 @@ pub struct SyncCursor {
 impl SyncCursor {
     /// Create a new cursor with the default cache capacity.
     pub fn new(channel_timeout: u64) -> Self {
+        // NOTE: capacity must be greater than the `channel_timeout` to allow
+        // for derivation to proceed through a deep reorg.
+        // Ref: <https://specs.optimism.io/protocol/derivation.html#timeouts>
+        let capacity = channel_timeout as usize + 5;
+
         Self {
-            // NOTE: capacity must be greater than the `channel_timeout` to allow
-            // for derivation to proceed through a deep reorg.
-            // Ref: <https://specs.optimism.io/protocol/derivation.html#timeouts>
-            capacity: channel_timeout + 5,
+            capacity,
             channel_timeout,
             l1_origin_key_order: VecDeque::with_capacity(capacity),
             l1_origin_block_info: HashMap::with_capacity(capacity),

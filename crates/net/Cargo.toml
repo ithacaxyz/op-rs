@@ -19,7 +19,7 @@ alloy-rlp.workspace = true
 kona-primitives.workspace = true
 
 # Networking
-ssz_rs.workspace = true
+ethereum_ssz.workspace = true
 snap.workspace = true
 futures.workspace = true
 discv5.workspace = true

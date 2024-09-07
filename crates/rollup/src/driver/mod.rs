@@ -48,17 +48,11 @@ where
     /// Create a new Hera Execution Extension Driver
     pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = InMemoryChainProvider::with_capacity(args.in_mem_chain_provider_capacity);
-        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
         let bp = LayeredBlobProvider::new(args.l1_beacon_client_url, args.l1_blob_archiver_url);
+        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
+        let cursor = SyncCursor::new(cfg.channel_timeout);
 
-        Self {
-            cfg,
-            ctx,
-            chain_provider: cp,
-            blob_provider: bp,
-            l2_chain_provider: l2_cp,
-            cursor: SyncCursor::new(cfg.channel_timeout),
-        }
+        Self { cfg, ctx, chain_provider: cp, blob_provider: bp, l2_chain_provider: l2_cp, cursor }
     }
 }
 
@@ -66,20 +60,14 @@ impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2C
     /// Create a new standalone Hera Driver
     pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = AlloyChainProvider::new_http(args.l1_rpc_url);
-        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
         let bp = OnlineBlobProviderBuilder::new()
             .with_primary(args.l1_beacon_client_url.to_string())
             .with_fallback(args.l1_blob_archiver_url.map(|url| url.to_string()))
             .build();
+        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
+        let cursor = SyncCursor::new(cfg.channel_timeout);
 
-        Self {
-            cfg,
-            ctx,
-            chain_provider: cp,
-            blob_provider: bp,
-            l2_chain_provider: l2_cp,
-            cursor: SyncCursor::new(cfg.channel_timeout),
-        }
+        Self { cfg, ctx, chain_provider: cp, blob_provider: bp, l2_chain_provider: l2_cp, cursor }
     }
 }
 

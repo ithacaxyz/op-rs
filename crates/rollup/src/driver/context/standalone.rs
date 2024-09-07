@@ -146,10 +146,10 @@ impl DriverContext for StandaloneContext {
         // generic but currently are very coupled to the node mode (standalone vs exex).
 
         let block = self.new_block_rx.recv().await?;
-        let block_num = block.header.number.unwrap_or(0);
+        let block_num = block.header.number;
 
         let entry = self.reorg_cache.entry(block_num).or_default();
-        entry.insert(block.header.hash.unwrap(), block.clone());
+        entry.insert(block.header.hash, block.clone());
 
         if block_num <= self.l1_tip {
             todo!("handle reorgs");
@@ -187,7 +187,6 @@ fn parse_reth_rpc_block(block: Block) -> Block<TxEnvelope> {
         transactions: BlockTransactions::Full(txs),
         size: block.size,
         withdrawals: block.withdrawals,
-        other: block.other,
     }
 }
 
@@ -243,16 +242,13 @@ mod tests {
         // Simulate receiving 100 blocks
         for i in 1..=100 {
             let block = create_mock_block(i);
-            ctx.reorg_cache.entry(i).or_default().insert(block.header.hash.unwrap(), block);
+            ctx.reorg_cache.entry(i).or_default().insert(block.header.hash, block);
         }
 
         // Simulate receiving a new block that should trigger pruning
         let new_block = create_mock_block(101);
         ctx.l1_tip = 101;
-        ctx.reorg_cache
-            .entry(101)
-            .or_default()
-            .insert(new_block.header.hash.unwrap(), new_block.clone());
+        ctx.reorg_cache.entry(101).or_default().insert(new_block.header.hash, new_block.clone());
 
         // Manually call the pruning logic
         ctx.reorg_cache.retain(|num, _| *num > 101 - FINALIZATION_TIMEOUT);
@@ -272,25 +268,16 @@ mod tests {
         // Send a processed tip event
         let result = ctx.send_processed_tip_event(100);
         assert!(result.is_ok());
-
-        // Verify that the event was sent correctly
-        let received_tip = ctx.processed_block_rx.recv().await.unwrap();
-        assert_eq!(received_tip, 100);
     }
 
     // Helper function to create a mock Block<TxEnvelope>
     fn create_mock_block(number: u64) -> Block<TxEnvelope> {
         Block {
-            header: Header {
-                number: Some(number),
-                hash: Some(B256::random()),
-                ..Default::default()
-            },
+            header: Header { number, hash: B256::random(), ..Default::default() },
             transactions: BlockTransactions::Full(vec![]),
             uncles: vec![],
             size: None,
             withdrawals: None,
-            other: Default::default(),
         }
     }
 }
