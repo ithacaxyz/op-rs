@@ -5,8 +5,9 @@ use alloy_rlp::Encodable;
 use eyre::{bail, Result};
 use kona_derive::batch::SingleBatch;
 use kona_primitives::{
-    ChannelID, Frame, RollupConfig, FJORD_MAX_RLP_BYTES_PER_CHANNEL, MAX_RLP_BYTES_PER_CHANNEL,
+    Frame, RollupConfig, FJORD_MAX_RLP_BYTES_PER_CHANNEL, MAX_RLP_BYTES_PER_CHANNEL,
 };
+use op_alloy_protocol::ChannelId;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use tracing::{error, trace, warn};
 
@@ -23,7 +24,7 @@ pub(crate) const FRAME_V0_OVERHEAD_SIZE: u64 = 23;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChannelOut<C: Compressor> {
     /// The current channel id.
-    pub id: ChannelID,
+    pub id: ChannelId,
     /// The current frame number.
     pub frame: u16,
     /// The uncompressed size of the channel.
@@ -50,7 +51,7 @@ impl<C: Compressor> ChannelOut<C> {
     /// Constructs a new [ChannelOut].
     pub fn new(cfg: Arc<RollupConfig>, c: C, epoch_num: u64, sub_safety_margin: u64) -> Self {
         let mut small_rng = SmallRng::from_entropy();
-        let mut id = ChannelID::default();
+        let mut id = ChannelId::default();
         small_rng.fill(&mut id);
         let max_channel_duration = Self::max_channel_duration(&cfg);
         let sequencer_window_size = cfg.seq_window_size;

@@ -1,7 +1,7 @@
 use alloc::{collections::VecDeque, sync::Arc};
 use hashbrown::HashMap;
 
-use alloy::primitives::B256;
+use alloy::{eips::eip4844::Blob, primitives::B256};
 use async_trait::async_trait;
 use eyre::{eyre, Result};
 use kona_derive::{
@@ -12,7 +12,8 @@ use kona_derive::{
     },
     traits::BlobProvider,
 };
-use kona_primitives::{Blob, BlockInfo, IndexedBlobHash};
+use kona_primitives::IndexedBlobHash;
+use op_alloy_protocol::BlockInfo;
 use parking_lot::Mutex;
 use reth::primitives::BlobTransactionSidecar;
 use tracing::warn;

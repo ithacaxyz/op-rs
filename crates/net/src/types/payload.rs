@@ -1,7 +1,6 @@
 //! Execution Payload Types
 
 use alloy::primitives::{keccak256, B256};
-use ssz_rs::prelude::*;
 
 /// Represents the Keccak256 hash of the block
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
