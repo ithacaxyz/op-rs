@@ -40,11 +40,10 @@ impl SyncCursor {
         }
     }
 
-    /// Get the current L2 tip and the corresponding L1 origin block info.
-    pub fn tip(&self) -> (L2BlockInfo, BlockInfo) {
-        if let Some((origin_number, l2_tip)) = self.l1_origin_to_l2_blocks.last_key_value() {
-            let origin_block = self.l1_origin_block_info[origin_number];
-            (*l2_tip, origin_block)
+    /// Get the current L2 tip
+    pub fn tip(&self) -> L2BlockInfo {
+        if let Some((_, l2_tip)) = self.l1_origin_to_l2_blocks.last_key_value() {
+            *l2_tip
         } else {
             unreachable!("cursor must be initialized with one block before advancing")
         }
