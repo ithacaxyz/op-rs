@@ -52,10 +52,7 @@ pub struct Driver<DC, CP, BP> {
     validator: Box<dyn AttributesValidator>,
 }
 
-impl<N> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider>
-where
-    N: FullNodeComponents,
-{
+impl<N: FullNodeComponents> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider> {
     /// Create a new Hera Execution Extension Driver
     pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let chain_provider =
@@ -218,17 +215,14 @@ where
 
     /// Fetch the new L2 tip and L1 origin block info for the given L2 block number.
     async fn fetch_new_tip(&mut self, l2_tip: u64) -> Result<(BlockInfo, L2BlockInfo)> {
-        let l2_block = self
-            .l2_chain_provider
-            .l2_block_info_by_number(l2_tip)
-            .await
-            .map_err(|e| eyre::eyre!(e))?;
+        let l2_block =
+            self.l2_chain_provider.l2_block_info_by_number(l2_tip).await.map_err(|e| eyre!(e))?;
 
         let l1_origin = self
             .l1_chain_provider
             .block_info_by_number(l2_block.l1_origin.number)
             .await
-            .map_err(|e| eyre::eyre!(e))?;
+            .map_err(|e| eyre!(e))?;
 
         Ok((l1_origin, l2_block))
     }
