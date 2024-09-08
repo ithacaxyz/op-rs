@@ -42,9 +42,7 @@ async fn main() -> Result<()> {
 
     // Dispatch on subcommand.
     match args.subcommand {
-        HeraSubcommand::Node(node) => node.run(&args.global).await?,
-        HeraSubcommand::Network(network) => network.run(&args.global).await?,
+        HeraSubcommand::Node(node) => node.run(&args.global).await,
+        HeraSubcommand::Network(network) => network.run(&args.global).await,
     }
-
-    Ok(())
 }

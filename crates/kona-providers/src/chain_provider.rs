@@ -106,32 +106,7 @@ impl InMemoryChainProviderInner {
     fn commit_headers(&mut self, chain: &Arc<Chain>) {
         for header in chain.headers() {
             // TODO: won't need to coerce once reth uses alloy types
-            self.hash_to_header.insert(
-                header.hash(),
-                Header {
-                    parent_hash: header.parent_hash,
-                    ommers_hash: header.ommers_hash,
-                    beneficiary: header.beneficiary,
-                    state_root: header.state_root,
-                    requests_root: header.requests_root,
-                    transactions_root: header.transactions_root,
-                    receipts_root: header.receipts_root,
-                    withdrawals_root: header.withdrawals_root,
-                    logs_bloom: header.logs_bloom,
-                    difficulty: header.difficulty,
-                    number: header.number,
-                    gas_limit: header.gas_limit as u128,
-                    gas_used: header.gas_used as u128,
-                    timestamp: header.timestamp,
-                    mix_hash: header.mix_hash,
-                    nonce: header.nonce.into(),
-                    base_fee_per_gas: header.base_fee_per_gas.map(|b| b as u128),
-                    blob_gas_used: header.blob_gas_used.map(|b| b as u128),
-                    excess_blob_gas: header.excess_blob_gas.map(|b| b as u128),
-                    parent_beacon_block_root: header.parent_beacon_block_root,
-                    extra_data: header.extra_data.clone(),
-                },
-            );
+            self.hash_to_header.insert(header.hash(), reth_to_alloy_header(&header));
         }
     }
 
@@ -185,107 +160,7 @@ impl InMemoryChainProviderInner {
     /// Commits [TxEnvelope]s to the provider.
     fn commit_txs(&mut self, chain: &Arc<Chain>) {
         for b in chain.blocks_iter() {
-            let txs = b
-                .transactions()
-                .flat_map(|tx| {
-                    let mut buf = Vec::new();
-                    tx.signature.encode(&mut buf);
-                    let sig = Signature::decode(&mut buf.as_slice()).ok()?;
-                    let new = match &tx.transaction {
-                        Transaction::Legacy(l) => {
-                            let legacy_tx = TxLegacy {
-                                chain_id: l.chain_id,
-                                nonce: l.nonce,
-                                gas_price: l.gas_price,
-                                gas_limit: l.gas_limit as u128,
-                                to: l.to,
-                                value: l.value,
-                                input: l.input.clone(),
-                            };
-                            TxEnvelope::Legacy(Signed::new_unchecked(legacy_tx, sig, tx.hash))
-                        }
-                        Transaction::Eip2930(e) => {
-                            let eip_tx = TxEip2930 {
-                                chain_id: e.chain_id,
-                                nonce: e.nonce,
-                                gas_price: e.gas_price,
-                                gas_limit: e.gas_limit as u128,
-                                to: e.to,
-                                value: e.value,
-                                input: e.input.clone(),
-                                access_list: alloy::eips::eip2930::AccessList(
-                                    e.access_list
-                                        .0
-                                        .clone()
-                                        .into_iter()
-                                        .map(|item| alloy::eips::eip2930::AccessListItem {
-                                            address: item.address,
-                                            storage_keys: item.storage_keys.clone(),
-                                        })
-                                        .collect(),
-                                ),
-                            };
-                            TxEnvelope::Eip2930(Signed::new_unchecked(eip_tx, sig, tx.hash))
-                        }
-                        Transaction::Eip1559(e) => {
-                            let eip_tx = TxEip1559 {
-                                chain_id: e.chain_id,
-                                nonce: e.nonce,
-                                max_priority_fee_per_gas: e.max_priority_fee_per_gas,
-                                max_fee_per_gas: e.max_fee_per_gas,
-                                gas_limit: e.gas_limit as u128,
-                                to: e.to,
-                                value: e.value,
-                                input: e.input.clone(),
-                                access_list: alloy::eips::eip2930::AccessList(
-                                    e.access_list
-                                        .0
-                                        .clone()
-                                        .into_iter()
-                                        .map(|item| alloy::eips::eip2930::AccessListItem {
-                                            address: item.address,
-                                            storage_keys: item.storage_keys.clone(),
-                                        })
-                                        .collect(),
-                                ),
-                            };
-                            TxEnvelope::Eip1559(Signed::new_unchecked(eip_tx, sig, tx.hash))
-                        }
-                        Transaction::Eip4844(e) => {
-                            let eip_tx = TxEip4844 {
-                                chain_id: e.chain_id,
-                                nonce: e.nonce,
-                                max_fee_per_gas: e.max_fee_per_gas,
-                                max_priority_fee_per_gas: e.max_priority_fee_per_gas,
-                                max_fee_per_blob_gas: e.max_fee_per_blob_gas,
-                                blob_versioned_hashes: e.blob_versioned_hashes.clone(),
-                                gas_limit: e.gas_limit as u128,
-                                to: e.to,
-                                value: e.value,
-                                input: e.input.clone(),
-                                access_list: alloy::eips::eip2930::AccessList(
-                                    e.access_list
-                                        .0
-                                        .clone()
-                                        .into_iter()
-                                        .map(|item| alloy::eips::eip2930::AccessListItem {
-                                            address: item.address,
-                                            storage_keys: item.storage_keys.clone(),
-                                        })
-                                        .collect(),
-                                ),
-                            };
-                            TxEnvelope::Eip4844(Signed::new_unchecked(
-                                TxEip4844Variant::TxEip4844(eip_tx),
-                                sig,
-                                tx.hash,
-                            ))
-                        }
-                        Transaction::Eip7702(_) => unimplemented!("EIP-7702 not implemented"),
-                    };
-                    Some(new)
-                })
-                .collect();
+            let txs = b.transactions().flat_map(reth_to_alloy_tx).collect();
             self.hash_to_txs.insert(b.hash(), txs);
         }
     }
@@ -349,4 +224,129 @@ impl ChainProvider for InMemoryChainProvider {
 
         Ok((block_info, txs))
     }
+}
+
+pub fn reth_to_alloy_header(header: &reth::primitives::SealedHeader) -> Header {
+    Header {
+        parent_hash: header.parent_hash,
+        ommers_hash: header.ommers_hash,
+        beneficiary: header.beneficiary,
+        state_root: header.state_root,
+        requests_root: header.requests_root,
+        transactions_root: header.transactions_root,
+        receipts_root: header.receipts_root,
+        withdrawals_root: header.withdrawals_root,
+        logs_bloom: header.logs_bloom,
+        difficulty: header.difficulty,
+        number: header.number,
+        gas_limit: header.gas_limit as u128,
+        gas_used: header.gas_used as u128,
+        timestamp: header.timestamp,
+        mix_hash: header.mix_hash,
+        nonce: header.nonce.into(),
+        base_fee_per_gas: header.base_fee_per_gas.map(|b| b as u128),
+        blob_gas_used: header.blob_gas_used.map(|b| b as u128),
+        excess_blob_gas: header.excess_blob_gas.map(|b| b as u128),
+        parent_beacon_block_root: header.parent_beacon_block_root,
+        extra_data: header.extra_data.clone(),
+    }
+}
+
+pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEnvelope> {
+    let mut buf = Vec::new();
+    tx.signature.encode(&mut buf);
+    let sig = Signature::decode(&mut buf.as_slice()).ok()?;
+    let new = match &tx.transaction {
+        Transaction::Legacy(l) => {
+            let legacy_tx = TxLegacy {
+                chain_id: l.chain_id,
+                nonce: l.nonce,
+                gas_price: l.gas_price,
+                gas_limit: l.gas_limit as u128,
+                to: l.to,
+                value: l.value,
+                input: l.input.clone(),
+            };
+            TxEnvelope::Legacy(Signed::new_unchecked(legacy_tx, sig, tx.hash))
+        }
+        Transaction::Eip2930(e) => {
+            let eip_tx = TxEip2930 {
+                chain_id: e.chain_id,
+                nonce: e.nonce,
+                gas_price: e.gas_price,
+                gas_limit: e.gas_limit as u128,
+                to: e.to,
+                value: e.value,
+                input: e.input.clone(),
+                access_list: alloy::eips::eip2930::AccessList(
+                    e.access_list
+                        .0
+                        .clone()
+                        .into_iter()
+                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                            address: item.address,
+                            storage_keys: item.storage_keys.clone(),
+                        })
+                        .collect(),
+                ),
+            };
+            TxEnvelope::Eip2930(Signed::new_unchecked(eip_tx, sig, tx.hash))
+        }
+        Transaction::Eip1559(e) => {
+            let eip_tx = TxEip1559 {
+                chain_id: e.chain_id,
+                nonce: e.nonce,
+                max_priority_fee_per_gas: e.max_priority_fee_per_gas,
+                max_fee_per_gas: e.max_fee_per_gas,
+                gas_limit: e.gas_limit as u128,
+                to: e.to,
+                value: e.value,
+                input: e.input.clone(),
+                access_list: alloy::eips::eip2930::AccessList(
+                    e.access_list
+                        .0
+                        .clone()
+                        .into_iter()
+                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                            address: item.address,
+                            storage_keys: item.storage_keys.clone(),
+                        })
+                        .collect(),
+                ),
+            };
+            TxEnvelope::Eip1559(Signed::new_unchecked(eip_tx, sig, tx.hash))
+        }
+        Transaction::Eip4844(e) => {
+            let eip_tx = TxEip4844 {
+                chain_id: e.chain_id,
+                nonce: e.nonce,
+                max_fee_per_gas: e.max_fee_per_gas,
+                max_priority_fee_per_gas: e.max_priority_fee_per_gas,
+                max_fee_per_blob_gas: e.max_fee_per_blob_gas,
+                blob_versioned_hashes: e.blob_versioned_hashes.clone(),
+                gas_limit: e.gas_limit as u128,
+                to: e.to,
+                value: e.value,
+                input: e.input.clone(),
+                access_list: alloy::eips::eip2930::AccessList(
+                    e.access_list
+                        .0
+                        .clone()
+                        .into_iter()
+                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                            address: item.address,
+                            storage_keys: item.storage_keys.clone(),
+                        })
+                        .collect(),
+                ),
+            };
+            TxEnvelope::Eip4844(Signed::new_unchecked(
+                TxEip4844Variant::TxEip4844(eip_tx),
+                sig,
+                tx.hash,
+            ))
+        }
+        Transaction::Eip7702(_) => unimplemented!("EIP-7702 not implemented"),
+    };
+    Some(new)
 }

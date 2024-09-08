@@ -115,6 +115,10 @@ panic = "unwind"
 codegen-units = 1
 incremental = false
 
+# TODO(nico): remove this once we have a new release
+[patch.crates-io]
+op-alloy-protocol = { git = "https://github.com/alloy-rs/op-alloy", rev = "cf27ad9" }
+
 [workspace.dependencies]
 # Workspace
 op-net = { path = "crates/net" }
@@ -123,45 +127,50 @@ rollup = { path = "crates/rollup" }
 ser = { path = "crates/ser" }
 
 # Optimism
-superchain-registry = { version = "0.2.6", default-features = false }
-kona-primitives = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
-kona-derive = { git = "https://github.com/ethereum-optimism/kona", default-features = true }
+superchain-registry = { version = "0.3.4", default-features = false }
+kona-primitives = { git = "https://github.com/anton-rs/kona", rev = "4ba2812", default-features = true }
+kona-derive = { git = "https://github.com/anton-rs/kona", rev = "4ba2812", default-features = true }
 
 # Alloy
-alloy = { version = "0.2", features = [
+alloy = { version = "0.3", features = [
     "contract",
     "providers",
     "provider-http",
+    "provider-ws",
+    "provider-ipc",
     "signers",
     "consensus",
+    "rpc-types",
     "rpc-types-engine",
+    "network",
     "ssz"
 ] }
 alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3.4"
-op-alloy-rpc-types = "0.2"
+op-alloy-protocol = { version = "0.2", default-features = false }
+op-alloy-rpc-types = { version = "0.2", default-features = false }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }
 
 # SSZ
-ssz_rs = "0.9.0"
+ethereum_ssz = "0.7.1"
 
 # Reth
-reth = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-chainspec = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-discv5 = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-execution-types = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-exex = { git = "https://github.com/paradigmxyz/reth", features = ["serde"], version = "1.0.5" }
-reth-network-peers = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-node-api = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-provider = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-revm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-evm = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
-reth-tracing = { git = "https://github.com/paradigmxyz/reth", version = "1.0.5" }
+reth = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-discv5 = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-exex = { git = "https://github.com/paradigmxyz/reth", features = ["serde"], tag = "v1.0.6" }
+reth-network-peers = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
+reth-tracing = { git = "https://github.com/paradigmxyz/reth", tag = "v1.0.6" }
 
 # Networking
 snap = "1.1.1"

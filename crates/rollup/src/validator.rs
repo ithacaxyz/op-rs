@@ -24,7 +24,7 @@ use url::Url;
 ///
 /// A trait that defines the interface for validating newly derived L2 attributes.
 #[async_trait]
-pub trait AttributesValidator: Debug {
+pub trait AttributesValidator: Debug + Send {
     /// Validates the given [`L2AttributesWithParent`] and returns true
     /// if the attributes are valid, false otherwise.
     async fn validate(&self, attributes: &L2AttributesWithParent) -> Result<bool>;
