@@ -178,7 +178,8 @@ where
                 }
                 Ok(false) => {
                     error!("Failed payload attributes validation");
-                    // TODO: should we advance the pipeline iterator here?
+                    // TODO: allow users to specify how they want to treat invalid payloads.
+                    // In the default scenario we just log an error and continue.
                     return false;
                 }
                 Err(err) => {
@@ -192,7 +193,6 @@ where
         };
 
         let derived = derived_attributes.parent.block_info.number + 1;
-        // Q: can we use the origin from `pipeline.origin()` instead of fetching it from L1?
         let (new_l1_origin, new_l2_tip) = match self.fetch_new_tip(derived).await {
             Ok(tip_info) => tip_info,
             Err(err) => {
