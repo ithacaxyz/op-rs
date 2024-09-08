@@ -90,11 +90,16 @@ impl StandaloneContext {
                     }
                 }
             }),
-            Err(err)
+            Err(err) => {
                 if err
                     .as_error_resp()
-                    .is_some_and(|resp| resp.message.to_lowercase().contains("not supported")) =>
-            {
+                    .is_some_and(|resp| !resp.message.to_lowercase().contains("not supported"))
+                {
+                    // On any error other than "not supported", return the error and fail.
+                    error!("Failed to watch new blocks via HTTP");
+                    return Err(err);
+                }
+
                 warn!("Filtering unavailable; falling back to eth_getBlock");
                 tokio::spawn(async move {
                     let mut hash = B256::ZERO;
@@ -132,12 +137,6 @@ impl StandaloneContext {
                         tokio::time::sleep(Duration::from_secs(1)).await;
                     }
                 })
-            }
-
-            Err(err) => {
-                // On any error other than "not supported", return the error and fail.
-                error!("Failed to watch new blocks via HTTP");
-                return Err(err);
             }
         };
 
