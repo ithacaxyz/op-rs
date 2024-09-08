@@ -10,7 +10,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-kona-providers = { path = "../kona-providers" }
+kona-providers.workspace = true
 
 # Workspace
 eyre.workspace = true

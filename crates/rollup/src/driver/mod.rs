@@ -27,7 +27,8 @@ use crate::{
 };
 
 mod context;
-use context::{ChainNotification, DriverContext, StandaloneContext};
+pub use context::StandaloneContext;
+use context::{ChainNotification, DriverContext};
 
 mod cursor;
 use cursor::SyncCursor;
@@ -70,7 +71,7 @@ where
 
 impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2ChainProvider> {
     /// Create a new Standalone Hera Driver
-    pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+    pub fn std(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
         let cp = AlloyChainProvider::new_http(args.l1_rpc_url.clone());
         let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url.clone(), cfg.clone());
         let bp = OnlineBlobProviderBuilder::new()

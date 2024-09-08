@@ -1,15 +1,20 @@
 //! Module for the Hera Execution Extension CLI arguments.
 
-use std::path::PathBuf;
+use std::{fs::File, path::PathBuf, sync::Arc};
 
 use clap::Args;
+use eyre::{bail, Context, Result};
+use kona_primitives::RollupConfig;
+use serde_json::from_reader;
+use superchain_registry::ROLLUP_CONFIGS;
+use tracing::debug;
 use url::Url;
 
 /// The default L2 chain ID to use. This corresponds to OP Mainnet.
 pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
 
 /// The default L1 RPC URL to use.
-pub const DEFAULT_L1_RPC_URL: &str = "https://eth.llamarpc.com/";
+pub const DEFAULT_L1_RPC_URL: &str = "https://cloudflare-eth.com";
 
 /// The default L2 RPC URL to use.
 pub const DEFAULT_L2_RPC_URL: &str = "https://optimism.llamarpc.com/";
@@ -81,6 +86,26 @@ pub struct HeraArgsExt {
     pub in_mem_chain_provider_capacity: usize,
 }
 
+impl HeraArgsExt {
+    /// Get the L2 rollup config, either from a file or the superchain registry.
+    pub fn get_l2_config(&self) -> Result<Arc<RollupConfig>> {
+        match &self.l2_config_file {
+            Some(path) => {
+                debug!("Loading l2 config from file: {:?}", path);
+                let file = File::open(path).wrap_err("Failed to open l2 config file")?;
+                Ok(Arc::new(from_reader(file).wrap_err("Failed to read l2 config file")?))
+            }
+            None => {
+                debug!("Loading l2 config from superchain registry");
+                let Some(cfg) = ROLLUP_CONFIGS.get(&self.l2_chain_id).cloned() else {
+                    bail!("Failed to find l2 config for chain ID {}", self.l2_chain_id);
+                };
+                Ok(Arc::new(cfg))
+            }
+        }
+    }
+}
+
 /// The payload validation mode.
 ///
 /// Every newly derived payload needs to be validated against a local
@@ -108,6 +133,15 @@ impl std::str::FromStr for ValidationMode {
             "trusted" => Ok(ValidationMode::Trusted),
             "engine-api" => Ok(ValidationMode::EngineApi),
             _ => Err(format!("Invalid validation mode: {}", s)),
+        }
+    }
+}
+
+impl std::fmt::Display for ValidationMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationMode::Trusted => write!(f, "trusted"),
+            ValidationMode::EngineApi => write!(f, "engine-api"),
         }
     }
 }

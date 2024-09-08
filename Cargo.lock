@@ -3112,7 +3112,6 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "hera"
 version = "0.1.0"
 dependencies = [
- "alloy",
  "clap",
  "eyre",
  "op-net",
@@ -3120,8 +3119,6 @@ dependencies = [
  "superchain-registry",
  "tokio",
  "tracing",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]
@@ -3671,9 +3668,9 @@ dependencies = [
 
 [[package]]
 name = "ipnet"
-version = "2.9.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f518f335dce6725a761382244631d86cf0ccb2863413590b31338feb467f9c3"
+checksum = "187674a687eed5fe42285b40c6291f9a01517d415fad1c3cbc6a9f778af7fcd4"
 
 [[package]]
 name = "iri-string"
@@ -5237,8 +5234,6 @@ dependencies = [
  "reth",
  "reth-node-ethereum",
  "rollup",
- "serde_json",
- "superchain-registry",
  "tracing",
 ]
 
@@ -5362,9 +5357,9 @@ dependencies = [
 
 [[package]]
 name = "parking"
-version = "2.2.0"
+version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb813b8af86854136c6922af0598d719255ecb2179515e6e7730d468f05c9cae"
+checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "parking_lot"

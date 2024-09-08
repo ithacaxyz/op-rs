@@ -50,7 +50,7 @@ impl StandaloneContext {
             debug!("Polling for new blocks via HTTP");
             Self::with_http_poller(l1_rpc_url).await
         } else if l1_rpc_url.scheme().contains("ws") {
-            debug!("Subscribing to new blocks via websocket/ipc");
+            debug!("Subscribing to new blocks via websocket");
             Self::with_ws_subscriber(l1_rpc_url).await
         } else if l1_rpc_url.scheme().contains("file") {
             debug!("Subscribing to new blocks via IPC");
