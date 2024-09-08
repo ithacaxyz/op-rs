@@ -14,7 +14,7 @@ use url::Url;
 pub const DEFAULT_L2_CHAIN_ID: u64 = 10;
 
 /// The default L1 RPC URL to use.
-pub const DEFAULT_L1_RPC_URL: &str = "https://eth.llamarpc.com/";
+pub const DEFAULT_L1_RPC_URL: &str = "https://cloudflare-eth.com";
 
 /// The default L2 RPC URL to use.
 pub const DEFAULT_L2_RPC_URL: &str = "https://optimism.llamarpc.com/";
@@ -133,6 +133,15 @@ impl std::str::FromStr for ValidationMode {
             "trusted" => Ok(ValidationMode::Trusted),
             "engine-api" => Ok(ValidationMode::EngineApi),
             _ => Err(format!("Invalid validation mode: {}", s)),
+        }
+    }
+}
+
+impl std::fmt::Display for ValidationMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationMode::Trusted => write!(f, "trusted"),
+            ValidationMode::EngineApi => write!(f, "engine-api"),
         }
     }
 }

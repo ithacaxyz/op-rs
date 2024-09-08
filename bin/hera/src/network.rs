@@ -21,7 +21,7 @@ pub struct NetworkCommand {
 
 impl NetworkCommand {
     /// Run the network subcommand.
-    pub async fn run(&self, args: &GlobalArgs) -> Result<()> {
+    pub async fn run(self, args: &GlobalArgs) -> Result<()> {
         if self.only_disc {
             self.run_discovery(args).await
         } else {

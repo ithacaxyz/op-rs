@@ -22,7 +22,6 @@ eyre.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing.workspace = true
 clap.workspace = true
-url.workspace = true
 
 # Workspace Crates
 op-net.workspace = true

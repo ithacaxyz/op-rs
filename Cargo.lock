@@ -3119,7 +3119,6 @@ dependencies = [
  "superchain-registry",
  "tokio",
  "tracing",
- "url",
 ]
 
 [[package]]
