@@ -26,10 +26,10 @@ impl NodeCommand {
 
         let ctx = StandaloneContext::new(self.hera_config.l1_rpc_url.clone()).await?;
         let cfg = self.hera_config.get_l2_config()?;
-        let driver = Driver::std(ctx, self.hera_config, cfg);
+        let driver = Driver::standalone(ctx, self.hera_config, cfg);
 
         if let Err(e) = driver.start().await {
-            bail!("Critical: Rollup driver failed: {:?}", e)
+            bail!("[CRIT] Rollup driver failed: {:?}", e)
         }
 
         Ok(())

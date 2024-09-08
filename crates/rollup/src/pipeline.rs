@@ -3,12 +3,12 @@
 use std::{fmt::Debug, sync::Arc};
 
 use kona_derive::{
-    online::{DerivationPipeline, EthereumDataSource, PipelineBuilder},
+    online::{AlloyL2ChainProvider, DerivationPipeline, EthereumDataSource, PipelineBuilder},
     stages::{
         AttributesQueue, BatchQueue, ChannelBank, ChannelReader, FrameQueue, L1Retrieval,
         L1Traversal, StatefulAttributesBuilder,
     },
-    traits::{BlobProvider, ChainProvider, L2ChainProvider},
+    traits::{BlobProvider, ChainProvider},
 };
 use kona_primitives::{BlockInfo, RollupConfig};
 
@@ -26,25 +26,24 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 /// A derivation pipeline generic over:
 /// - The L1 [ChainProvider] (CP)
 /// - The L1 [BlobProvider] (BP)
-/// - The [L2ChainProvider] (L2CP)
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
 /// and transforms them into [L2PayloadAttributes](kona_primitives::L2PayloadAttributes).
-pub type RollupPipeline<CP, BP, L2CP> = DerivationPipeline<L1AttributesQueue<CP, BP, L2CP>, L2CP>;
+pub type RollupPipeline<CP, BP> =
+    DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 
 /// Creates a new [RollupPipeline] from the given components.
 #[allow(unused)]
-pub fn new_rollup_pipeline<CP, BP, L2CP>(
+pub fn new_rollup_pipeline<CP, BP>(
     cfg: Arc<RollupConfig>,
     chain_provider: CP,
     blob_provider: BP,
-    l2_chain_provider: L2CP,
+    l2_chain_provider: AlloyL2ChainProvider,
     origin: BlockInfo,
-) -> RollupPipeline<CP, BP, L2CP>
+) -> RollupPipeline<CP, BP>
 where
     CP: ChainProvider + Send + Sync + Clone + Debug,
     BP: BlobProvider + Send + Sync + Clone + Debug,
-    L2CP: L2ChainProvider + Send + Sync + Clone + Debug,
 {
     let dap = EthereumDataSource::new(chain_provider.clone(), blob_provider.clone(), &cfg.clone());
     let attributes = StatefulAttributesBuilder::new(
