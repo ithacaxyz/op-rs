@@ -27,8 +27,7 @@ use crate::{
 };
 
 mod context;
-pub use context::StandaloneContext;
-use context::{ChainNotification, DriverContext};
+use context::{ChainNotification, DriverContext, ExExHeraContext, StandaloneHeraContext};
 
 mod cursor;
 use cursor::SyncCursor;
@@ -52,30 +51,39 @@ pub struct Driver<DC, CP, BP> {
     validator: Box<dyn AttributesValidator>,
 }
 
-impl<N: FullNodeComponents> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider> {
+impl<N: FullNodeComponents> Driver<ExExHeraContext<N>, InMemoryChainProvider, LayeredBlobProvider> {
     /// Create a new Hera Execution Extension Driver
     pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
-        let chain_provider =
-            InMemoryChainProvider::with_capacity(args.in_mem_chain_provider_capacity);
+        let chain_provider = InMemoryChainProvider::with_capacity(args.l1_chain_cache_size);
         let blob_provider = LayeredBlobProvider::new(
             args.l1_beacon_client_url.clone(),
             args.l1_blob_archiver_url.clone(),
         );
 
-        Self::with_components(ctx, args, cfg, chain_provider, blob_provider)
+        // The ExEx Hera context is responsible for handling notifications from the execution
+        // extension, and will automatically cache L1 blocks as they come in to make them available
+        // to the derivation pipeline's L1 chain provider.
+        let exex_ctx = ExExHeraContext::new(ctx, chain_provider.clone());
+
+        Self::with_components(exex_ctx, args, cfg, chain_provider, blob_provider)
     }
 }
 
-impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider> {
+impl Driver<StandaloneHeraContext, AlloyChainProvider, DurableBlobProvider> {
     /// Create a new Standalone Hera Driver
-    pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+    pub async fn standalone(args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Result<Self> {
         let chain_provider = AlloyChainProvider::new_http(args.l1_rpc_url.clone());
         let blob_provider = OnlineBlobProviderBuilder::new()
             .with_primary(args.l1_beacon_client_url.to_string())
             .with_fallback(args.l1_blob_archiver_url.clone().map(|url| url.to_string()))
             .build();
 
-        Self::with_components(ctx, args, cfg, chain_provider, blob_provider)
+        // The Standalone Hera context is responsible for handling notifications from the node.
+        // Currently there is no cache layer for L1 data as it is assumed that it will be fetched
+        // from the L1 chain provider directly.
+        let standalone_ctx = StandaloneHeraContext::new(args.l1_rpc_url.clone()).await?;
+
+        Ok(Self::with_components(standalone_ctx, args, cfg, chain_provider, blob_provider))
     }
 }
 
@@ -118,8 +126,6 @@ where
             if let Some(notification) = self.ctx.recv_notification().await {
                 if let Some(new_chain) = notification.new_chain() {
                     let tip = new_chain.tip();
-                    // TODO: commit the chain to a local buffered provider
-                    // self.l1_chain_provider.commit_chain(new_chain);
 
                     if let Err(err) = self.ctx.send_processed_tip_event(tip) {
                         bail!("Failed to send processed tip event: {:?}", err);
@@ -251,7 +257,6 @@ where
 
         if let Some(new_chain) = notification.new_chain() {
             let tip = new_chain.tip();
-            // self.l1_chain_provider.commit_chain(new_chain);
 
             if let Err(err) = self.ctx.send_processed_tip_event(tip) {
                 bail!("Failed to send processed tip event: {:?}", err);

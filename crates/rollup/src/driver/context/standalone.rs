@@ -28,7 +28,7 @@ const FINALIZATION_TIMEOUT: u64 = 64;
 
 #[allow(unused)]
 #[derive(Debug)]
-pub struct StandaloneContext {
+pub struct StandaloneHeraContext {
     /// The current tip of the L1 chain listener, used to detect reorgs
     l1_tip: BlockNumber,
     /// Channel that receives new blocks from the L1 node
@@ -44,7 +44,7 @@ pub struct StandaloneContext {
     _handle: JoinHandle<()>,
 }
 
-impl StandaloneContext {
+impl StandaloneHeraContext {
     /// Create a new standalone context that polls for new chains.
     pub async fn new(l1_rpc_url: Url) -> TransportResult<Self> {
         if l1_rpc_url.scheme().contains("http") {
@@ -191,7 +191,7 @@ impl StandaloneContext {
 }
 
 #[async_trait]
-impl DriverContext for StandaloneContext {
+impl DriverContext for StandaloneHeraContext {
     async fn recv_notification(&mut self) -> Option<ChainNotification> {
         // TODO: is it ok to skip fetching full txs and receipts here assuming the node will
         // have a fallback online RPC for that downstream? The driver and provider should be
@@ -256,7 +256,7 @@ mod tests {
             return Ok(());
         }
 
-        let mut ctx = StandaloneContext::new(url).await?;
+        let mut ctx = StandaloneHeraContext::new(url).await?;
 
         let notif = ctx.recv_notification().await.unwrap();
 
@@ -275,7 +275,7 @@ mod tests {
             return Ok(());
         }
 
-        let mut ctx = StandaloneContext::new(url).await?;
+        let mut ctx = StandaloneHeraContext::new(url).await?;
 
         let notif = ctx.recv_notification().await.unwrap();
 
@@ -289,7 +289,7 @@ mod tests {
     async fn test_reorg_cache_pruning() {
         let (_, rx) = mpsc::channel(128);
         let handle = tokio::spawn(async {});
-        let mut ctx = StandaloneContext::with_defaults(rx, handle);
+        let mut ctx = StandaloneHeraContext::with_defaults(rx, handle);
 
         // Simulate receiving 100 blocks
         for i in 1..=100 {
@@ -315,7 +315,7 @@ mod tests {
     async fn test_send_processed_tip_event() {
         let (_, rx) = mpsc::channel(128);
         let handle = tokio::spawn(async {});
-        let mut ctx = StandaloneContext::with_defaults(rx, handle);
+        let mut ctx = StandaloneHeraContext::with_defaults(rx, handle);
 
         // Send a processed tip event
         let result = ctx.send_processed_tip_event(100);

@@ -2,7 +2,7 @@
 
 use clap::Args;
 use eyre::{bail, Result};
-use rollup::{Driver, HeraArgsExt, StandaloneContext};
+use rollup::{Driver, HeraArgsExt};
 use tracing::info;
 
 use crate::globals::GlobalArgs;
@@ -24,9 +24,8 @@ impl NodeCommand {
             self.hera_config.validation_mode
         );
 
-        let ctx = StandaloneContext::new(self.hera_config.l1_rpc_url.clone()).await?;
         let cfg = self.hera_config.get_l2_config()?;
-        let driver = Driver::standalone(ctx, self.hera_config, cfg);
+        let driver = Driver::standalone(self.hera_config, cfg).await?;
 
         if let Err(e) = driver.start().await {
             bail!("[CRIT] Rollup driver failed: {:?}", e)

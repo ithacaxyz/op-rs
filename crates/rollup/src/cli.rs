@@ -78,12 +78,12 @@ pub struct HeraArgsExt {
     #[clap(long = "hera.l2-engine-jwt-secret")]
     pub l2_engine_jwt_secret: Option<PathBuf>,
 
-    /// The maximum number of blocks to keep in memory in the chain provider.
+    /// The maximum **number of blocks** to keep cached in the chain provider.
     ///
     /// This is used to limit the memory usage of the chain provider.
     /// When the limit is reached, the oldest blocks are discarded.
-    #[clap(long = "hera.in-mem-chain-provider-capacity", default_value_t = 256)]
-    pub in_mem_chain_provider_capacity: usize,
+    #[clap(long = "hera.l1-chain-cache-size", default_value_t = 256)]
+    pub l1_chain_cache_size: usize,
 }
 
 impl HeraArgsExt {
