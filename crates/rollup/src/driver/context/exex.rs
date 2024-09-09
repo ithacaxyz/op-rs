@@ -7,6 +7,12 @@ use tokio::sync::mpsc::error::SendError;
 
 use crate::driver::{ChainNotification, DriverContext};
 
+/// Execution extension Hera context.
+///
+/// This context is used to bridge the gap between the execution extension
+/// and the Hera pipeline. It receives notifications from the execution extension
+/// and forwards them to the Hera pipeline. It also maintains a shared L1 cache of
+/// the chain to make it available to the rollup pipeline.
 pub struct ExExHeraContext<N: FullNodeComponents> {
     ctx: ExExContext<N>,
     l1_cache: InMemoryChainProvider,

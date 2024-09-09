@@ -26,7 +26,11 @@ use super::{Blocks, ChainNotification, DriverContext};
 /// Equivalent to 2 epochs at 32 slots/epoch on Ethereum Mainnet.
 const FINALIZATION_TIMEOUT: u64 = 64;
 
-#[allow(unused)]
+/// A standalone context that polls for new blocks from an L1 node, depending
+/// on the URL scheme. Supported schemes are `http`, `ws`, and `file`.
+///
+/// If the URL scheme is `http`, the context will poll for new blocks using the
+/// `eth_getFilterChanges` if available, falling back to `eth_getBlockByNumber` if not.
 #[derive(Debug)]
 pub struct StandaloneHeraContext {
     /// The current tip of the L1 chain listener, used to detect reorgs
