@@ -24,7 +24,7 @@ pub struct SyncCursor {
 }
 
 impl SyncCursor {
-    /// Create a new cursor with the default cache capacity.
+    /// Create a new cursor with the default cache capacity
     pub fn new(channel_timeout: u64) -> Self {
         // NOTE: capacity must be greater than the `channel_timeout` to allow
         // for derivation to proceed through a deep reorg.

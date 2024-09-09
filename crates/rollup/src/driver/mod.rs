@@ -2,7 +2,7 @@
 
 use std::{fmt::Debug, sync::Arc};
 
-use eyre::{bail, Result};
+use eyre::{bail, eyre, Result};
 use kona_derive::{
     errors::StageError,
     online::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder},
@@ -35,75 +35,70 @@ use cursor::SyncCursor;
 
 /// The Rollup Driver entrypoint.
 #[derive(Debug)]
-pub struct Driver<DC, CP, BP, L2CP> {
+pub struct Driver<DC, CP, BP> {
     /// The rollup configuration
     cfg: Arc<RollupConfig>,
     /// The context of the node
     ctx: DC,
     /// The L1 chain provider
-    chain_provider: CP,
+    l1_chain_provider: CP,
     /// The L1 blob provider
     blob_provider: BP,
     /// The L2 chain provider
-    l2_chain_provider: L2CP,
+    l2_chain_provider: AlloyL2ChainProvider,
     /// Cursor to keep track of the L2 tip
     cursor: SyncCursor,
     /// The validator to verify newly derived L2 attributes
     validator: Box<dyn AttributesValidator>,
 }
 
-impl<N> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider, AlloyL2ChainProvider>
-where
-    N: FullNodeComponents,
-{
+impl<N: FullNodeComponents> Driver<ExExContext<N>, InMemoryChainProvider, LayeredBlobProvider> {
     /// Create a new Hera Execution Extension Driver
     pub fn exex(ctx: ExExContext<N>, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
-        let cp = InMemoryChainProvider::with_capacity(args.in_mem_chain_provider_capacity);
-        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url.clone(), cfg.clone());
-        let bp = LayeredBlobProvider::new(
+        let chain_provider =
+            InMemoryChainProvider::with_capacity(args.in_mem_chain_provider_capacity);
+        let blob_provider = LayeredBlobProvider::new(
             args.l1_beacon_client_url.clone(),
             args.l1_blob_archiver_url.clone(),
         );
 
-        Self::with_components(ctx, args, cfg, cp, bp, l2_cp)
+        Self::with_components(ctx, args, cfg, chain_provider, blob_provider)
     }
 }
 
-impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider, AlloyL2ChainProvider> {
+impl Driver<StandaloneContext, AlloyChainProvider, DurableBlobProvider> {
     /// Create a new Standalone Hera Driver
-    pub fn std(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
-        let cp = AlloyChainProvider::new_http(args.l1_rpc_url.clone());
-        let l2_cp = AlloyL2ChainProvider::new_http(args.l2_rpc_url.clone(), cfg.clone());
-        let bp = OnlineBlobProviderBuilder::new()
+    pub fn standalone(ctx: StandaloneContext, args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Self {
+        let chain_provider = AlloyChainProvider::new_http(args.l1_rpc_url.clone());
+        let blob_provider = OnlineBlobProviderBuilder::new()
             .with_primary(args.l1_beacon_client_url.to_string())
             .with_fallback(args.l1_blob_archiver_url.clone().map(|url| url.to_string()))
             .build();
 
-        Self::with_components(ctx, args, cfg, cp, bp, l2_cp)
+        Self::with_components(ctx, args, cfg, chain_provider, blob_provider)
     }
 }
 
-impl<DC, CP, BP, L2CP> Driver<DC, CP, BP, L2CP>
+impl<DC, CP, BP> Driver<DC, CP, BP>
 where
     DC: DriverContext,
     CP: ChainProvider + Clone + Send + Sync + Debug + 'static,
     BP: BlobProvider + Clone + Send + Sync + Debug + 'static,
-    L2CP: L2ChainProvider + Clone + Send + Sync + Debug + 'static,
 {
     /// Create a new Hera Driver with the provided components.
     fn with_components(
         ctx: DC,
         args: HeraArgsExt,
         cfg: Arc<RollupConfig>,
-        chain_provider: CP,
+        l1_chain_provider: CP,
         blob_provider: BP,
-        l2_chain_provider: L2CP,
     ) -> Self {
         let cursor = SyncCursor::new(cfg.channel_timeout);
         let validator: Box<dyn AttributesValidator> = match args.validation_mode {
-            ValidationMode::Trusted => {
-                Box::new(TrustedValidator::new_http(args.l2_rpc_url, cfg.canyon_time.unwrap_or(0)))
-            }
+            ValidationMode::Trusted => Box::new(TrustedValidator::new_http(
+                args.l2_rpc_url.clone(),
+                cfg.canyon_time.unwrap_or(0),
+            )),
             ValidationMode::EngineApi => Box::new(EngineApiValidator::new_http(
                 args.l2_engine_api_url.expect("Missing L2 engine API URL"),
                 match args.l2_engine_jwt_secret.as_ref() {
@@ -112,21 +107,22 @@ where
                 },
             )),
         };
+        let l2_chain_provider = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
 
-        Self { cfg, ctx, chain_provider, blob_provider, l2_chain_provider, cursor, validator }
+        Self { cfg, ctx, l1_chain_provider, blob_provider, l2_chain_provider, cursor, validator }
     }
 
-    /// Wait for the L2 genesis L1 block (aka "origin block") to be available in the L1 chain.
+    /// Wait for the L2 genesis' corresponding L1 block to be available in the L1 chain.
     async fn wait_for_l2_genesis_l1_block(&mut self) -> Result<()> {
         loop {
             if let Some(notification) = self.ctx.recv_notification().await {
                 if let Some(new_chain) = notification.new_chain() {
                     let tip = new_chain.tip();
                     // TODO: commit the chain to a local buffered provider
-                    // self.chain_provider.commit_chain(new_chain);
+                    // self.l1_chain_provider.commit_chain(new_chain);
 
                     if let Err(err) = self.ctx.send_processed_tip_event(tip) {
-                        bail!("Critical: Failed to send processed tip event: {:?}", err);
+                        bail!("Failed to send processed tip event: {:?}", err);
                     }
 
                     if tip >= self.cfg.genesis.l1.number {
@@ -140,25 +136,27 @@ where
     }
 
     /// Initialize the rollup pipeline from the driver's components.
-    fn init_pipeline(&mut self) -> RollupPipeline<CP, BP, L2CP> {
-        new_rollup_pipeline(
+    async fn init_pipeline(&mut self) -> Result<RollupPipeline<CP, BP>> {
+        // Fetch the current L2 tip and its corresponding L1 origin block
+        let l2_tip = self.l2_chain_provider.latest_block_number().await.map_err(|e| eyre!(e))?;
+        let (l2_tip_l1_origin, l2_tip_block_info) = self.fetch_new_tip(l2_tip).await?;
+
+        // Advance the cursor to the L2 tip before starting the pipeline
+        self.cursor.advance(l2_tip_l1_origin, l2_tip_block_info);
+
+        Ok(new_rollup_pipeline(
             self.cfg.clone(),
-            self.chain_provider.clone(),
+            self.l1_chain_provider.clone(),
             self.blob_provider.clone(),
             self.l2_chain_provider.clone(),
-            // TODO: use a dynamic "tip" block instead of genesis
-            BlockInfo {
-                hash: self.cfg.genesis.l2.hash,
-                number: self.cfg.genesis.l2.number,
-                ..Default::default()
-            },
-        )
+            l2_tip_l1_origin,
+        ))
     }
 
     /// Advance the pipeline to the next L2 block.
     ///
     /// Returns `true` if the pipeline can move forward again, `false` otherwise.
-    async fn step(&mut self, pipeline: &mut RollupPipeline<CP, BP, L2CP>) -> bool {
+    async fn step(&mut self, pipeline: &mut RollupPipeline<CP, BP>) -> bool {
         let l2_tip = self.cursor.tip();
 
         match pipeline.step(l2_tip).await {
@@ -217,17 +215,14 @@ where
 
     /// Fetch the new L2 tip and L1 origin block info for the given L2 block number.
     async fn fetch_new_tip(&mut self, l2_tip: u64) -> Result<(BlockInfo, L2BlockInfo)> {
-        let l2_block = self
-            .l2_chain_provider
-            .l2_block_info_by_number(l2_tip)
-            .await
-            .map_err(|e| eyre::eyre!(e))?;
+        let l2_block =
+            self.l2_chain_provider.l2_block_info_by_number(l2_tip).await.map_err(|e| eyre!(e))?;
 
         let l1_origin = self
-            .chain_provider
+            .l1_chain_provider
             .block_info_by_number(l2_block.l1_origin.number)
             .await
-            .map_err(|e| eyre::eyre!(e))?;
+            .map_err(|e| eyre!(e))?;
 
         Ok((l1_origin, l2_block))
     }
@@ -236,7 +231,7 @@ where
     async fn handle_notification(
         &mut self,
         notification: ChainNotification,
-        pipeline: &mut RollupPipeline<CP, BP, L2CP>,
+        pipeline: &mut RollupPipeline<CP, BP>,
     ) -> Result<()> {
         if let Some(reverted_chain) = notification.reverted_chain() {
             // The reverted chain contains the list of blocks that were invalidated by the
@@ -256,10 +251,10 @@ where
 
         if let Some(new_chain) = notification.new_chain() {
             let tip = new_chain.tip();
-            // self.chain_provider.commit_chain(new_chain);
+            // self.l1_chain_provider.commit_chain(new_chain);
 
             if let Err(err) = self.ctx.send_processed_tip_event(tip) {
-                bail!("Critical: Failed to send processed tip event: {:?}", err);
+                bail!("Failed to send processed tip event: {:?}", err);
             }
         }
 
@@ -280,7 +275,8 @@ where
         info!("L1 chain synced to the rollup genesis block");
 
         // Step 2: Initialize the rollup pipeline
-        let mut pipeline = self.init_pipeline();
+        let mut pipeline = self.init_pipeline().await?;
+        info!("Derivation pipeline initialized");
 
         // Step 3: Start the processing loop
         loop {
