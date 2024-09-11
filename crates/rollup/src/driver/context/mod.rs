@@ -15,9 +15,10 @@ use reth_exex::ExExNotification;
 use tokio::sync::mpsc::error::SendError;
 
 mod exex;
+pub use exex::ExExHeraContext;
 
 mod standalone;
-pub use standalone::StandaloneContext;
+pub use standalone::StandaloneHeraContext;
 
 /// Context for the rollup driver.
 ///
