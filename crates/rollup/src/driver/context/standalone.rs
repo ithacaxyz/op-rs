@@ -1,8 +1,8 @@
-use futures::StreamExt;
 use hashbrown::HashMap;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Duration};
 
 use alloy::{
+    eips::BlockId,
     network::Ethereum,
     primitives::{BlockNumber, B256},
     providers::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect},
@@ -10,13 +10,14 @@ use alloy::{
     transports::{TransportErrorKind, TransportResult},
 };
 use async_trait::async_trait;
+use futures::StreamExt;
 use kona_primitives::TxEnvelope;
-use reth::rpc::types::{BlockTransactions, BlockTransactionsKind};
+use reth::rpc::types::BlockTransactions;
 use tokio::{
     sync::mpsc::{self, error::SendError},
     task::JoinHandle,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 use url::Url;
 
 use super::{Blocks, ChainNotification, DriverContext};
@@ -65,28 +66,79 @@ impl StandaloneContext {
         let client = ReqwestProvider::<Ethereum>::new_http(l1_rpc_url);
         let (new_block_tx, new_block_rx) = mpsc::channel(128);
 
-        let mut new_block_hashes = client.watch_blocks().await?.into_stream();
-        let _handle = tokio::spawn(async move {
-            while let Some(hashes) = new_block_hashes.next().await {
-                for hash in hashes {
-                    match client.get_block_by_hash(hash, BlockTransactionsKind::Full).await {
-                        Ok(Some(block)) => {
-                            let block_with_txs = parse_reth_rpc_block(block);
-                            if let Err(e) = new_block_tx.try_send(block_with_txs) {
-                                error!("Failed to send new block to channel: {:?}", e);
+        let _handle = match client.watch_blocks().await {
+            Ok(new_block_hashes) => tokio::spawn(async move {
+                let mut stream = new_block_hashes.into_stream();
+                while let Some(hashes) = stream.next().await {
+                    for hash in hashes {
+                        match client.get_block_by_hash(hash, true.into()).await {
+                            Ok(Some(block)) => {
+                                let block_with_txs = parse_reth_rpc_block(block);
+                                if let Err(e) = new_block_tx.try_send(block_with_txs) {
+                                    error!("Failed to send new block to channel: {:?}", e);
+                                }
                             }
-                        }
-                        Ok(None) => {
-                            // Question: does `eth_getBlockByHash` return a block if it was
-                            // already reorged out? No-op for now.
-                        }
-                        Err(e) => {
-                            error!("Failed to get block by hash: {:?}", e);
+                            Ok(None) => {
+                                // Q: does `eth_getBlockByHash` return a block if it was
+                                // already reorged out? No-op for now.
+                                error!("Failed to get block by hash: block not found");
+                            }
+                            Err(e) => {
+                                error!("Failed to get block by hash: {:?}", e);
+                            }
                         }
                     }
                 }
+            }),
+            Err(err) => {
+                if err
+                    .as_error_resp()
+                    .is_some_and(|resp| !resp.message.to_lowercase().contains("not supported"))
+                {
+                    // On any error other than "not supported", return the error and fail.
+                    error!("Failed to watch new blocks via HTTP");
+                    return Err(err);
+                }
+
+                warn!("Filtering unavailable; falling back to eth_getBlock");
+                tokio::spawn(async move {
+                    let mut hash = B256::ZERO;
+                    loop {
+                        match client.get_block(BlockId::latest(), false.into()).await {
+                            Ok(Some(block)) => {
+                                if hash == block.header.hash {
+                                    // If the latest hash hasn't changed, wait before polling again
+                                    tokio::time::sleep(Duration::from_secs(2)).await;
+                                    continue;
+                                }
+                                hash = block.header.hash;
+
+                                // Every time we get a new hash, fetch the full block
+                                match client.get_block_by_hash(block.header.hash, true.into()).await
+                                {
+                                    Ok(Some(full_block)) => {
+                                        let block_with_txs = parse_reth_rpc_block(full_block);
+                                        if let Err(e) = new_block_tx.try_send(block_with_txs) {
+                                            error!("Failed to send new block to channel: {:?}", e);
+                                        }
+                                    }
+                                    other => {
+                                        error!("Failed to get full block by hash: {:?}", other)
+                                    }
+                                }
+                            }
+                            Ok(None) => {
+                                error!("Failed to get latest block: block not found");
+                            }
+                            Err(e) => {
+                                error!("Failed to get latest block: {:?}", e);
+                            }
+                        };
+                        tokio::time::sleep(Duration::from_secs(1)).await;
+                    }
+                })
             }
-        });
+        };
 
         Ok(Self::with_defaults(new_block_rx, _handle))
     }
