@@ -10,7 +10,8 @@ use kona_derive::{
     },
     traits::{BlobProvider, ChainProvider},
 };
-use kona_primitives::{BlockInfo, RollupConfig};
+use op_alloy_genesis::RollupConfig;
+use op_alloy_protocol::BlockInfo;
 
 /// A [FrameQueue] stage implementation that takes the outputs of the [L1Retrieval] stage and
 /// parses it into frames, using the [L1Traversal] stage to fetch block info for each frame.

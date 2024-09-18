@@ -4,10 +4,10 @@ use alloc::{sync::Arc, vec, vec::Vec};
 use alloy_rlp::Encodable;
 use eyre::{bail, Result};
 use kona_derive::batch::SingleBatch;
-use kona_primitives::{
-    Frame, RollupConfig, FJORD_MAX_RLP_BYTES_PER_CHANNEL, MAX_RLP_BYTES_PER_CHANNEL,
+use op_alloy_genesis::RollupConfig;
+use op_alloy_protocol::{
+    ChannelId, Frame, FJORD_MAX_RLP_BYTES_PER_CHANNEL, MAX_RLP_BYTES_PER_CHANNEL,
 };
-use op_alloy_protocol::ChannelId;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use tracing::{error, trace, warn};
 

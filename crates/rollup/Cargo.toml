@@ -12,7 +12,27 @@ categories.workspace = true
 [dependencies]
 kona-providers.workspace = true
 
-# Workspace
+# OP Stack Dependencies
+kona-derive.workspace = true
+op-alloy-genesis.workspace = true
+op-alloy-protocol.workspace = true
+op-alloy-rpc-types-engine.workspace = true
+superchain = { workspace = true, default-features = false }
+
+# Reth Dependencies
+reth.workspace = true
+reth-exex.workspace = true
+reth-node-api.workspace = true
+reth-execution-types.workspace = true
+
+# Telemetry
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }   
+metrics-exporter-prometheus = { version = "0.15.3", features = ["http-listener"] }
+
+# Misc 
+url.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
 eyre.workspace = true
 tracing.workspace = true
 clap.workspace = true
@@ -21,26 +41,6 @@ tokio.workspace = true
 futures.workspace = true
 alloy.workspace = true
 hashbrown.workspace = true
-
-# Reth Dependencies
-reth.workspace = true
-reth-exex.workspace = true
-reth-node-api.workspace = true
-reth-execution-types.workspace = true
-
-# OP Stack Dependencies
-kona-derive.workspace = true
-kona-primitives.workspace = true
-superchain-registry = { workspace = true, default-features = false }
-
-# Telemetry
-tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }   
-metrics-exporter-prometheus = { version = "0.15.3", features = ["http-listener"] }
-
-# Misc
-url = "2.5.2"
-serde_json = "1"
-reqwest = "0.12.7"
 
 [features]
 default = ["online"]

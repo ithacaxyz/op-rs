@@ -13,12 +13,12 @@ categories.workspace = true
 [dependencies]
 # Kona
 kona-derive.workspace = true
-kona-primitives.workspace = true
 
 # Alloy
 alloy-rlp = { workspace = true, features = ["derive"] }
 op-alloy-rpc-types.workspace = true
 op-alloy-protocol.workspace = true
+op-alloy-genesis.workspace = true
 
 # Misc
 rand.workspace = true

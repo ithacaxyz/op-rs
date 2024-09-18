@@ -5,7 +5,7 @@ use clap::Args;
 use eyre::Result;
 use op_net::{discovery::builder::DiscoveryBuilder, driver::NetworkDriver};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use superchain_registry::ROLLUP_CONFIGS;
+use superchain::ROLLUP_CONFIGS;
 
 /// The Hera network subcommand.
 #[derive(Debug, Clone, Args)]

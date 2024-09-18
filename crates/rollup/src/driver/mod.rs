@@ -8,15 +8,15 @@ use kona_derive::{
     online::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder},
     traits::{BlobProvider, ChainProvider, L2ChainProvider},
 };
-use kona_primitives::{BlockInfo, L2BlockInfo};
 use kona_providers::{
     blob_provider::DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider, Pipeline,
     StepResult,
 };
+use op_alloy_genesis::RollupConfig;
+use op_alloy_protocol::{BlockInfo, L2BlockInfo};
 use reth::rpc::types::engine::JwtSecret;
 use reth_exex::ExExContext;
 use reth_node_api::FullNodeComponents;
-use superchain_registry::RollupConfig;
 use tracing::{debug, error, info, trace, warn};
 
 use crate::{

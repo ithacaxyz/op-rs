@@ -1,5 +1,6 @@
 use alloy::primitives::BlockNumber;
 use async_trait::async_trait;
+use futures::StreamExt;
 use kona_providers::InMemoryChainProvider;
 use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
@@ -29,7 +30,7 @@ impl<N: FullNodeComponents> ExExHeraContext<N> {
 #[async_trait]
 impl<N: FullNodeComponents> DriverContext for ExExHeraContext<N> {
     async fn recv_notification(&mut self) -> Option<ChainNotification> {
-        let exex_notification = self.ctx.notifications.recv().await?;
+        let exex_notification = self.ctx.notifications.next().await?;
 
         // Commit the new chain to the L1 cache to make it available to the pipeline
         if let Some(chain) = exex_notification.committed_chain() {
