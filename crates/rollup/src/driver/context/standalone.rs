@@ -2,6 +2,7 @@ use hashbrown::HashMap;
 use std::{collections::BTreeMap, time::Duration};
 
 use alloy::{
+    consensus::TxEnvelope,
     eips::BlockId,
     network::Ethereum,
     primitives::{BlockNumber, B256},
@@ -11,7 +12,6 @@ use alloy::{
 };
 use async_trait::async_trait;
 use futures::StreamExt;
-use kona_primitives::TxEnvelope;
 use reth::rpc::types::BlockTransactions;
 use tokio::{
     sync::mpsc::{self, error::SendError},

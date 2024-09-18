@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use eyre::{bail, Result};
-use reth::cli::Cli;
+use reth::{args::utils::DefaultChainSpecParser, cli::Cli};
 use reth_node_ethereum::EthereumNode;
 use tracing::{info, warn};
 
@@ -29,7 +29,7 @@ pub(crate) struct RethArgsExt {
 }
 
 fn main() -> Result<()> {
-    Cli::<RethArgsExt>::parse().run(|builder, args| async move {
+    Cli::<DefaultChainSpecParser, RethArgsExt>::parse().run(|builder, args| async move {
         if args.hera {
             info!("Running Reth with the Hera Execution Extension");
             let Some(hera_args) = args.hera_config else {

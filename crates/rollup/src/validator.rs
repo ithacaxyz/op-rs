@@ -4,11 +4,13 @@ use std::fmt::Debug;
 
 use alloy::{
     eips::BlockNumberOrTag,
+    primitives::Bytes,
     providers::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider},
+    rpc::types::engine::PayloadAttributes,
 };
 use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
-use kona_primitives::{L2AttributesWithParent, L2PayloadAttributes, RawTransaction};
+use op_alloy_rpc_types_engine::{OptimismAttributesWithParent, OptimismPayloadAttributes};
 use reqwest::{
     header::{AUTHORIZATION, CONTENT_TYPE},
     Client, StatusCode,
@@ -27,7 +29,7 @@ use url::Url;
 pub trait AttributesValidator: Debug + Send {
     /// Validates the given [`L2AttributesWithParent`] and returns true
     /// if the attributes are valid, false otherwise.
-    async fn validate(&self, attributes: &L2AttributesWithParent) -> Result<bool>;
+    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool>;
 }
 
 /// TrustedValidator
@@ -59,7 +61,7 @@ impl TrustedValidator {
     ///
     /// This method needs to fetch the non-hydrated block and then
     /// fetch the raw transactions using the `debug_*` namespace.
-    pub async fn get_block(&self, tag: BlockNumberOrTag) -> Result<(Header, Vec<RawTransaction>)> {
+    pub async fn get_block(&self, tag: BlockNumberOrTag) -> Result<(Header, Vec<Bytes>)> {
         // Don't hydrate the block so we only get a list of transaction hashes.
         let block = self
             .provider
@@ -89,18 +91,20 @@ impl TrustedValidator {
     }
 
     /// Gets the payload for the specified [BlockNumberOrTag].
-    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<L2PayloadAttributes> {
+    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<OptimismPayloadAttributes> {
         let (header, transactions) = self.get_block(tag).await?;
 
-        Ok(L2PayloadAttributes {
-            timestamp: header.timestamp,
-            prev_randao: header.mix_hash.unwrap_or_default(),
-            fee_recipient: header.miner,
-            // Withdrawals on optimism are always empty, *after* canyon (Shanghai) activation
-            withdrawals: (header.timestamp >= self.canyon_activation).then_some(Vec::default()),
-            parent_beacon_block_root: header.parent_beacon_block_root,
-            transactions,
-            no_tx_pool: true,
+        Ok(OptimismPayloadAttributes {
+            payload_attributes: PayloadAttributes {
+                timestamp: header.timestamp,
+                suggested_fee_recipient: header.miner,
+                prev_randao: header.mix_hash.unwrap_or_default(),
+                // Withdrawals on optimism are always empty, *after* canyon (Shanghai) activation
+                withdrawals: (header.timestamp >= self.canyon_activation).then_some(Vec::default()),
+                parent_beacon_block_root: header.parent_beacon_block_root,
+            },
+            transactions: Some(transactions),
+            no_tx_pool: Some(true),
             gas_limit: Some(header.gas_limit as u64),
         })
     }
@@ -108,7 +112,7 @@ impl TrustedValidator {
 
 #[async_trait]
 impl AttributesValidator for TrustedValidator {
-    async fn validate(&self, attributes: &L2AttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
         let expected = attributes.parent.block_info.number + 1;
         let tag = BlockNumberOrTag::from(expected);
 
@@ -146,7 +150,7 @@ impl EngineApiValidator {
 
 #[async_trait]
 impl AttributesValidator for EngineApiValidator {
-    async fn validate(&self, attributes: &L2AttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
         let request_body = serde_json::json!({
             "id": 1,
             "jsonrpc": "2.0",
