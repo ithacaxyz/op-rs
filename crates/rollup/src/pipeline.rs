@@ -30,7 +30,7 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
 /// and transforms them into
-/// [OptimismPayloadAttributes](alloy::rpc::types::engine::OptimismPayloadAttributes).
+/// [OptimismPayloadAttributes](op_alloy_rpc_types_engine::OptimismPayloadAttributes).
 pub type RollupPipeline<CP, BP> =
     DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 

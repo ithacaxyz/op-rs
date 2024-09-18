@@ -38,7 +38,7 @@ impl InMemoryChainProvider {
         self.0.write().commit(chain);
     }
 
-    /// Inserts the L2 genesis [BlockID] into the provider.
+    /// Inserts the L2 genesis [BlockNumHash] into the provider.
     pub fn insert_l2_genesis_block(&mut self, block: BlockNumHash) {
         self.0.write().insert_l2_genesis_block(block);
     }
@@ -126,7 +126,7 @@ impl InMemoryChainProviderInner {
         }
     }
 
-    /// Inserts the L2 genesis [BlockID] into the provider.
+    /// Inserts the L2 genesis [BlockNumHash] into the provider.
     fn insert_l2_genesis_block(&mut self, block: BlockNumHash) {
         self.hash_to_block_info.insert(
             block.hash,
