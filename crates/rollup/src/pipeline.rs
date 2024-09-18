@@ -29,7 +29,8 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 /// - The L1 [BlobProvider] (BP)
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
-/// and transforms them into [L2PayloadAttributes](kona_primitives::L2PayloadAttributes).
+/// and transforms them into
+/// [OptimismPayloadAttributes](alloy::rpc::types::engine::OptimismPayloadAttributes).
 pub type RollupPipeline<CP, BP> =
     DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 
