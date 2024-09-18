@@ -96,8 +96,10 @@ impl LayeredBlobProvider {
         let memory = Arc::new(Mutex::new(InnerBlobProvider::with_capacity(512)));
 
         let online = OnlineBlobProviderBuilder::new()
-            .with_primary(beacon_client_url.to_string())
-            .with_fallback(blob_archiver_url.map(|url| url.to_string()))
+            .with_primary(beacon_client_url.as_str().trim_end_matches('/').to_string())
+            .with_fallback(
+                blob_archiver_url.map(|url| url.as_str().trim_end_matches('/').to_string()),
+            )
             .build();
 
         Self { memory, online }
