@@ -74,8 +74,12 @@ impl Driver<StandaloneHeraContext, AlloyChainProvider, DurableBlobProvider> {
     pub async fn standalone(args: HeraArgsExt, cfg: Arc<RollupConfig>) -> Result<Self> {
         let chain_provider = AlloyChainProvider::new_http(args.l1_rpc_url.clone());
         let blob_provider = OnlineBlobProviderBuilder::new()
-            .with_primary(args.l1_beacon_client_url.to_string())
-            .with_fallback(args.l1_blob_archiver_url.clone().map(|url| url.to_string()))
+            .with_primary(args.l1_beacon_client_url.as_str().trim_end_matches('/').to_string())
+            .with_fallback(
+                args.l1_blob_archiver_url
+                    .clone()
+                    .map(|url| url.as_str().trim_end_matches('/').to_string()),
+            )
             .build();
 
         // The Standalone Hera context is responsible for handling notifications from the node.
@@ -166,7 +170,7 @@ where
         let l2_tip = self.cursor.tip();
 
         match pipeline.step(l2_tip).await {
-            StepResult::PreparedAttributes => trace!("Perpared new attributes"),
+            StepResult::PreparedAttributes => trace!("Prepared new attributes"),
             StepResult::AdvancedOrigin => trace!("Advanced origin"),
             StepResult::OriginAdvanceErr(err) => warn!("Could not advance origin: {:?}", err),
             StepResult::StepFailed(err) => match err {
