@@ -15,7 +15,7 @@ categories.workspace = true
 rollup.workspace = true
 
 # Superchain
-superchain-registry.workspace = true
+superchain.workspace = true
 
 # Workspace
 eyre.workspace = true

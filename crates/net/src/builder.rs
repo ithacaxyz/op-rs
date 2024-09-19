@@ -151,8 +151,8 @@ impl NetworkDriverBuilder {
     /// ## Example
     ///
     /// ```rust
+    /// use alloy::primitives::{address, Address};
     /// use discv5::{ConfigBuilder, ListenConfig};
-    /// use kona_primitives::alloy_primitives::{address, Address};
     /// use op_net::builder::NetworkDriverBuilder;
     /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     ///

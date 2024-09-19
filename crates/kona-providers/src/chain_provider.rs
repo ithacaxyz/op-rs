@@ -9,12 +9,13 @@ use alloy::{
         Header, Receipt, Signed, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEnvelope,
         TxLegacy,
     },
+    eips::BlockNumHash,
     primitives::B256,
     signers::Signature,
 };
 use async_trait::async_trait;
 use kona_derive::traits::ChainProvider;
-use kona_primitives::{BlockID, BlockInfo};
+use op_alloy_protocol::BlockInfo;
 use parking_lot::RwLock;
 use reth::{primitives::Transaction, providers::Chain};
 
@@ -37,8 +38,8 @@ impl InMemoryChainProvider {
         self.0.write().commit(chain);
     }
 
-    /// Inserts the L2 genesis [BlockID] into the provider.
-    pub fn insert_l2_genesis_block(&mut self, block: BlockID) {
+    /// Inserts the L2 genesis [BlockNumHash] into the provider.
+    pub fn insert_l2_genesis_block(&mut self, block: BlockNumHash) {
         self.0.write().insert_l2_genesis_block(block);
     }
 }
@@ -125,8 +126,8 @@ impl InMemoryChainProviderInner {
         }
     }
 
-    /// Inserts the L2 genesis [BlockID] into the provider.
-    fn insert_l2_genesis_block(&mut self, block: BlockID) {
+    /// Inserts the L2 genesis [BlockNumHash] into the provider.
+    fn insert_l2_genesis_block(&mut self, block: BlockNumHash) {
         self.hash_to_block_info.insert(
             block.hash,
             BlockInfo {
@@ -262,7 +263,7 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 chain_id: l.chain_id,
                 nonce: l.nonce,
                 gas_price: l.gas_price,
-                gas_limit: l.gas_limit as u128,
+                gas_limit: l.gas_limit,
                 to: l.to,
                 value: l.value,
                 input: l.input.clone(),
@@ -274,7 +275,7 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 chain_id: e.chain_id,
                 nonce: e.nonce,
                 gas_price: e.gas_price,
-                gas_limit: e.gas_limit as u128,
+                gas_limit: e.gas_limit,
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),
@@ -298,7 +299,7 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 nonce: e.nonce,
                 max_priority_fee_per_gas: e.max_priority_fee_per_gas,
                 max_fee_per_gas: e.max_fee_per_gas,
-                gas_limit: e.gas_limit as u128,
+                gas_limit: e.gas_limit,
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),
@@ -324,7 +325,7 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 max_priority_fee_per_gas: e.max_priority_fee_per_gas,
                 max_fee_per_blob_gas: e.max_fee_per_blob_gas,
                 blob_versioned_hashes: e.blob_versioned_hashes.clone(),
-                gas_limit: e.gas_limit as u128,
+                gas_limit: e.gas_limit,
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),

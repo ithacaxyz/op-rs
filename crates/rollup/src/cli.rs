@@ -4,9 +4,9 @@ use std::{fs::File, path::PathBuf, sync::Arc};
 
 use clap::Args;
 use eyre::{bail, Context, Result};
-use kona_primitives::RollupConfig;
+use op_alloy_genesis::RollupConfig;
 use serde_json::from_reader;
-use superchain_registry::ROLLUP_CONFIGS;
+use superchain::ROLLUP_CONFIGS;
 use tracing::debug;
 use url::Url;
 

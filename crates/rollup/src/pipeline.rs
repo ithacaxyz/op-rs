@@ -10,7 +10,8 @@ use kona_derive::{
     },
     traits::{BlobProvider, ChainProvider},
 };
-use kona_primitives::{BlockInfo, RollupConfig};
+use op_alloy_genesis::RollupConfig;
+use op_alloy_protocol::BlockInfo;
 
 /// A [FrameQueue] stage implementation that takes the outputs of the [L1Retrieval] stage and
 /// parses it into frames, using the [L1Traversal] stage to fetch block info for each frame.
@@ -28,7 +29,8 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 /// - The L1 [BlobProvider] (BP)
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
-/// and transforms them into [L2PayloadAttributes](kona_primitives::L2PayloadAttributes).
+/// and transforms them into
+/// [OptimismPayloadAttributes](op_alloy_rpc_types_engine::OptimismPayloadAttributes).
 pub type RollupPipeline<CP, BP> =
     DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 

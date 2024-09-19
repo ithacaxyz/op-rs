@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
 use std::collections::{BTreeMap, VecDeque};
 
-use kona_primitives::{BlockInfo, L2BlockInfo};
+use op_alloy_protocol::{BlockInfo, L2BlockInfo};
 
 /// A cursor that keeps track of the L2 tip block for a given L1 origin block.
 ///
