@@ -158,6 +158,8 @@ impl LayeredBlobProvider {
 
 #[async_trait]
 impl BlobProvider for LayeredBlobProvider {
+    type Error = BlobProviderError;
+
     /// Fetches blobs for a given block ref and the blob hashes.
     async fn get_blobs(
         &mut self,

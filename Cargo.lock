@@ -4045,7 +4045,6 @@ version = "0.0.0"
 dependencies = [
  "alloy",
  "alloy-rlp",
- "anyhow",
  "async-trait",
  "eyre",
  "hashbrown 0.14.5",

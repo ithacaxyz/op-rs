@@ -1,7 +1,6 @@
 //! Chain Provider
 
 use alloc::{collections::vec_deque::VecDeque, sync::Arc};
-use alloy_rlp::Decodable;
 use hashbrown::HashMap;
 
 use alloy::{
@@ -13,7 +12,9 @@ use alloy::{
     primitives::B256,
     signers::Signature,
 };
+use alloy_rlp::Decodable;
 use async_trait::async_trait;
+use eyre::eyre;
 use kona_derive::traits::ChainProvider;
 use op_alloy_protocol::BlockInfo;
 use parking_lot::RwLock;
@@ -169,59 +170,56 @@ impl InMemoryChainProviderInner {
 
 #[async_trait]
 impl ChainProvider for InMemoryChainProvider {
+    type Error = eyre::Error;
+
     /// Fetch the L1 [Header] for the given [B256] hash.
-    async fn header_by_hash(&mut self, hash: B256) -> anyhow::Result<Header> {
+    async fn header_by_hash(&mut self, hash: B256) -> eyre::Result<Header> {
         self.0
             .read()
             .hash_to_header
             .get(&hash)
             .cloned()
-            .ok_or_else(|| anyhow::anyhow!("Header not found"))
+            .ok_or_else(|| eyre!("Header not found for hash: {}", hash))
     }
 
     /// Returns the block at the given number, or an error if the block does not exist in the data
     /// source.
-    async fn block_info_by_number(&mut self, number: u64) -> anyhow::Result<BlockInfo> {
+    async fn block_info_by_number(&mut self, number: u64) -> eyre::Result<BlockInfo> {
         self.0
             .read()
             .hash_to_block_info
             .values()
             .find(|bi| bi.number == number)
             .cloned()
-            .ok_or_else(|| anyhow::anyhow!("Block not found"))
+            .ok_or_else(|| eyre!("Block not found"))
     }
 
     /// Returns all receipts in the block with the given hash, or an error if the block does not
     /// exist in the data source.
-    async fn receipts_by_hash(&mut self, hash: B256) -> anyhow::Result<Vec<Receipt>> {
+    async fn receipts_by_hash(&mut self, hash: B256) -> eyre::Result<Vec<Receipt>> {
         self.0
             .read()
             .hash_to_receipts
             .get(&hash)
             .cloned()
-            .ok_or_else(|| anyhow::anyhow!("Receipts not found"))
+            .ok_or_else(|| eyre!("Receipts not found"))
     }
 
     /// Returns block info and transactions for the given block hash.
     async fn block_info_and_transactions_by_hash(
         &mut self,
         hash: B256,
-    ) -> anyhow::Result<(BlockInfo, Vec<TxEnvelope>)> {
+    ) -> eyre::Result<(BlockInfo, Vec<TxEnvelope>)> {
         let block_info = self
             .0
             .read()
             .hash_to_block_info
             .get(&hash)
             .cloned()
-            .ok_or_else(|| anyhow::anyhow!("Block not found"))?;
+            .ok_or_else(|| eyre!("Block not found"))?;
 
-        let txs = self
-            .0
-            .read()
-            .hash_to_txs
-            .get(&hash)
-            .cloned()
-            .ok_or_else(|| anyhow::anyhow!("Tx not found"))?;
+        let txs =
+            self.0.read().hash_to_txs.get(&hash).cloned().ok_or_else(|| eyre!("Tx not found"))?;
 
         Ok((block_info, txs))
     }
