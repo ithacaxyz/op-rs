@@ -4,7 +4,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};
 use kona_derive::{
-    errors::StageError,
+    errors::{PipelineError, PipelineErrorKind},
     online::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder},
     traits::{BlobProvider, ChainProvider, L2ChainProvider},
 };
@@ -174,8 +174,11 @@ where
             StepResult::AdvancedOrigin => trace!("Advanced origin"),
             StepResult::OriginAdvanceErr(err) => warn!("Could not advance origin: {:?}", err),
             StepResult::StepFailed(err) => match err {
-                StageError::NotEnoughData => debug!("Not enough data to advance pipeline"),
-                _ => error!("Error stepping derivation pipeline: {:?}", err),
+                PipelineErrorKind::Temporary(tmp) => match tmp {
+                    PipelineError::NotEnoughData => debug!("Not enough data to advance pipeline"),
+                    _ => error!("Unexpected temporary error stepping pipeline: {:?}", tmp),
+                },
+                other => error!("Error stepping derivation pipeline: {:?}", other),
             },
         }
 
@@ -225,14 +228,13 @@ where
 
     /// Fetch the new L2 tip and L1 origin block info for the given L2 block number.
     async fn fetch_new_tip(&mut self, l2_tip: u64) -> Result<(BlockInfo, L2BlockInfo)> {
-        let l2_block =
-            self.l2_chain_provider.l2_block_info_by_number(l2_tip).await.map_err(|e| eyre!(e))?;
+        let l2_block = self.l2_chain_provider.l2_block_info_by_number(l2_tip).await?;
 
         let l1_origin = self
             .l1_chain_provider
             .block_info_by_number(l2_block.l1_origin.number)
             .await
-            .map_err(|e| eyre!(e))?;
+            .map_err(|e| eyre!(e.to_string()))?;
 
         Ok((l1_origin, l2_block))
     }
