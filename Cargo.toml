@@ -58,10 +58,16 @@ alloy = { version = "0.4.2", features = [
 ] }
 alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3"
-op-alloy-protocol = { version = "0.3", default-features = false }
-op-alloy-rpc-types = { version = "0.3", default-features = false }
-op-alloy-rpc-types-engine = { version = "0.3", default-features = false }
-op-alloy-genesis = { version = "0.3", default-features = false }
+
+# Op-Alloy
+# op-alloy-protocol = { version = "0.3", default-features = false }
+# op-alloy-rpc-types = { version = "0.3", default-features = false }
+# op-alloy-rpc-types-engine = { version = "0.3", default-features = false }
+# op-alloy-genesis = { version = "0.3", default-features = false }
+op-alloy-protocol = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
+op-alloy-rpc-types = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
+op-alloy-rpc-types-engine = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
+op-alloy-genesis = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }
