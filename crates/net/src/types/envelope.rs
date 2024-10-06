@@ -5,8 +5,6 @@ use alloy::{
     rpc::types::engine::{ExecutionPayloadV1, ExecutionPayloadV2, ExecutionPayloadV3},
 };
 use eyre::Result;
-use kona_primitives::L2ExecutionPayload;
-use ssz::Decode;
 
 use super::payload::PayloadHash;
 
