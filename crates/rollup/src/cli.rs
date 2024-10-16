@@ -63,7 +63,7 @@ pub struct HeraArgsExt {
     ///   happens by sending the `new_payload` to the API and expecting a VALID response.
     #[clap(
         long = "hera.validation-mode",
-        default_value = "trusted",
+        default_value = "engine-api",
         requires_ifs([("engine-api", "l2_engine_api_url"), ("engine-api", "l2_engine_jwt_secret")]),
     )]
     pub validation_mode: ValidationMode,

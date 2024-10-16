@@ -4,63 +4,33 @@ use std::fmt::Debug;
 
 use alloy::{
     eips::BlockNumberOrTag,
-    network::AnyNetwork,
     primitives::Bytes,
-    providers::{
-        network::primitives::BlockTransactionsKind, Provider, ReqwestProvider, RootProvider,
-    },
-    rpc::{client::RpcClient, types::engine::PayloadAttributes},
+    providers::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider},
+    rpc::types::engine::PayloadAttributes,
 };
-use alloy_transport_http::{
-    hyper_util::{
-        client::legacy::{connect::HttpConnector, Client},
-        rt::TokioExecutor,
-    },
-    AuthLayer, AuthService, Http, HyperClient,
-};
-use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
-use http_body_util::Full;
-use op_alloy_provider::ext::engine::OpEngineApi;
 use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
-use reth::rpc::types::{
-    engine::{ForkchoiceState, JwtSecret},
-    Header,
-};
-use tower::ServiceBuilder;
-use tracing::{error, warn};
+use reth::rpc::types::Header;
+use tracing::error;
 use url::Url;
 
-/// AttributesValidator
-///
-/// A trait that defines the interface for validating newly derived L2 attributes.
-#[async_trait]
-pub trait AttributesValidator: Debug + Send {
-    /// Validates the given [`OpAttributesWithParent`] and returns true
-    /// if the attributes are valid, false otherwise.
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool>;
-}
-
-/// TrustedValidator
-///
-/// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
-/// a trusted L2 RPC and constructing the L2 Attributes from the block.
+/// Trusted node client that validates the [`OpAttributesWithParent`] by fetching the associated L2
+/// block from a trusted L2 RPC and constructing the L2 Attributes from the block.
 #[derive(Debug, Clone)]
-pub struct TrustedValidator {
+pub struct TrustedPayloadValidator {
     /// The L2 provider.
     provider: ReqwestProvider,
     /// The canyon activation timestamp.
     canyon_activation: u64,
 }
 
-impl TrustedValidator {
-    /// Creates a new [`TrustedValidator`].
+impl TrustedPayloadValidator {
+    /// Creates a new [`TrustedPayloadValidator`].
     pub fn new(provider: ReqwestProvider, canyon_activation: u64) -> Self {
         Self { provider, canyon_activation }
     }
 
-    /// Creates a new [`TrustedValidator`] from the provided [Url].
-    #[allow(unused)]
+    /// Creates a new [`TrustedPayloadValidator`] from the provided [Url].
     pub fn new_http(url: Url, canyon_activation: u64) -> Self {
         let inner = ReqwestProvider::new_http(url);
         Self::new(inner, canyon_activation)
@@ -118,11 +88,10 @@ impl TrustedValidator {
             eip_1559_params: None, // TODO: fix this
         })
     }
-}
 
-#[async_trait]
-impl AttributesValidator for TrustedValidator {
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
+    /// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
+    /// a trusted L2 RPC and constructing the L2 Attributes from the block.
+    pub async fn validate_payload(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let expected = attributes.parent.block_info.number + 1;
         let tag = BlockNumberOrTag::from(expected);
 
@@ -132,57 +101,6 @@ impl AttributesValidator for TrustedValidator {
                 error!(?err, "Failed to fetch payload for block {}", expected);
                 bail!("Failed to fetch payload for block {}: {:?}", expected, err);
             }
-        }
-    }
-}
-
-/// A hyper client with a JWT auth layer middleware.
-type HyperAuthClient<B = Full<Bytes>> = HyperClient<B, AuthService<Client<HttpConnector, B>>>;
-
-/// EngineApiValidator
-///
-/// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
-/// The engine API will return a `VALID` or `INVALID` response.
-#[derive(Debug, Clone)]
-pub struct EngineApiValidator {
-    provider: RootProvider<Http<HyperAuthClient>, AnyNetwork>,
-}
-
-impl EngineApiValidator {
-    /// Creates a new [`EngineApiValidator`] from the provided [Url] and [JwtSecret].
-    pub fn new_http(url: Url, jwt: JwtSecret) -> Self {
-        let hyper_client = Client::builder(TokioExecutor::new()).build_http::<Full<Bytes>>();
-
-        let auth_layer = AuthLayer::new(jwt);
-        let service = ServiceBuilder::new().layer(auth_layer).service(hyper_client);
-
-        let layer_transport = HyperClient::with_service(service);
-        let http_hyper = Http::with_client(layer_transport, url);
-        let rpc_client = RpcClient::new(http_hyper, true);
-        let provider = RootProvider::<_, AnyNetwork>::new(rpc_client);
-
-        Self { provider }
-    }
-}
-
-#[async_trait]
-impl AttributesValidator for EngineApiValidator {
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
-        // TODO: use the correct values
-        let fork_choice_state = ForkchoiceState {
-            head_block_hash: attributes.parent.block_info.hash,
-            finalized_block_hash: attributes.parent.block_info.hash,
-            safe_block_hash: attributes.parent.block_info.hash,
-        };
-
-        let attributes = Some(attributes.attributes.clone());
-        let fcu = self.provider.fork_choice_updated_v2(fork_choice_state, attributes).await?;
-
-        if fcu.is_valid() {
-            Ok(true)
-        } else {
-            warn!(status = %fcu.payload_status, "Engine API returned invalid fork choice update");
-            Ok(false)
         }
     }
 }
