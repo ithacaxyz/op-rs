@@ -7,7 +7,7 @@ use std::{
 
 use alloy::{primitives::Address, rpc::types::engine::ExecutionPayload};
 use libp2p::gossipsub::{IdentTopic, Message, MessageAcceptance, TopicHash};
-use op_alloy_rpc_types_engine::OptimismNetworkPayloadEnvelope;
+use op_alloy_rpc_types_engine::OpNetworkPayloadEnvelope;
 use tokio::sync::watch;
 
 /// This trait defines the functionality required to process incoming messages
@@ -48,11 +48,11 @@ impl Handler for BlockHandler {
         tracing::debug!("received block");
 
         let decoded = if msg.topic == self.blocks_v1_topic.hash() {
-            OptimismNetworkPayloadEnvelope::decode_v1(&msg.data)
+            OpNetworkPayloadEnvelope::decode_v1(&msg.data)
         } else if msg.topic == self.blocks_v2_topic.hash() {
-            OptimismNetworkPayloadEnvelope::decode_v2(&msg.data)
+            OpNetworkPayloadEnvelope::decode_v2(&msg.data)
         } else if msg.topic == self.blocks_v3_topic.hash() {
-            OptimismNetworkPayloadEnvelope::decode_v3(&msg.data)
+            OpNetworkPayloadEnvelope::decode_v3(&msg.data)
         } else {
             return MessageAcceptance::Reject;
         };
@@ -104,7 +104,7 @@ impl BlockHandler {
     ///
     /// True if the block is less than 1 minute old, and correctly signed by the unsafe block
     /// signer.
-    fn block_valid(&self, envelope: &OptimismNetworkPayloadEnvelope) -> bool {
+    fn block_valid(&self, envelope: &OpNetworkPayloadEnvelope) -> bool {
         let current_timestamp =
             SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 

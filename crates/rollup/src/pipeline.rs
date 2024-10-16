@@ -3,13 +3,17 @@
 use std::{fmt::Debug, sync::Arc};
 
 use kona_derive::{
-    online::{AlloyL2ChainProvider, DerivationPipeline, EthereumDataSource, PipelineBuilder},
+    attributes::StatefulAttributesBuilder,
+    pipeline::{DerivationPipeline, PipelineBuilder},
+    sources::EthereumDataSource,
     stages::{
         AttributesQueue, BatchQueue, ChannelBank, ChannelReader, FrameQueue, L1Retrieval,
-        L1Traversal, StatefulAttributesBuilder,
+        L1Traversal,
     },
-    traits::{BlobProvider, ChainProvider},
+    traits::BlobProvider,
 };
+use kona_providers::ChainProvider;
+use kona_providers_alloy::AlloyL2ChainProvider;
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::BlockInfo;
 
@@ -30,7 +34,7 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
 /// and transforms them into
-/// [OptimismPayloadAttributes](op_alloy_rpc_types_engine::OptimismPayloadAttributes).
+/// [OpPayloadAttributes](op_alloy_rpc_types_engine::OpPayloadAttributes).
 pub type RollupPipeline<CP, BP> =
     DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 

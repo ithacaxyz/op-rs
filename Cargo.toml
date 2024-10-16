@@ -4,18 +4,12 @@ edition = "2021"
 rust-version = "1.81"
 authors = []
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/paradigmxyz/op-rs"
+repository = "https://github.com/ithacaxyz/op-rs"
 keywords = ["ethereum", "crypto"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 
 [workspace]
-members = [
-  "bin/hera",
-  "bin/op-rs",
-  "crates/net",
-  "crates/rollup",
-  "crates/ser",
-]
+members = ["bin/*", "crates/*"]
 default-members = ["bin/hera"]
 
 # Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
@@ -29,6 +23,13 @@ panic = "unwind"
 codegen-units = 1
 incremental = false
 
+[patch.crates-io]
+op-alloy-consensus = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-protocol = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-genesis = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-rpc-types = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-rpc-types-engine = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+
 [workspace.dependencies]
 # Workspace
 op-net = { path = "crates/net" }
@@ -37,7 +38,7 @@ ser = { path = "crates/ser" }
 
 # Optimism
 superchain = { version = "0.5", default-features = false }
-kona-providers = "0.0.1"
+kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-primitives = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-derive = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
@@ -60,14 +61,11 @@ alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3"
 
 # Op-Alloy
-# op-alloy-protocol = { version = "0.3", default-features = false }
-# op-alloy-rpc-types = { version = "0.3", default-features = false }
-# op-alloy-rpc-types-engine = { version = "0.3", default-features = false }
-# op-alloy-genesis = { version = "0.3", default-features = false }
-op-alloy-protocol = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
-op-alloy-rpc-types = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
-op-alloy-rpc-types-engine = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
-op-alloy-genesis = { git = "https://github.com/merklefruit/op-alloy", branch = "nico/feat/net-payload-envelope", default-features = false }
+op-alloy-consensus = { version = "0.4.0", default-features = false }
+op-alloy-protocol = { version = "0.4.0", default-features = false }
+op-alloy-genesis = { version = "0.4.0", default-features = false }
+op-alloy-rpc-types = { version = "0.4.0", default-features = false }
+op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }

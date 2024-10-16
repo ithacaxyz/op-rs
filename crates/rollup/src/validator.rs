@@ -10,7 +10,7 @@ use alloy::{
 };
 use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
-use op_alloy_rpc_types_engine::{OptimismAttributesWithParent, OptimismPayloadAttributes};
+use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
 use reqwest::{
     header::{AUTHORIZATION, CONTENT_TYPE},
     Client, StatusCode,
@@ -29,7 +29,7 @@ use url::Url;
 pub trait AttributesValidator: Debug + Send {
     /// Validates the given [`OptimismAttributesWithParent`] and returns true
     /// if the attributes are valid, false otherwise.
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool>;
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool>;
 }
 
 /// TrustedValidator
@@ -91,10 +91,10 @@ impl TrustedValidator {
     }
 
     /// Gets the payload for the specified [BlockNumberOrTag].
-    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<OptimismPayloadAttributes> {
+    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<OpPayloadAttributes> {
         let (header, transactions) = self.get_block(tag).await?;
 
-        Ok(OptimismPayloadAttributes {
+        Ok(OpPayloadAttributes {
             payload_attributes: PayloadAttributes {
                 timestamp: header.timestamp,
                 suggested_fee_recipient: header.miner,
@@ -106,13 +106,14 @@ impl TrustedValidator {
             transactions: Some(transactions),
             no_tx_pool: Some(true),
             gas_limit: Some(header.gas_limit as u64),
+            eip_1559_params: None, // TODO: fix this
         })
     }
 }
 
 #[async_trait]
 impl AttributesValidator for TrustedValidator {
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let expected = attributes.parent.block_info.number + 1;
         let tag = BlockNumberOrTag::from(expected);
 
@@ -150,7 +151,7 @@ impl EngineApiValidator {
 
 #[async_trait]
 impl AttributesValidator for EngineApiValidator {
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let request_body = serde_json::json!({
             "id": 1,
             "jsonrpc": "2.0",

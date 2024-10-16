@@ -4,13 +4,11 @@ use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};
 use kona_derive::{
+    pipeline::{StepResult, Pipeline},
     errors::{PipelineError, PipelineErrorKind},
-    traits::{BlobProvider, ChainProvider, L2ChainProvider},
+    traits::BlobProvider,
 };
-use kona_providers::{
-    blob_provider::DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider, Pipeline,
-    StepResult,
-};
+use kona_providers::{ChainProvider, L2ChainProvider};
 use kona_providers_alloy::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder};
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};
