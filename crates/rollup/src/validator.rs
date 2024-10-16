@@ -4,22 +4,31 @@ use std::fmt::Debug;
 
 use alloy::{
     eips::BlockNumberOrTag,
+    network::AnyNetwork,
     primitives::Bytes,
-    providers::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider},
-    rpc::types::engine::PayloadAttributes,
+    providers::{
+        network::primitives::BlockTransactionsKind, Provider, ReqwestProvider, RootProvider,
+    },
+    rpc::{client::RpcClient, types::engine::PayloadAttributes},
+};
+use alloy_transport_http::{
+    hyper_util::{
+        client::legacy::{connect::HttpConnector, Client},
+        rt::TokioExecutor,
+    },
+    AuthLayer, AuthService, Http, HyperClient,
 };
 use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
+use http_body_util::Full;
+use op_alloy_provider::ext::engine::OpEngineApi;
 use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
-use reqwest::{
-    header::{AUTHORIZATION, CONTENT_TYPE},
-    Client, StatusCode,
-};
 use reth::rpc::types::{
-    engine::{Claims, JwtSecret},
+    engine::{ForkchoiceState, JwtSecret},
     Header,
 };
-use tracing::error;
+use tower::ServiceBuilder;
+use tracing::{error, warn};
 use url::Url;
 
 /// AttributesValidator
@@ -127,61 +136,53 @@ impl AttributesValidator for TrustedValidator {
     }
 }
 
+/// A hyper client with a JWT auth layer middleware.
+type HyperAuthClient<B = Full<Bytes>> = HyperClient<B, AuthService<Client<HttpConnector, B>>>;
+
 /// EngineApiValidator
 ///
 /// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
 /// The engine API will return a `VALID` or `INVALID` response.
 #[derive(Debug, Clone)]
 pub struct EngineApiValidator {
-    /// The engine API URL.
-    url: Url,
-    /// The reqwest client.
-    client: Client,
-    /// The JWT secret token for the engine API.
-    jwt_secret: JwtSecret,
+    provider: RootProvider<Http<HyperAuthClient>, AnyNetwork>,
 }
 
 impl EngineApiValidator {
     /// Creates a new [`EngineApiValidator`] from the provided [Url] and [JwtSecret].
-    #[allow(unused)]
     pub fn new_http(url: Url, jwt: JwtSecret) -> Self {
-        Self { url, client: Client::new(), jwt_secret: jwt }
+        let hyper_client = Client::builder(TokioExecutor::new()).build_http::<Full<Bytes>>();
+
+        let auth_layer = AuthLayer::new(jwt);
+        let service = ServiceBuilder::new().layer(auth_layer).service(hyper_client);
+
+        let layer_transport = HyperClient::with_service(service);
+        let http_hyper = Http::with_client(layer_transport, url);
+        let rpc_client = RpcClient::new(http_hyper, true);
+        let provider = RootProvider::<_, AnyNetwork>::new(rpc_client);
+
+        Self { provider }
     }
 }
 
 #[async_trait]
 impl AttributesValidator for EngineApiValidator {
     async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
-        let request_body = serde_json::json!({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": "engine_newPayloadV2",
-            "params": [attributes.attributes]
-        });
+        // TODO: use the correct values
+        let fork_choice_state = ForkchoiceState {
+            head_block_hash: attributes.parent.block_info.hash,
+            finalized_block_hash: attributes.parent.block_info.hash,
+            safe_block_hash: attributes.parent.block_info.hash,
+        };
 
-        let claims = Claims::default();
-        let jwt = self.jwt_secret.encode(&claims)?;
+        let attributes = Some(attributes.attributes.clone());
+        let fcu = self.provider.fork_choice_updated_v2(fork_choice_state, attributes).await?;
 
-        let response = self
-            .client
-            .post(self.url.clone())
-            .header(CONTENT_TYPE, "application/json")
-            .header(AUTHORIZATION, format!("Bearer {}", jwt))
-            .json(&request_body)
-            .send()
-            .await?;
-
-        let status = response.status();
-        let body = response.json::<serde_json::Value>().await?;
-        match status {
-            StatusCode::OK => Ok(body
-                .pointer("/result/status")
-                .and_then(|status| status.as_str())
-                .map_or(false, |status| status == "VALID")),
-            _ => {
-                error!(?body, "Engine API returned status: {}", status);
-                bail!("Engine API returned status: {} and body: {:#?}", status, body);
-            }
+        if fcu.is_valid() {
+            Ok(true)
+        } else {
+            warn!(status = %fcu.payload_status, "Engine API returned invalid fork choice update");
+            Ok(false)
         }
     }
 }

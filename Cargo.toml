@@ -30,6 +30,7 @@ op-alloy-genesis = { git = "https://github.com/alloy-rs/op-alloy", branch = "mai
 op-alloy-rpc-types = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 op-alloy-rpc-types-engine = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 op-alloy-rpc-jsonrpsee = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
+op-alloy-provider = { git = "https://github.com/alloy-rs/op-alloy", branch = "main" }
 
 [workspace.dependencies]
 # Workspace
@@ -60,6 +61,7 @@ alloy = { version = "0.4.2", features = [
     "network",
     "ssz"
 ] }
+alloy-transport-http = { version = "0.4.2", default-features = false, features = ["jwt-auth"] }
 alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3"
 
@@ -70,6 +72,7 @@ op-alloy-genesis = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
 op-alloy-rpc-jsonrpsee = { version = "0.4.0", features = ["client"] }
+op-alloy-provider = { version = "0.4.0", default-features = false }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }
@@ -119,6 +122,8 @@ parking_lot = "0.12.3"
 unsigned-varint = "0.8.0"
 rand = { version = "0.8.5", features = ["small_rng", "alloc", "getrandom"], default-features = false }
 url = "2.5.2"
+tower = "0.4"
+http-body-util = "0.1.2"
 
 [workspace.metadata.docs.rs]
 all-features = true

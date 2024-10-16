@@ -18,7 +18,12 @@ kona-derive.workspace = true
 op-alloy-genesis.workspace = true
 op-alloy-protocol.workspace = true
 op-alloy-rpc-types-engine.workspace = true
+op-alloy-provider.workspace = true
 superchain = { workspace = true, default-features = false }
+
+# Alloy Dependencies
+alloy = { workspace = true, features = ["hyper"] }
+alloy-transport-http.workspace = true
 
 # Reth Dependencies
 reth.workspace = true
@@ -32,7 +37,6 @@ metrics-exporter-prometheus = { version = "0.15.3", features = ["http-listener"]
 
 # Misc 
 url.workspace = true
-reqwest.workspace = true
 serde_json.workspace = true
 eyre.workspace = true
 tracing.workspace = true
@@ -40,5 +44,9 @@ clap.workspace = true
 async-trait.workspace = true
 tokio.workspace = true
 futures.workspace = true
-alloy.workspace = true
 hashbrown.workspace = true
+tower.workspace = true
+http-body-util.workspace = true
+
+[dev-dependencies]
+reqwest.workspace = true

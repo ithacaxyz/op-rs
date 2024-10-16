@@ -782,7 +782,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b367dcccada5b28987c2296717ee04b9a5637aacd78eacb1726ef211678b5212"
 dependencies = [
  "alloy-json-rpc",
+ "alloy-rpc-types-engine",
  "alloy-transport",
+ "http-body-util",
+ "hyper 1.5.0",
+ "hyper-util",
+ "jsonwebtoken",
  "reqwest",
  "serde_json",
  "tower 0.5.1",
@@ -3693,7 +3698,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core 0.51.1",
 ]
 
 [[package]]
@@ -5630,7 +5635,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-consensus"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5659,7 +5664,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-genesis"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5689,7 +5694,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-protocol"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5703,9 +5708,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "op-alloy-provider"
+version = "0.4.0"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
+dependencies = [
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-provider",
+ "alloy-rpc-types-engine",
+ "alloy-transport",
+ "async-trait",
+ "op-alloy-rpc-types-engine 0.4.0",
+]
+
+[[package]]
 name = "op-alloy-rpc-jsonrpsee"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-eips",
  "alloy-primitives",
@@ -5716,7 +5735,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-rpc-types"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -5746,7 +5765,7 @@ dependencies = [
 [[package]]
 name = "op-alloy-rpc-types-engine"
 version = "0.4.0"
-source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#9fd8a65e9b8c535f09fdde6f3997cc94637bd292"
 dependencies = [
  "alloy-primitives",
  "alloy-rpc-types-engine",
@@ -9210,11 +9229,13 @@ name = "rollup"
 version = "0.0.0"
 dependencies = [
  "alloy",
+ "alloy-transport-http",
  "async-trait",
  "clap",
  "eyre",
  "futures",
  "hashbrown 0.14.5",
+ "http-body-util",
  "kona-derive",
  "kona-providers",
  "kona-providers-alloy",
@@ -9222,6 +9243,7 @@ dependencies = [
  "metrics-exporter-prometheus",
  "op-alloy-genesis 0.4.0",
  "op-alloy-protocol 0.4.0",
+ "op-alloy-provider",
  "op-alloy-rpc-types-engine 0.4.0",
  "reqwest",
  "reth",
@@ -9231,6 +9253,7 @@ dependencies = [
  "serde_json",
  "superchain",
  "tokio",
+ "tower 0.4.13",
  "tracing",
  "tracing-subscriber",
  "url",
@@ -11226,15 +11249,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
 dependencies = [
  "windows-targets 0.48.5",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
-dependencies = [
- "windows-targets 0.52.6",
 ]
 
 [[package]]
