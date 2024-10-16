@@ -3,13 +3,17 @@
 use std::{fmt::Debug, sync::Arc};
 
 use kona_derive::{
-    online::{AlloyL2ChainProvider, DerivationPipeline, EthereumDataSource, PipelineBuilder},
+    attributes::StatefulAttributesBuilder,
+    pipeline::{DerivationPipeline, PipelineBuilder},
+    sources::EthereumDataSource,
     stages::{
-        AttributesQueue, BatchQueue, ChannelBank, ChannelReader, FrameQueue, L1Retrieval,
-        L1Traversal, StatefulAttributesBuilder,
+        AttributesQueue, BatchQueue, BatchStream, ChannelProvider, ChannelReader, FrameQueue,
+        L1Retrieval, L1Traversal,
     },
-    traits::{BlobProvider, ChainProvider},
+    traits::BlobProvider,
 };
+use kona_providers::ChainProvider;
+use kona_providers_alloy::AlloyL2ChainProvider;
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::BlockInfo;
 
@@ -20,7 +24,7 @@ type L1FrameQueue<CP, BP> = FrameQueue<L1Retrieval<EthereumDataSource<CP, BP>, L
 /// A concrete [NextAttributes](kona_derive::traits::NextAttributes) stage implementation that
 /// accepts batches from the [BatchQueue] stage and transforms them into payload attributes.
 type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
-    BatchQueue<ChannelReader<ChannelBank<L1FrameQueue<CP, BP>>>, L2CP>,
+    BatchQueue<BatchStream<ChannelReader<ChannelProvider<L1FrameQueue<CP, BP>>>, L2CP>, L2CP>,
     StatefulAttributesBuilder<CP, L2CP>,
 >;
 
@@ -30,7 +34,7 @@ type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
 ///
 /// This pipeline is a derivation pipeline that takes the outputs of the [FrameQueue] stage
 /// and transforms them into
-/// [OptimismPayloadAttributes](op_alloy_rpc_types_engine::OptimismPayloadAttributes).
+/// [OpPayloadAttributes](op_alloy_rpc_types_engine::OpPayloadAttributes).
 pub type RollupPipeline<CP, BP> =
     DerivationPipeline<L1AttributesQueue<CP, BP, AlloyL2ChainProvider>, AlloyL2ChainProvider>;
 
@@ -48,7 +52,7 @@ where
     BP: BlobProvider + Send + Sync + Clone + Debug,
 {
     let dap = EthereumDataSource::new(chain_provider.clone(), blob_provider.clone(), &cfg.clone());
-    let attributes = StatefulAttributesBuilder::new(
+    let builder = StatefulAttributesBuilder::new(
         cfg.clone(),
         l2_chain_provider.clone(),
         chain_provider.clone(),
@@ -59,7 +63,7 @@ where
         .dap_source(dap)
         .l2_chain_provider(l2_chain_provider)
         .chain_provider(chain_provider)
-        .builder(attributes)
+        .builder(builder)
         .origin(origin)
         .build()
 }

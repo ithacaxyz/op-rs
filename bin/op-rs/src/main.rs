@@ -1,13 +1,13 @@
 //! Runner for OP-RS execution extensions
 
 #![doc = include_str!("../README.md")]
-#![doc(issue_tracker_base_url = "https://github.com/paradigmxyz/op-rs/issues/")]
+#![doc(issue_tracker_base_url = "https://github.com/ithacaxyz/op-rs/issues/")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 use clap::Parser;
 use eyre::{bail, Result};
-use reth::{args::utils::DefaultChainSpecParser, cli::Cli};
+use reth::{args::utils::EthereumChainSpecParser, cli::Cli};
 use reth_node_ethereum::EthereumNode;
 use tracing::{info, warn};
 
@@ -29,7 +29,7 @@ pub(crate) struct RethArgsExt {
 }
 
 fn main() -> Result<()> {
-    Cli::<DefaultChainSpecParser, RethArgsExt>::parse().run(|builder, args| async move {
+    Cli::<EthereumChainSpecParser, RethArgsExt>::parse().run(|builder, args| async move {
         if args.hera {
             info!("Running Reth with the Hera Execution Extension");
             let Some(hera_args) = args.hera_config else {

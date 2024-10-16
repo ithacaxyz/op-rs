@@ -10,7 +10,7 @@ use alloy::{
 };
 use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
-use op_alloy_rpc_types_engine::{OptimismAttributesWithParent, OptimismPayloadAttributes};
+use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
 use reqwest::{
     header::{AUTHORIZATION, CONTENT_TYPE},
     Client, StatusCode,
@@ -27,14 +27,14 @@ use url::Url;
 /// A trait that defines the interface for validating newly derived L2 attributes.
 #[async_trait]
 pub trait AttributesValidator: Debug + Send {
-    /// Validates the given [`OptimismAttributesWithParent`] and returns true
+    /// Validates the given [`OpAttributesWithParent`] and returns true
     /// if the attributes are valid, false otherwise.
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool>;
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool>;
 }
 
 /// TrustedValidator
 ///
-/// Validates the [`OptimismAttributesWithParent`] by fetching the associated L2 block from
+/// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
 /// a trusted L2 RPC and constructing the L2 Attributes from the block.
 #[derive(Debug, Clone)]
 pub struct TrustedValidator {
@@ -91,10 +91,10 @@ impl TrustedValidator {
     }
 
     /// Gets the payload for the specified [BlockNumberOrTag].
-    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<OptimismPayloadAttributes> {
+    pub async fn get_payload(&self, tag: BlockNumberOrTag) -> Result<OpPayloadAttributes> {
         let (header, transactions) = self.get_block(tag).await?;
 
-        Ok(OptimismPayloadAttributes {
+        Ok(OpPayloadAttributes {
             payload_attributes: PayloadAttributes {
                 timestamp: header.timestamp,
                 suggested_fee_recipient: header.miner,
@@ -105,14 +105,15 @@ impl TrustedValidator {
             },
             transactions: Some(transactions),
             no_tx_pool: Some(true),
-            gas_limit: Some(header.gas_limit as u64),
+            gas_limit: Some(header.gas_limit),
+            eip_1559_params: None, // TODO: fix this
         })
     }
 }
 
 #[async_trait]
 impl AttributesValidator for TrustedValidator {
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let expected = attributes.parent.block_info.number + 1;
         let tag = BlockNumberOrTag::from(expected);
 
@@ -128,7 +129,7 @@ impl AttributesValidator for TrustedValidator {
 
 /// EngineApiValidator
 ///
-/// Validates the [`OptimismAttributesWithParent`] by sending the attributes to an L2 engine API.
+/// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
 /// The engine API will return a `VALID` or `INVALID` response.
 #[derive(Debug, Clone)]
 pub struct EngineApiValidator {
@@ -150,7 +151,7 @@ impl EngineApiValidator {
 
 #[async_trait]
 impl AttributesValidator for EngineApiValidator {
-    async fn validate(&self, attributes: &OptimismAttributesWithParent) -> Result<bool> {
+    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let request_body = serde_json::json!({
             "id": 1,
             "jsonrpc": "2.0",

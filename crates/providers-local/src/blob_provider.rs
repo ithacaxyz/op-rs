@@ -1,18 +1,16 @@
-use alloc::{collections::VecDeque, sync::Arc};
+//! Blob Providers
+
+use alloc::{boxed::Box, collections::VecDeque, string::ToString, sync::Arc, vec::Vec};
 use hashbrown::HashMap;
 
 use alloy::{eips::eip4844::Blob, primitives::B256};
 use async_trait::async_trait;
 use eyre::{eyre, Result};
-use kona_derive::{
-    errors::BlobProviderError,
-    online::{
-        OnlineBeaconClient, OnlineBlobProviderBuilder, OnlineBlobProviderWithFallback,
-        SimpleSlotDerivation,
-    },
-    traits::BlobProvider,
-};
+use kona_derive::{errors::BlobProviderError, traits::BlobProvider};
 use kona_primitives::IndexedBlobHash;
+use kona_providers_alloy::{
+    OnlineBeaconClient, OnlineBlobProviderBuilder, OnlineBlobProviderWithFallback,
+};
 use op_alloy_protocol::BlockInfo;
 use parking_lot::Mutex;
 use reth::primitives::BlobTransactionSidecar;
@@ -25,7 +23,7 @@ use url::Url;
 /// Any blob archiver just needs to implement the beacon
 /// [`blob_sidecars` API](https://ethereum.github.io/beacon-APIs/#/Beacon/getBlobSidecars)
 pub type DurableBlobProvider =
-    OnlineBlobProviderWithFallback<OnlineBeaconClient, OnlineBeaconClient, SimpleSlotDerivation>;
+    OnlineBlobProviderWithFallback<OnlineBeaconClient, OnlineBeaconClient>;
 
 /// Layered [BlobProvider] for the Kona derivation pipeline.
 ///
@@ -168,9 +166,8 @@ impl BlobProvider for LayeredBlobProvider {
     ) -> Result<Vec<Blob>, BlobProviderError> {
         if let Ok(b) = self.memory_blob_load(block_ref, blob_hashes).await {
             return Ok(b);
-        } else {
-            warn!("Blob provider falling back to online provider");
-            self.online_blob_load(block_ref, blob_hashes).await
         }
+        warn!("Blob provider falling back to online provider");
+        self.online_blob_load(block_ref, blob_hashes).await
     }
 }

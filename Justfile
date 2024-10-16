@@ -26,8 +26,9 @@ doc-lints:
 
 # Lint
 lint:
-  cargo clippy --workspace --examples --tests --benches --all-features \
-  && cargo hack check
+  cargo clippy --workspace --examples --tests --benches --all-features && \
+  cargo +stable install cargo-hack --locked && \
+  cargo hack check
 
 # Format
 fmt:

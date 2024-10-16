@@ -1,6 +1,6 @@
 //! Chain Provider
 
-use alloc::{collections::vec_deque::VecDeque, sync::Arc};
+use alloc::{boxed::Box, collections::vec_deque::VecDeque, sync::Arc, vec::Vec};
 use hashbrown::HashMap;
 
 use alloy::{
@@ -12,10 +12,10 @@ use alloy::{
     primitives::B256,
     signers::Signature,
 };
-use alloy_rlp::Decodable;
+use alloy_rlp::{Decodable, Encodable};
 use async_trait::async_trait;
 use eyre::eyre;
-use kona_derive::traits::ChainProvider;
+use kona_providers::ChainProvider;
 use op_alloy_protocol::BlockInfo;
 use parking_lot::RwLock;
 use reth::{primitives::Transaction, providers::Chain};
@@ -238,14 +238,14 @@ pub fn reth_to_alloy_header(header: &reth::primitives::SealedHeader) -> Header {
         logs_bloom: header.logs_bloom,
         difficulty: header.difficulty,
         number: header.number,
-        gas_limit: header.gas_limit as u128,
-        gas_used: header.gas_used as u128,
+        gas_limit: header.gas_limit,
+        gas_used: header.gas_used,
         timestamp: header.timestamp,
         mix_hash: header.mix_hash,
-        nonce: header.nonce.into(),
-        base_fee_per_gas: header.base_fee_per_gas.map(|b| b as u128),
-        blob_gas_used: header.blob_gas_used.map(|b| b as u128),
-        excess_blob_gas: header.excess_blob_gas.map(|b| b as u128),
+        nonce: header.nonce,
+        base_fee_per_gas: header.base_fee_per_gas,
+        blob_gas_used: header.blob_gas_used,
+        excess_blob_gas: header.excess_blob_gas,
         parent_beacon_block_root: header.parent_beacon_block_root,
         extra_data: header.extra_data.clone(),
     }
