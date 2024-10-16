@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 use alloy::{
     consensus::TxEnvelope,
-    eips::BlockId,
+    eips::{eip1898::BlockNumHash, BlockId},
     network::Ethereum,
     primitives::{BlockNumber, B256},
     providers::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect},
@@ -34,13 +34,13 @@ const FINALIZATION_TIMEOUT: u64 = 64;
 #[derive(Debug)]
 pub struct StandaloneHeraContext {
     /// The current tip of the L1 chain listener, used to detect reorgs
-    l1_tip: BlockNumber,
+    l1_tip: BlockNumHash,
     /// Channel that receives new blocks from the L1 node
     new_block_rx: mpsc::Receiver<Block<TxEnvelope>>,
     /// The highest block that was successfully processed by the driver.
     /// We can safely prune all cached blocks below this tip once they
     /// become finalized on L1.
-    processed_tip: BlockNumber,
+    processed_tip: BlockNumHash,
     /// Cache of blocks that might be reorged out. In normal conditions,
     /// this cache will not grow beyond [`FINALIZATION_TIMEOUT`] keys.
     reorg_cache: BTreeMap<BlockNumber, HashMap<B256, Block<TxEnvelope>>>,
@@ -190,7 +190,13 @@ impl StandaloneHeraContext {
         new_block_rx: mpsc::Receiver<Block<TxEnvelope>>,
         _handle: JoinHandle<()>,
     ) -> Self {
-        Self { new_block_rx, _handle, l1_tip: 0, processed_tip: 0, reorg_cache: BTreeMap::new() }
+        Self {
+            new_block_rx,
+            _handle,
+            l1_tip: BlockNumHash::default(),
+            processed_tip: BlockNumHash::default(),
+            reorg_cache: BTreeMap::new(),
+        }
     }
 }
 
@@ -207,10 +213,10 @@ impl DriverContext for StandaloneHeraContext {
         let entry = self.reorg_cache.entry(block_num).or_default();
         entry.insert(block.header.hash, block.clone());
 
-        if block_num <= self.l1_tip {
+        if block_num <= self.l1_tip.number {
             todo!("handle reorgs");
         } else {
-            self.l1_tip = block_num;
+            self.l1_tip = BlockNumHash { number: block_num, hash: block.header.hash };
 
             // upon a new tip, prune the reorg cache for all blocks that have been finalized,
             // as they are no longer candidates for reorgs.
@@ -220,7 +226,10 @@ impl DriverContext for StandaloneHeraContext {
         Some(ChainNotification::New { new_blocks: Blocks::from(block) })
     }
 
-    fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>> {
+    fn send_processed_tip_event(
+        &mut self,
+        tip: BlockNumHash,
+    ) -> Result<(), SendError<BlockNumHash>> {
         self.processed_tip = tip;
         Ok(())
     }
@@ -303,7 +312,7 @@ mod tests {
 
         // Simulate receiving a new block that should trigger pruning
         let new_block = create_mock_block(101);
-        ctx.l1_tip = 101;
+        ctx.l1_tip = BlockNumHash { number: 101, ..Default::default() };
         ctx.reorg_cache.entry(101).or_default().insert(new_block.header.hash, new_block.clone());
 
         // Manually call the pruning logic
@@ -322,7 +331,8 @@ mod tests {
         let mut ctx = StandaloneHeraContext::with_defaults(rx, handle);
 
         // Send a processed tip event
-        let result = ctx.send_processed_tip_event(100);
+        let result =
+            ctx.send_processed_tip_event(BlockNumHash { number: 100, ..Default::default() });
         assert!(result.is_ok());
     }
 

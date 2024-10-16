@@ -4,11 +4,12 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use alloy::{
     consensus::TxEnvelope,
+    eips::eip1898::BlockNumHash,
     primitives::{BlockNumber, U256},
     rpc::types::Block,
 };
 use async_trait::async_trait;
-use kona_providers::chain_provider::reth_to_alloy_tx;
+use kona_providers_local::reth_to_alloy_tx;
 use reth::rpc::types::{BlockTransactions, Header};
 use reth_execution_types::Chain;
 use reth_exex::ExExNotification;
@@ -31,7 +32,10 @@ pub trait DriverContext {
     async fn recv_notification(&mut self) -> Option<ChainNotification>;
 
     /// Sends an event indicating that the processed tip has been updated.
-    fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>>;
+    fn send_processed_tip_event(
+        &mut self,
+        tip: BlockNumHash,
+    ) -> Result<(), SendError<BlockNumHash>>;
 }
 
 /// A notification representing a chain of blocks that come from an execution client.
@@ -111,12 +115,12 @@ impl From<Arc<Chain>> for Blocks {
             // from reth::primitives::SealedBlock to alloy::rpc::types::Block
             let block = Block {
                 header: parse_reth_rpc_header(sealed_block),
-                uncles: sealed_block.ommers.iter().map(|x| x.hash_slow()).collect(),
+                uncles: sealed_block.body.ommers.iter().map(|x| x.hash_slow()).collect(),
                 transactions: BlockTransactions::Full(
                     sealed_block.transactions().flat_map(reth_to_alloy_tx).collect(),
                 ),
                 size: Some(U256::from(sealed_block.size())),
-                withdrawals: sealed_block.withdrawals.clone().map(|w| w.into_inner()),
+                withdrawals: sealed_block.body.withdrawals.clone().map(|w| w.into_inner()),
             };
             blocks.insert(*block_number, block);
         }
@@ -155,7 +159,7 @@ fn parse_reth_rpc_header(block: &reth::primitives::SealedBlock) -> Header {
         total_difficulty: Some(block.difficulty),
         extra_data: block.extra_data.clone(),
         mix_hash: Some(block.mix_hash),
-        nonce: Some(block.nonce.into()),
+        nonce: Some(block.nonce),
         base_fee_per_gas: block.base_fee_per_gas,
         withdrawals_root: block.withdrawals_root,
         blob_gas_used: block.blob_gas_used,

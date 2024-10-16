@@ -35,9 +35,11 @@ op-alloy-rpc-types-engine = { git = "https://github.com/alloy-rs/op-alloy", bran
 op-net = { path = "crates/net" }
 rollup = { path = "crates/rollup" }
 ser = { path = "crates/ser" }
+kona-providers-local = { path = "crates/providers-local" }
 
 # Optimism
-superchain = { version = "0.5", default-features = false }
+# superchain = { version = "0.7", default-features = false }
+superchain = { git = "https://github.com/anton-rs/superchain", branch = "main", default-features = false }
 kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-primitives = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
@@ -113,7 +115,7 @@ async-trait = "0.1.81"
 hashbrown = "0.14.5"
 parking_lot = "0.12.3"
 unsigned-varint = "0.8.0"
-rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
+rand = { version = "0.8.5", features = ["small_rng", "alloc", "getrandom"], default-features = false }
 url = "2.5.2"
 
 [workspace.metadata.docs.rs]

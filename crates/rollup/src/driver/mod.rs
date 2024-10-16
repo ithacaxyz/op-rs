@@ -1,15 +1,17 @@
 //! Rollup Node Driver
 
+use alloy::eips::eip1898::BlockNumHash;
 use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};
 use kona_derive::{
-    pipeline::{StepResult, Pipeline},
     errors::{PipelineError, PipelineErrorKind},
-    traits::BlobProvider,
+    pipeline::{Pipeline, StepResult},
+    traits::{BlobProvider, ResetSignal, SignalReceiver},
 };
 use kona_providers::{ChainProvider, L2ChainProvider};
 use kona_providers_alloy::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder};
+use kona_providers_local::{DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider};
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};
 use reth::rpc::types::engine::JwtSecret;
@@ -129,15 +131,17 @@ where
                 if let Some(new_chain) = notification.new_chain() {
                     let tip = new_chain.tip();
 
-                    if let Err(err) = self.ctx.send_processed_tip_event(tip) {
+                    if let Err(err) = self.ctx.send_processed_tip_event(BlockNumHash {
+                        number: tip,
+                        ..Default::default()
+                    }) {
                         bail!("Failed to send processed tip event: {:?}", err);
                     }
 
                     if tip >= self.cfg.genesis.l1.number {
                         break Ok(());
-                    } else {
-                        debug!("Chain not yet synced to rollup genesis. L1 block number: {}", tip);
                     }
+                    debug!("Chain not yet synced to rollup genesis. L1 block number: {}", tip);
                 }
             }
         }
@@ -253,8 +257,18 @@ where
             // and reset the cursor and pipeline to it.
             let (l2_safe_tip, l2_safe_tip_l1_origin) = self.cursor.reset(fork_block);
 
-            warn!("Reverting derivation pipeline to L2 block: {}", l2_safe_tip.number);
-            if let Err(e) = pipeline.reset(l2_safe_tip, l2_safe_tip_l1_origin).await {
+            warn!("Reverting derivation pipeline to L2 block: {}", l2_safe_tip.block_info.number);
+            if let Err(e) = pipeline
+                .signal(
+                    ResetSignal {
+                        l1_origin: l2_safe_tip_l1_origin,
+                        l2_safe_head: l2_safe_tip,
+                        ..Default::default()
+                    }
+                    .signal(),
+                )
+                .await
+            {
                 bail!("Failed to reset pipeline: {:?}", e);
             }
         }
@@ -262,7 +276,10 @@ where
         if let Some(new_chain) = notification.new_chain() {
             let tip = new_chain.tip();
 
-            if let Err(err) = self.ctx.send_processed_tip_event(tip) {
+            if let Err(err) = self
+                .ctx
+                .send_processed_tip_event(BlockNumHash { number: tip, ..Default::default() })
+            {
                 bail!("Failed to send processed tip event: {:?}", err);
             }
         }

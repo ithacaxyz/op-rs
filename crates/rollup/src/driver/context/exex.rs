@@ -1,7 +1,7 @@
-use alloy::primitives::BlockNumber;
+use alloy::eips::eip1898::BlockNumHash;
 use async_trait::async_trait;
 use futures::StreamExt;
-use kona_providers::InMemoryChainProvider;
+use kona_providers_local::InMemoryChainProvider;
 use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
 use tokio::sync::mpsc::error::SendError;
@@ -40,7 +40,10 @@ impl<N: FullNodeComponents> DriverContext for ExExHeraContext<N> {
         Some(ChainNotification::from(exex_notification))
     }
 
-    fn send_processed_tip_event(&mut self, tip: BlockNumber) -> Result<(), SendError<BlockNumber>> {
+    fn send_processed_tip_event(
+        &mut self,
+        tip: BlockNumHash,
+    ) -> Result<(), SendError<BlockNumHash>> {
         self.ctx.events.send(ExExEvent::FinishedHeight(tip)).map_err(|_| SendError(tip))
     }
 }

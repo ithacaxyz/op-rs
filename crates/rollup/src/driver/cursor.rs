@@ -68,13 +68,13 @@ impl SyncCursor {
     /// beginning of the channel.
     ///
     /// Returns the (L2 block info, L1 origin block info) tuple for the new cursor state.
-    pub fn reset(&mut self, fork_block: u64) -> (BlockInfo, BlockInfo) {
+    pub fn reset(&mut self, fork_block: u64) -> (L2BlockInfo, BlockInfo) {
         let channel_start = fork_block - self.channel_timeout;
 
         match self.l1_origin_to_l2_blocks.get(&channel_start) {
             Some(l2_safe_tip) => {
                 // The channel start block is in the cache, we can use it to reset the cursor.
-                (l2_safe_tip.block_info, self.l1_origin_block_info[&channel_start])
+                (*l2_safe_tip, self.l1_origin_block_info[&channel_start])
             }
             None => {
                 // If the channel start block is not in the cache, we reset the cursor
@@ -85,7 +85,7 @@ impl SyncCursor {
                     .next_back()
                     .expect("walked back to genesis without finding anchor origin block");
 
-                (l2_known_tip.block_info, self.l1_origin_block_info[last_l1_known_tip])
+                (*l2_known_tip, self.l1_origin_block_info[last_l1_known_tip])
             }
         }
     }

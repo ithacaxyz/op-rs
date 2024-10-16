@@ -105,7 +105,7 @@ impl TrustedValidator {
             },
             transactions: Some(transactions),
             no_tx_pool: Some(true),
-            gas_limit: Some(header.gas_limit as u64),
+            gas_limit: Some(header.gas_limit),
             eip_1559_params: None, // TODO: fix this
         })
     }

@@ -7,8 +7,8 @@ use kona_derive::{
     pipeline::{DerivationPipeline, PipelineBuilder},
     sources::EthereumDataSource,
     stages::{
-        AttributesQueue, BatchQueue, ChannelBank, ChannelReader, FrameQueue, L1Retrieval,
-        L1Traversal,
+        AttributesQueue, BatchQueue, BatchStream, ChannelProvider, ChannelReader, FrameQueue,
+        L1Retrieval, L1Traversal,
     },
     traits::BlobProvider,
 };
@@ -24,7 +24,7 @@ type L1FrameQueue<CP, BP> = FrameQueue<L1Retrieval<EthereumDataSource<CP, BP>, L
 /// A concrete [NextAttributes](kona_derive::traits::NextAttributes) stage implementation that
 /// accepts batches from the [BatchQueue] stage and transforms them into payload attributes.
 type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
-    BatchQueue<ChannelReader<ChannelBank<L1FrameQueue<CP, BP>>>, L2CP>,
+    BatchQueue<BatchStream<ChannelReader<ChannelProvider<L1FrameQueue<CP, BP>>>, L2CP>, L2CP>,
     StatefulAttributesBuilder<CP, L2CP>,
 >;
 
@@ -52,7 +52,7 @@ where
     BP: BlobProvider + Send + Sync + Clone + Debug,
 {
     let dap = EthereumDataSource::new(chain_provider.clone(), blob_provider.clone(), &cfg.clone());
-    let attributes = StatefulAttributesBuilder::new(
+    let builder = StatefulAttributesBuilder::new(
         cfg.clone(),
         l2_chain_provider.clone(),
         chain_provider.clone(),
@@ -63,7 +63,7 @@ where
         .dap_source(dap)
         .l2_chain_provider(l2_chain_provider)
         .chain_provider(chain_provider)
-        .builder(attributes)
+        .builder(builder)
         .origin(origin)
         .build()
 }
