@@ -5703,6 +5703,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "op-alloy-rpc-jsonrpsee"
+version = "0.4.0"
+source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
+dependencies = [
+ "alloy-eips",
+ "alloy-primitives",
+ "jsonrpsee",
+ "op-alloy-rpc-types",
+]
+
+[[package]]
 name = "op-alloy-rpc-types"
 version = "0.4.0"
 source = "git+https://github.com/alloy-rs/op-alloy?branch=main#20eb16233c00087827f70d6b4a42afb79dc39da9"
@@ -9632,6 +9643,7 @@ dependencies = [
  "kona-derive",
  "op-alloy-genesis 0.4.0",
  "op-alloy-protocol 0.4.0",
+ "op-alloy-rpc-jsonrpsee",
  "op-alloy-rpc-types",
  "rand",
  "tracing",
