@@ -27,14 +27,14 @@ use url::Url;
 /// A trait that defines the interface for validating newly derived L2 attributes.
 #[async_trait]
 pub trait AttributesValidator: Debug + Send {
-    /// Validates the given [`OptimismAttributesWithParent`] and returns true
+    /// Validates the given [`OpAttributesWithParent`] and returns true
     /// if the attributes are valid, false otherwise.
     async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool>;
 }
 
 /// TrustedValidator
 ///
-/// Validates the [`OptimismAttributesWithParent`] by fetching the associated L2 block from
+/// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
 /// a trusted L2 RPC and constructing the L2 Attributes from the block.
 #[derive(Debug, Clone)]
 pub struct TrustedValidator {
@@ -129,7 +129,7 @@ impl AttributesValidator for TrustedValidator {
 
 /// EngineApiValidator
 ///
-/// Validates the [`OptimismAttributesWithParent`] by sending the attributes to an L2 engine API.
+/// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
 /// The engine API will return a `VALID` or `INVALID` response.
 #[derive(Debug, Clone)]
 pub struct EngineApiValidator {
