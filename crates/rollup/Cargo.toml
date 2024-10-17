@@ -28,17 +28,17 @@ reth-execution-types.workspace = true
 
 # Telemetry
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }   
-metrics-exporter-prometheus = { version = "0.15.3", features = ["http-listener"] }
+metrics-exporter-prometheus = { version = "0.16.0", features = ["http-listener"] }
 
 # Misc 
 url.workspace = true
-reqwest.workspace = true
 serde_json.workspace = true
 eyre.workspace = true
 tracing.workspace = true
-clap.workspace = true
 async-trait.workspace = true
 tokio.workspace = true
 futures.workspace = true
 alloy.workspace = true
 hashbrown.workspace = true
+clap = { workspace = true, features = ["derive", "env"] }
+reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
