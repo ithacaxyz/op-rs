@@ -61,22 +61,17 @@ pub struct HeraArgsExt {
     ///   same block and comparing the results.
     /// - Engine API: use a local or remote engine API of an L2 execution client. Validation
     ///   happens by sending the `new_payload` to the API and expecting a VALID response.
-    #[clap(
-        long = "hera.validation-mode",
-        default_value = "engine-api",
-        requires_ifs([("engine-api", "l2_engine_api_url"), ("engine-api", "l2_engine_jwt_secret")]),
-    )]
+    #[clap(long = "hera.validation-mode", default_value = "engine-api")]
     pub validation_mode: ValidationMode,
 
-    /// If the mode is "engine api", we also need an URL for the engine API endpoint of
-    /// the execution client to validate the payload.
-    #[clap(long = "hera.l2-engine-api-url")]
-    pub l2_engine_api_url: Option<Url>,
+    /// URL of the engine API endpoint of an L2 execution client.
+    #[clap(long = "hera.l2-engine-api-url", env = "L2_ENGINE_API_URL")]
+    pub l2_engine_api_url: Url,
 
-    /// If the mode is "engine api", we also need a JWT secret for the auth-rpc.
+    /// JWT secret for the auth-rpc endpoint of the execution client.
     /// This MUST be a valid path to a file containing the hex-encoded JWT secret.
-    #[clap(long = "hera.l2-engine-jwt-secret")]
-    pub l2_engine_jwt_secret: Option<PathBuf>,
+    #[clap(long = "hera.l2-engine-jwt-secret", env = "L2_ENGINE_JWT_SECRET")]
+    pub l2_engine_jwt_secret: PathBuf,
 
     /// The maximum **number of blocks** to keep cached in the chain provider.
     ///

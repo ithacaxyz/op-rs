@@ -112,11 +112,8 @@ where
             None
         };
 
-        // TODO(nico): at this point we should make these flags mandatory imo
-        let engine_url = args.l2_engine_api_url.expect("engine api url");
-        let l2_jwt_file = args.l2_engine_jwt_secret.expect("jwt secret file");
-        let l2_jwt_secret = JwtSecret::from_file(&l2_jwt_file).expect("jwt secret");
-        let engine = Engine::new_http(engine_url, l2_jwt_secret);
+        let l2_jwt_secret = JwtSecret::from_file(&args.l2_engine_jwt_secret).expect("jwt secret");
+        let engine = Engine::new_http(args.l2_engine_api_url, l2_jwt_secret);
 
         let cursor = SyncCursor::new(cfg.channel_timeout);
         let l2_chain_provider = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
@@ -217,7 +214,6 @@ where
                 }
             }
         } else {
-            // TODO: implement engine api validation here. if successful, extract next attributes
             if let Err(err) = self.engine.validate_payload_fcu(derived_attributes).await {
                 error!("Failed to validate payload attributes: {:?}", err);
                 return false;
