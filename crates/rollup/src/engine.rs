@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use alloy::{
     network::AnyNetwork, primitives::Bytes, providers::RootProvider, rpc::client::RpcClient,
 };
@@ -17,20 +19,17 @@ use tower::ServiceBuilder;
 use tracing::warn;
 use url::Url;
 
-/// A hyper client with a JWT auth layer middleware.
+/// A Hyper HTTP client with a JWT authentication layer.
 type HyperAuthClient<B = Full<Bytes>> = HyperClient<B, AuthService<Client<HttpConnector, B>>>;
 
-/// EngineApiValidator
-///
-/// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
-/// The engine API will return a `VALID` or `INVALID` response.
+/// The [`Engine`] is responsible for interacting with an L2 Engine API server.
 #[derive(Debug, Clone)]
 pub struct Engine {
     provider: RootProvider<Http<HyperAuthClient>, AnyNetwork>,
 }
 
 impl Engine {
-    /// Creates a new [`EngineApiValidator`] from the provided [Url] and [JwtSecret].
+    /// Creates a new [`Engine`] from the provided [Url] and [JwtSecret].
     pub fn new_http(url: Url, jwt: JwtSecret) -> Self {
         let hyper_client = Client::builder(TokioExecutor::new()).build_http::<Full<Bytes>>();
 
@@ -45,7 +44,8 @@ impl Engine {
         Self { provider }
     }
 
-    async fn validate_payload_fcu(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
+    /// Validates the payload using the Fork Choice Update API.
+    pub async fn validate_payload_fcu(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         // TODO: use the correct values
         let fork_choice_state = ForkchoiceState {
             head_block_hash: attributes.parent.block_info.hash,
@@ -62,5 +62,13 @@ impl Engine {
             warn!(status = %fcu.payload_status, "Engine API returned invalid fork choice update");
             Ok(false)
         }
+    }
+}
+
+impl Deref for Engine {
+    type Target = RootProvider<Http<HyperAuthClient>, AnyNetwork>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.provider
     }
 }

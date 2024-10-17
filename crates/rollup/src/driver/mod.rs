@@ -218,6 +218,10 @@ where
             }
         } else {
             // TODO: implement engine api validation here. if successful, extract next attributes
+            if let Err(err) = self.engine.validate_payload_fcu(derived_attributes).await {
+                error!("Failed to validate payload attributes: {:?}", err);
+                return false;
+            }
             pipeline.next().expect("Peeked attributes must be available");
         }
 
