@@ -39,7 +39,6 @@ ser = { path = "crates/ser" }
 kona-providers-local = { path = "crates/providers-local" }
 
 # Optimism
-# superchain = { version = "0.7", default-features = false }
 superchain = { git = "https://github.com/anton-rs/superchain", branch = "main", default-features = false }
 kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
@@ -60,23 +59,16 @@ alloy = { version = "0.4.2", features = [
     "network",
     "ssz"
 ] }
-alloy-primitives = { version = "0.8", features = ["serde"] }
 alloy-rlp = "0.3"
+alloy-eips = { version = "0.4", default-features = false }
 
-# Op-Alloy
+# Op Alloy
 op-alloy-consensus = { version = "0.4.0", default-features = false }
 op-alloy-protocol = { version = "0.4.0", default-features = false }
 op-alloy-genesis = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
-op-alloy-rpc-jsonrpsee = { version = "0.4.0", features = ["client"] }
-
-# Tokio
-tokio = { version = "1.21", default-features = false }
-
-# Serialization
-serde_json = "1"
-ethereum_ssz = "0.7.1"
+op-alloy-rpc-jsonrpsee = { version = "0.4.0", default-features = false }
 
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
@@ -93,32 +85,46 @@ reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
 reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+
+# Tokio
+tokio = { version = "1.21", default-features = false }
+
+# Serialization
+serde_json = "1"
+ethereum_ssz = "0.8.0"
+
+# RPC
+jsonrpsee = { version = "0.24", default-features = false }
+jsonrpsee-types = "0.24"
 
 # Networking
 snap = "1.1.1"
-discv5 = "0.6.0"
-openssl = { version = "0.10.66", features = ["vendored"] }
-libp2p-identity = { version = "0.2.9", features = [ "secp256k1" ] }
-libp2p = { version = "0.54.0", features = ["macros", "tokio", "tcp", "noise", "gossipsub", "ping", "yamux"] }
+discv5 = "0.8.0"
+libp2p = "0.54.0"
+openssl = "0.10.66"
+libp2p-identity = "0.2.9"
 
 # Testing
 arbtest = "0.3"
-arbitrary = { version = "1", features = ["derive"] }
+arbitrary = "1"
 
 # Misc
-reqwest = "0.12.7"
-tracing = "0.1.0"
-tracing-subscriber = "0.3.18"
+url = "2.5.2"
 eyre = "0.6.12"
-clap = { version = "4.5.4", features = ["derive", "env"] }
+clap = "4.5.4"
+reqwest = "0.12"
+tracing = "0.1.40"
+thiserror = "1.0"
 lazy_static = "1.5.0"
 futures = "0.3.30"
-async-trait = "0.1.81"
-hashbrown = "0.14.5"
+async-trait = "0.1.83"
+hashbrown = "0.15.0"
 parking_lot = "0.12.3"
 unsigned-varint = "0.8.0"
-rand = { version = "0.8.5", features = ["small_rng", "alloc", "getrandom"], default-features = false }
-url = "2.5.2"
+tracing-subscriber = "0.3.18"
+rand = { version = "0.8.5", default-features = false }
 
 [workspace.metadata.docs.rs]
 all-features = true

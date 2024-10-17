@@ -1,0 +1,39 @@
+[package]
+name = "op-rpc"
+description = "Consensus RPC for Rollup Nodes"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+# op-alloy 
+op-alloy-rpc-types.workspace = true
+op-alloy-rpc-jsonrpsee = { workspace = true, features = ["client"] }
+
+# Alloy
+alloy-eips.workspace = true
+
+# Misc
+tracing.workspace = true
+async-trait.workspace = true
+jsonrpsee = { workspace = true, features = ["jsonrpsee-core", "client-core", "server-core", "macros"] }
+
+# `reth` feature flag dependencies
+alloy = { workspace = true, optional = true }
+reqwest = { workspace = true, features = ["rustls-tls-native-roots"], optional = true }
+thiserror = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[features]
+default = ["reth"]
+reth = [
+  "dep:alloy",
+  "dep:reqwest",
+  "dep:serde_json",
+  "dep:thiserror",
+]
