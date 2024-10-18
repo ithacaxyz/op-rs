@@ -3,7 +3,8 @@
 use alloc::{boxed::Box, collections::VecDeque, string::ToString, sync::Arc, vec::Vec};
 use hashbrown::HashMap;
 
-use alloy::{eips::eip4844::Blob, primitives::B256};
+use alloy_eips::eip4844::Blob;
+use alloy_primitives::B256;
 use async_trait::async_trait;
 use eyre::{eyre, Result};
 use kona_derive::{errors::BlobProviderError, traits::BlobProvider};

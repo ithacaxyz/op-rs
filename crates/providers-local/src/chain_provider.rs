@@ -3,16 +3,14 @@
 use alloc::{boxed::Box, collections::vec_deque::VecDeque, sync::Arc, vec::Vec};
 use hashbrown::HashMap;
 
-use alloy::{
-    consensus::{
-        Header, Receipt, Signed, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEnvelope,
-        TxLegacy,
-    },
-    eips::BlockNumHash,
-    primitives::B256,
-    signers::Signature,
+use alloy_consensus::{
+    Header, Receipt, Signed, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEnvelope,
+    TxLegacy,
 };
+use alloy_eips::BlockNumHash;
+use alloy_primitives::B256;
 use alloy_rlp::{Decodable, Encodable};
+use alloy_signer::Signature;
 use async_trait::async_trait;
 use eyre::eyre;
 use kona_providers::ChainProvider;
@@ -151,7 +149,7 @@ impl InMemoryChainProviderInner {
                         r.as_ref().map(|r| Receipt {
                             cumulative_gas_used: r.cumulative_gas_used as u128,
                             logs: r.logs.clone(),
-                            status: alloy::consensus::Eip658Value::Eip658(r.success),
+                            status: alloy_consensus::Eip658Value::Eip658(r.success),
                         })
                     })
                     .collect(),
@@ -277,12 +275,12 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),
-                access_list: alloy::eips::eip2930::AccessList(
+                access_list: alloy_eips::eip2930::AccessList(
                     e.access_list
                         .0
                         .clone()
                         .into_iter()
-                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                        .map(|item| alloy_eips::eip2930::AccessListItem {
                             address: item.address,
                             storage_keys: item.storage_keys.clone(),
                         })
@@ -301,12 +299,12 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),
-                access_list: alloy::eips::eip2930::AccessList(
+                access_list: alloy_eips::eip2930::AccessList(
                     e.access_list
                         .0
                         .clone()
                         .into_iter()
-                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                        .map(|item| alloy_eips::eip2930::AccessListItem {
                             address: item.address,
                             storage_keys: item.storage_keys.clone(),
                         })
@@ -327,12 +325,12 @@ pub fn reth_to_alloy_tx(tx: &reth::primitives::TransactionSigned) -> Option<TxEn
                 to: e.to,
                 value: e.value,
                 input: e.input.clone(),
-                access_list: alloy::eips::eip2930::AccessList(
+                access_list: alloy_eips::eip2930::AccessList(
                     e.access_list
                         .0
                         .clone()
                         .into_iter()
-                        .map(|item| alloy::eips::eip2930::AccessListItem {
+                        .map(|item| alloy_eips::eip2930::AccessListItem {
                             address: item.address,
                             storage_keys: item.storage_keys.clone(),
                         })
