@@ -46,7 +46,7 @@ futures.workspace = true
 hashbrown.workspace = true
 tower.workspace = true
 http-body-util.workspace = true
+clap = { workspace = true, features = ["derive", "env"] }
 
 [dev-dependencies]
-clap = { workspace = true, features = ["derive", "env"] }
 reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
