@@ -1,8 +1,9 @@
 use std::ops::Deref;
 
-use alloy::{
-    network::AnyNetwork, primitives::Bytes, providers::RootProvider, rpc::client::RpcClient,
-};
+use alloy_network::AnyNetwork;
+use alloy_primitives::Bytes;
+use alloy_provider::RootProvider;
+use alloy_rpc_client::RpcClient;
 use alloy_transport_http::{
     hyper_util::{
         client::legacy::{connect::HttpConnector, Client},

@@ -60,6 +60,7 @@ alloy-transport = { version = "0.4.2", default-features = false }
 alloy-rpc-types = { version = "0.4.2", default-features = false }
 alloy-consensus = { version = "0.4.2", default-features = false }
 alloy-primitives = { version = "0.8.8", default-features = false }
+alloy-rpc-client = { version = "0.4.2", default-features = false }
 alloy-rpc-types-engine = { version = "0.4.2", default-features = false }
 
 # Op Alloy
