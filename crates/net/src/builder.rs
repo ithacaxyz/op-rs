@@ -1,6 +1,6 @@
 //! Network Builder Module.
 
-use alloy::primitives::Address;
+use alloy_primitives::Address;
 use discv5::{Config, ListenConfig};
 use eyre::Result;
 use std::{
@@ -151,7 +151,7 @@ impl NetworkDriverBuilder {
     /// ## Example
     ///
     /// ```rust
-    /// use alloy::primitives::{address, Address};
+    /// use alloy_primitives::{address, Address};
     /// use discv5::{ConfigBuilder, ListenConfig};
     /// use op_net::builder::NetworkDriverBuilder;
     /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};

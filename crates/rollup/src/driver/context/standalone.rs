@@ -1,15 +1,14 @@
 use hashbrown::HashMap;
 use std::{collections::BTreeMap, time::Duration};
 
-use alloy::{
-    consensus::TxEnvelope,
-    eips::{eip1898::BlockNumHash, BlockId},
-    network::Ethereum,
-    primitives::{BlockNumber, B256},
-    providers::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect},
-    rpc::types::Block,
-    transports::{TransportErrorKind, TransportResult},
-};
+use alloy_consensus::TxEnvelope;
+use alloy_eips::{eip1898::BlockNumHash, BlockId};
+use alloy_network::Ethereum;
+use alloy_primitives::{BlockNumber, B256};
+use alloy_provider::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect};
+use alloy_rpc_types::Block;
+use alloy_transport::{TransportErrorKind, TransportResult};
+
 use async_trait::async_trait;
 use futures::StreamExt;
 use reth::rpc::types::BlockTransactions;
@@ -235,7 +234,7 @@ impl DriverContext for StandaloneHeraContext {
     }
 }
 
-// from reth::rpc::types::Block to alloy::rpc::types::Block<TxEnvelope>
+// from reth::rpc::types::Block to alloy_rpc_types::Block<TxEnvelope>
 fn parse_reth_rpc_block(block: Block) -> Block<TxEnvelope> {
     let txs = block
         .transactions
@@ -258,7 +257,7 @@ fn parse_reth_rpc_block(block: Block) -> Block<TxEnvelope> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy::rpc::types::Header;
+    use alloy_rpc_types::Header;
 
     #[tokio::test]
     async fn test_http_poller() -> eyre::Result<()> {

@@ -5,7 +5,8 @@ use std::{
     time::SystemTime,
 };
 
-use alloy::{primitives::Address, rpc::types::engine::ExecutionPayload};
+use alloy_primitives::Address;
+use alloy_rpc_types_engine::ExecutionPayload;
 use libp2p::gossipsub::{IdentTopic, Message, MessageAcceptance, TopicHash};
 use op_alloy_rpc_types_engine::OpNetworkPayloadEnvelope;
 use tokio::sync::watch;

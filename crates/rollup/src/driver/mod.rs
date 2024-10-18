@@ -1,6 +1,6 @@
 //! Rollup Node Driver
 
-use alloy::eips::eip1898::BlockNumHash;
+use alloy_eips::eip1898::BlockNumHash;
 use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};

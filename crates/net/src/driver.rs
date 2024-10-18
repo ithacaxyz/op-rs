@@ -2,7 +2,8 @@
 
 use std::sync::mpsc::Receiver;
 
-use alloy::{primitives::Address, rpc::types::engine::ExecutionPayload};
+use alloy_primitives::Address;
+use alloy_rpc_types_engine::ExecutionPayload;
 use eyre::Result;
 use tokio::{select, sync::watch};
 

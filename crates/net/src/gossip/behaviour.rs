@@ -49,7 +49,7 @@ impl Behaviour {
 mod tests {
     use super::*;
     use crate::gossip::{config, handler::BlockHandler};
-    use alloy::primitives::Address;
+    use alloy_primitives::Address;
     use libp2p::gossipsub::{IdentTopic, TopicHash};
 
     fn zero_topics() -> Vec<TopicHash> {
