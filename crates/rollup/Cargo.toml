@@ -21,7 +21,7 @@ alloy-eips.workspace = true
 alloy-primitives.workspace = true
 alloy-provider = { workspace = true, features = ["ipc"] }
 alloy-transport.workspace = true
-alloy-transport-http.workspace = true
+alloy-transport-http = { workspace = true, features = ["jwt-auth"] }
 alloy-network.workspace = true
 alloy-consensus.workspace = true
 alloy-rpc-types = { workspace = true, features = ["ssz"] }
@@ -39,9 +39,9 @@ superchain = { workspace = true, default-features = false }
 
 # Reth
 reth.workspace = true
-reth-exex.workspace = true
 reth-node-api.workspace = true
 reth-execution-types.workspace = true
+reth-exex = { workspace = true, features = ["serde"] }
 
 # Telemetry
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }   
