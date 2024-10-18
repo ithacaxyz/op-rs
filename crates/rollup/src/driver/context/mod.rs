@@ -2,12 +2,11 @@
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use alloy::{
-    consensus::TxEnvelope,
-    eips::eip1898::BlockNumHash,
-    primitives::{BlockNumber, U256},
-    rpc::types::Block,
-};
+use alloy_consensus::TxEnvelope;
+use alloy_eips::eip1898::BlockNumHash;
+use alloy_primitives::{BlockNumber, U256};
+use alloy_rpc_types::Block;
+
 use async_trait::async_trait;
 use kona_providers_local::reth_to_alloy_tx;
 use reth::rpc::types::{BlockTransactions, Header};
@@ -112,7 +111,7 @@ impl From<Arc<Chain>> for Blocks {
     fn from(value: Arc<Chain>) -> Self {
         let mut blocks = BTreeMap::new();
         for (block_number, sealed_block) in value.blocks() {
-            // from reth::primitives::SealedBlock to alloy::rpc::types::Block
+            // from reth::primitives::SealedBlock to alloy_rpc_types::Block
             let block = Block {
                 header: parse_reth_rpc_header(sealed_block),
                 uncles: sealed_block.body.ommers.iter().map(|x| x.hash_slow()).collect(),
@@ -140,7 +139,7 @@ impl From<ExExNotification> for ChainNotification {
     }
 }
 
-// from reth::primitives::SealedBlock to alloy::rpc::types::Header
+// from reth::primitives::SealedBlock to alloy_rpc_types::Header
 fn parse_reth_rpc_header(block: &reth::primitives::SealedBlock) -> Header {
     Header {
         hash: block.header.hash(),

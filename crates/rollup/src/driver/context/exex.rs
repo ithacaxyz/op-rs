@@ -1,4 +1,4 @@
-use alloy::eips::eip1898::BlockNumHash;
+use alloy_eips::eip1898::BlockNumHash;
 use async_trait::async_trait;
 use futures::StreamExt;
 use kona_providers_local::InMemoryChainProvider;

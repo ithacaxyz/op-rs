@@ -39,39 +39,37 @@ rollup = { path = "crates/rollup" }
 ser = { path = "crates/ser" }
 kona-providers-local = { path = "crates/providers-local" }
 
-# Optimism
-superchain = { git = "https://github.com/anton-rs/superchain", branch = "main", default-features = false }
-kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-kona-primitives = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+# Kona
 kona-derive = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+kona-primitives = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+
+# Superchain
+superchain = { git = "https://github.com/anton-rs/superchain", branch = "main", default-features = false }
 
 # Alloy
-alloy = { version = "0.4.2", features = [
-    "contract",
-    "providers",
-    "provider-http",
-    "provider-ws",
-    "provider-ipc",
-    "signers",
-    "consensus",
-    "rpc-types",
-    "rpc-types-engine",
-    "network",
-    "ssz"
-] }
 alloy-transport-http = { version = "0.4.2", default-features = false, features = ["jwt-auth"] }
-alloy-rlp = "0.3"
+alloy-rlp = { version = "0.3.8", default-features = false }
 alloy-eips = { version = "0.4", default-features = false }
+alloy-signer = { version = "0.4.2", default-features = false }
+alloy-network = { version = "0.4.2", default-features = false }
+alloy-provider = { version = "0.4.2", default-features = false }
+alloy-contract = { version = "0.4.2", default-features = false }
+alloy-transport = { version = "0.4.2", default-features = false }
+alloy-rpc-types = { version = "0.4.2", default-features = false }
+alloy-consensus = { version = "0.4.2", default-features = false }
+alloy-primitives = { version = "0.8.8", default-features = false }
+alloy-rpc-types-engine = { version = "0.4.2", default-features = false }
 
 # Op Alloy
-op-alloy-consensus = { version = "0.4.0", default-features = false }
-op-alloy-protocol = { version = "0.4.0", default-features = false }
 op-alloy-genesis = { version = "0.4.0", default-features = false }
+op-alloy-protocol = { version = "0.4.0", default-features = false }
+op-alloy-consensus = { version = "0.4.0", default-features = false }
 op-alloy-rpc-types = { version = "0.4.0", default-features = false }
-op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
 op-alloy-rpc-jsonrpsee = { version = "0.4.0", default-features = false }
 op-alloy-provider = { version = "0.4.0", default-features = false }
+op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
 
 # Reth
 reth = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }

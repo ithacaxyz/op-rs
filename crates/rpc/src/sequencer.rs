@@ -5,7 +5,7 @@ use std::sync::{
     Arc,
 };
 
-use alloy::primitives::hex;
+use alloy_primitives::hex;
 use reqwest::Client;
 use serde_json::json;
 use tracing::warn;

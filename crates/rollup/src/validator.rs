@@ -2,12 +2,12 @@
 
 use std::fmt::Debug;
 
-use alloy::{
-    eips::BlockNumberOrTag,
-    primitives::Bytes,
-    providers::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider},
-    rpc::types::engine::PayloadAttributes,
-};
+use alloy_eips::BlockNumberOrTag;
+use alloy_primitives::Bytes;
+use alloy_provider::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider};
+use alloy_rpc_types_engine::PayloadAttributes;
+
+use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
 use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
 use reth::rpc::types::Header;

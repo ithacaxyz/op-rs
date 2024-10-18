@@ -1,6 +1,6 @@
 //! Rollup Node Driver
 
-use alloy::eips::eip1898::BlockNumHash;
+use alloy_eips::eip1898::BlockNumHash;
 use reth::rpc::types::engine::JwtSecret;
 use std::{fmt::Debug, sync::Arc};
 

@@ -11,17 +11,29 @@ categories.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-reth.workspace = true
-alloy.workspace = true
+# Alloy
 alloy-rlp.workspace = true
-hashbrown.workspace = true
-async-trait.workspace = true
-parking_lot.workspace = true
+alloy-eips.workspace = true
+alloy-signer.workspace = true
+alloy-consensus.workspace = true
+alloy-primitives.workspace = true
+
+# Op Alloy
+op-alloy-protocol.workspace = true
+
+# Kona
 kona-derive.workspace = true
 kona-providers.workspace = true
 kona-providers-alloy.workspace = true
 kona-primitives.workspace = true
-tracing.workspace = true
-eyre.workspace = true
+
+# Reth
+reth.workspace = true
+
+# Misc
 url.workspace = true
-op-alloy-protocol.workspace = true
+eyre.workspace = true
+tracing.workspace = true
+hashbrown.workspace = true
+async-trait.workspace = true
+parking_lot.workspace = true

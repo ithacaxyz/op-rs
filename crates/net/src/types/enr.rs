@@ -44,13 +44,13 @@ impl Encodable for OpStackEnr {
         let version_slice = encode::u128(self.version as u128, &mut version_buf);
 
         let opstack = [chain_id_slice, version_slice].concat();
-        alloy::primitives::Bytes::from(opstack).encode(out);
+        alloy_primitives::Bytes::from(opstack).encode(out);
     }
 }
 
 impl Decodable for OpStackEnr {
     fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
-        let bytes = alloy::primitives::Bytes::decode(buf)?;
+        let bytes = alloy_primitives::Bytes::decode(buf)?;
         let (chain_id, rest) = decode::u64(&bytes)
             .map_err(|_| alloy_rlp::Error::Custom("could not decode chain id"))?;
         let (version, _) =
@@ -62,7 +62,7 @@ impl Decodable for OpStackEnr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy::primitives::{bytes, Bytes};
+    use alloy_primitives::{bytes, Bytes};
 
     #[test]
     fn roundtrip_op_stack_enr() {
