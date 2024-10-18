@@ -24,6 +24,8 @@
 
 ## Overview
 
+_**r**ust-**op**timism-**e**thereum_
+
 `rope` is a suite of `std` OP Stack components built to be modular.
 
 [bin/](./bin/) provides a host of binary applications that compose rope's [crates](./crates/).
