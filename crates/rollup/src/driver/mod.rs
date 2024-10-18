@@ -1,6 +1,7 @@
 //! Rollup Node Driver
 
 use alloy_eips::eip1898::BlockNumHash;
+use reth::rpc::types::engine::JwtSecret;
 use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};
@@ -14,16 +15,13 @@ use kona_providers_alloy::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobP
 use kona_providers_local::{DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider};
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};
-use reth::rpc::types::engine::JwtSecret;
 use reth_exex::ExExContext;
 use reth_node_api::FullNodeComponents;
 use tracing::{debug, error, info, trace, warn};
 
 use crate::{
-    cli::ValidationMode,
-    new_rollup_pipeline,
-    validator::{EngineApiValidator, TrustedValidator},
-    AttributesValidator, HeraArgsExt, RollupPipeline,
+    cli::ValidationMode, new_rollup_pipeline, validator::TrustedPayloadValidator, Engine,
+    HeraArgsExt, RollupPipeline,
 };
 
 mod context;
@@ -48,7 +46,9 @@ pub struct Driver<DC, CP, BP> {
     /// Cursor to keep track of the L2 tip
     cursor: SyncCursor,
     /// The validator to verify newly derived L2 attributes
-    validator: Box<dyn AttributesValidator>,
+    trusted_validator: Option<TrustedPayloadValidator>,
+    /// The engine API handler
+    engine: Engine,
 }
 
 impl<N: FullNodeComponents> Driver<ExExHeraContext<N>, InMemoryChainProvider, LayeredBlobProvider> {
@@ -77,7 +77,7 @@ impl Driver<StandaloneHeraContext, AlloyChainProvider, DurableBlobProvider> {
             .with_primary(args.l1_beacon_client_url.as_str().trim_end_matches('/').to_string())
             .with_fallback(
                 args.l1_blob_archiver_url
-                    .clone()
+                    .as_ref()
                     .map(|url| url.as_str().trim_end_matches('/').to_string()),
             )
             .build();
@@ -105,23 +105,29 @@ where
         l1_chain_provider: CP,
         blob_provider: BP,
     ) -> Self {
-        let cursor = SyncCursor::new(cfg.channel_timeout);
-        let validator: Box<dyn AttributesValidator> = match args.validation_mode {
-            ValidationMode::Trusted => Box::new(TrustedValidator::new_http(
-                args.l2_rpc_url.clone(),
-                cfg.canyon_time.unwrap_or(0),
-            )),
-            ValidationMode::EngineApi => Box::new(EngineApiValidator::new_http(
-                args.l2_engine_api_url.expect("Missing L2 engine API URL"),
-                match args.l2_engine_jwt_secret.as_ref() {
-                    Some(fpath) => JwtSecret::from_file(fpath).expect("Invalid L2 JWT secret file"),
-                    None => panic!("Missing L2 engine JWT secret"),
-                },
-            )),
+        let trusted_validator = if matches!(args.validation_mode, ValidationMode::Trusted) {
+            let canyon_activation = cfg.canyon_time.unwrap_or(0);
+            Some(TrustedPayloadValidator::new_http(args.l2_rpc_url.clone(), canyon_activation))
+        } else {
+            None
         };
+
+        let l2_jwt_secret = JwtSecret::from_file(&args.l2_engine_jwt_secret).expect("jwt secret");
+        let engine = Engine::new_http(args.l2_engine_api_url, l2_jwt_secret);
+
+        let cursor = SyncCursor::new(cfg.channel_timeout);
         let l2_chain_provider = AlloyL2ChainProvider::new_http(args.l2_rpc_url, cfg.clone());
 
-        Self { cfg, ctx, l1_chain_provider, blob_provider, l2_chain_provider, cursor, validator }
+        Self {
+            cfg,
+            ctx,
+            l1_chain_provider,
+            l2_chain_provider,
+            blob_provider,
+            cursor,
+            trusted_validator,
+            engine,
+        }
     }
 
     /// Wait for the L2 genesis' corresponding L1 block to be available in the L1 chain.
@@ -184,11 +190,17 @@ where
             },
         }
 
-        let derived_attributes = if let Some(attributes) = pipeline.peek() {
-            match self.validator.validate(attributes).await {
+        let Some(derived_attributes) = pipeline.peek() else {
+            debug!("No attributes available to validate");
+            return false;
+        };
+        let derived_block_number = derived_attributes.parent.block_info.number + 1;
+
+        if let Some(trusted_validator) = &self.trusted_validator {
+            match trusted_validator.validate_payload(derived_attributes).await {
                 Ok(true) => {
                     trace!("Validated payload attributes");
-                    pipeline.next().expect("Peeked attributes must be available")
+                    pipeline.next().expect("Peeked attributes must be available");
                 }
                 Ok(false) => {
                     error!("Failed payload attributes validation");
@@ -202,12 +214,14 @@ where
                 }
             }
         } else {
-            debug!("No attributes available to validate");
-            return false;
-        };
+            if let Err(err) = self.engine.validate_payload_fcu(derived_attributes).await {
+                error!("Failed to validate payload attributes: {:?}", err);
+                return false;
+            }
+            pipeline.next().expect("Peeked attributes must be available");
+        }
 
-        let derived = derived_attributes.parent.block_info.number + 1;
-        let (new_l1_origin, new_l2_tip) = match self.fetch_new_tip(derived).await {
+        let (new_l1_origin, new_l2_tip) = match self.fetch_new_tip(derived_block_number).await {
             Ok(tip_info) => tip_info,
             Err(err) => {
                 // TODO: add a retry mechanism?
@@ -217,14 +231,17 @@ where
         };
 
         // Perform a sanity check on the new tip
-        if new_l2_tip.block_info.number != derived {
-            error!("Expected L2 block number {} but got {}", derived, new_l2_tip.block_info.number);
+        if new_l2_tip.block_info.number != derived_block_number {
+            error!(
+                "Expected L2 block {} but got {}",
+                derived_block_number, new_l2_tip.block_info.number
+            );
             return false;
         }
 
         // Advance the cursor to the new L2 block
         self.cursor.advance(new_l1_origin, new_l2_tip);
-        info!("Advanced derivation pipeline to L2 block: {}", derived);
+        info!("Advanced derivation pipeline to L2 block: {}", derived_block_number);
         true
     }
 

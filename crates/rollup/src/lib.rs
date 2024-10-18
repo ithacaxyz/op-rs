@@ -10,8 +10,11 @@ pub use driver::Driver;
 mod cli;
 pub use cli::HeraArgsExt;
 
+mod engine;
+pub use engine::Engine;
+
 mod validator;
-pub use validator::AttributesValidator;
+pub use validator::TrustedPayloadValidator;
 
 mod pipeline;
 pub use pipeline::{new_rollup_pipeline, RollupPipeline};

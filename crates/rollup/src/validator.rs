@@ -7,50 +7,29 @@ use alloy_primitives::Bytes;
 use alloy_provider::{network::primitives::BlockTransactionsKind, Provider, ReqwestProvider};
 use alloy_rpc_types_engine::PayloadAttributes;
 
-use async_trait::async_trait;
 use eyre::{bail, eyre, Result};
 use op_alloy_rpc_types_engine::{OpAttributesWithParent, OpPayloadAttributes};
-use reqwest::{
-    header::{AUTHORIZATION, CONTENT_TYPE},
-    Client, StatusCode,
-};
-use reth::rpc::types::{
-    engine::{Claims, JwtSecret},
-    Header,
-};
+use reth::rpc::types::Header;
 use tracing::error;
 use url::Url;
 
-/// AttributesValidator
-///
-/// A trait that defines the interface for validating newly derived L2 attributes.
-#[async_trait]
-pub trait AttributesValidator: Debug + Send {
-    /// Validates the given [`OpAttributesWithParent`] and returns true
-    /// if the attributes are valid, false otherwise.
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool>;
-}
-
-/// TrustedValidator
-///
-/// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
-/// a trusted L2 RPC and constructing the L2 Attributes from the block.
+/// Trusted node client that validates the [`OpAttributesWithParent`] by fetching the associated L2
+/// block from a trusted L2 RPC and constructing the L2 Attributes from the block.
 #[derive(Debug, Clone)]
-pub struct TrustedValidator {
+pub struct TrustedPayloadValidator {
     /// The L2 provider.
     provider: ReqwestProvider,
     /// The canyon activation timestamp.
     canyon_activation: u64,
 }
 
-impl TrustedValidator {
-    /// Creates a new [`TrustedValidator`].
+impl TrustedPayloadValidator {
+    /// Creates a new [`TrustedPayloadValidator`].
     pub fn new(provider: ReqwestProvider, canyon_activation: u64) -> Self {
         Self { provider, canyon_activation }
     }
 
-    /// Creates a new [`TrustedValidator`] from the provided [Url].
-    #[allow(unused)]
+    /// Creates a new [`TrustedPayloadValidator`] from the provided [Url].
     pub fn new_http(url: Url, canyon_activation: u64) -> Self {
         let inner = ReqwestProvider::new_http(url);
         Self::new(inner, canyon_activation)
@@ -108,11 +87,10 @@ impl TrustedValidator {
             eip_1559_params: None, // TODO: fix this
         })
     }
-}
 
-#[async_trait]
-impl AttributesValidator for TrustedValidator {
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
+    /// Validates the [`OpAttributesWithParent`] by fetching the associated L2 block from
+    /// a trusted L2 RPC and constructing the L2 Attributes from the block.
+    pub async fn validate_payload(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
         let expected = attributes.parent.block_info.number + 1;
         let tag = BlockNumberOrTag::from(expected);
 
@@ -121,65 +99,6 @@ impl AttributesValidator for TrustedValidator {
             Err(err) => {
                 error!(?err, "Failed to fetch payload for block {}", expected);
                 bail!("Failed to fetch payload for block {}: {:?}", expected, err);
-            }
-        }
-    }
-}
-
-/// EngineApiValidator
-///
-/// Validates the [`OpAttributesWithParent`] by sending the attributes to an L2 engine API.
-/// The engine API will return a `VALID` or `INVALID` response.
-#[derive(Debug, Clone)]
-pub struct EngineApiValidator {
-    /// The engine API URL.
-    url: Url,
-    /// The reqwest client.
-    client: Client,
-    /// The JWT secret token for the engine API.
-    jwt_secret: JwtSecret,
-}
-
-impl EngineApiValidator {
-    /// Creates a new [`EngineApiValidator`] from the provided [Url] and [JwtSecret].
-    #[allow(unused)]
-    pub fn new_http(url: Url, jwt: JwtSecret) -> Self {
-        Self { url, client: Client::new(), jwt_secret: jwt }
-    }
-}
-
-#[async_trait]
-impl AttributesValidator for EngineApiValidator {
-    async fn validate(&self, attributes: &OpAttributesWithParent) -> Result<bool> {
-        let request_body = serde_json::json!({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": "engine_newPayloadV2",
-            "params": [attributes.attributes]
-        });
-
-        let claims = Claims::default();
-        let jwt = self.jwt_secret.encode(&claims)?;
-
-        let response = self
-            .client
-            .post(self.url.clone())
-            .header(CONTENT_TYPE, "application/json")
-            .header(AUTHORIZATION, format!("Bearer {}", jwt))
-            .json(&request_body)
-            .send()
-            .await?;
-
-        let status = response.status();
-        let body = response.json::<serde_json::Value>().await?;
-        match status {
-            StatusCode::OK => Ok(body
-                .pointer("/result/status")
-                .and_then(|status| status.as_str())
-                .map_or(false, |status| status == "VALID")),
-            _ => {
-                error!(?body, "Engine API returned status: {}", status);
-                bail!("Engine API returned status: {} and body: {:#?}", status, body);
             }
         }
     }
