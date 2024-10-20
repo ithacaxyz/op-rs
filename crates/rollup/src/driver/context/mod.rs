@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use alloy_eips::eip1898::BlockNumHash;
 use alloy_primitives::{BlockNumber, U256};
-use alloy_rpc_types::{Block, BlockTransactions, Header, Transaction};
+use alloy_rpc_types::{Block, BlockTransactions, Header};
 use async_trait::async_trait;
 use reth_execution_types::Chain;
 use reth_exex::ExExNotification;
@@ -124,131 +124,14 @@ impl From<ExExNotification> for ChainNotification {
 }
 
 fn parse_reth_block_to_alloy_rpc(block: reth::primitives::SealedBlock) -> Block {
-    let transactions = block.body.transactions().map(parse_reth_transaction_to_alloy_rpc).collect();
+    let tx_hashes = block.body.transactions().map(|tx| tx.hash()).collect();
 
     Block {
         header: parse_reth_header_to_alloy_rpc(&block),
         uncles: block.body.ommers.iter().map(|x| x.hash_slow()).collect(),
-        transactions: BlockTransactions::Full(transactions),
+        transactions: BlockTransactions::Hashes(tx_hashes),
         size: Some(U256::from(block.size())),
         withdrawals: block.body.withdrawals.clone().map(|w| w.into_inner()),
-    }
-}
-
-fn parse_reth_transaction_to_alloy_rpc(tx: &reth::primitives::TransactionSigned) -> Transaction {
-    let nonce = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(tx) => tx.nonce,
-        reth::primitives::Transaction::Eip2930(tx) => tx.nonce,
-        reth::primitives::Transaction::Eip1559(tx) => tx.nonce,
-        reth::primitives::Transaction::Eip4844(tx) => tx.nonce,
-        reth::primitives::Transaction::Eip7702(tx) => tx.nonce,
-    };
-
-    let value = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(tx) => tx.value,
-        reth::primitives::Transaction::Eip2930(tx) => tx.value,
-        reth::primitives::Transaction::Eip1559(tx) => tx.value,
-        reth::primitives::Transaction::Eip4844(tx) => tx.value,
-        reth::primitives::Transaction::Eip7702(tx) => tx.value,
-    };
-
-    let gas_price = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(tx) => Some(tx.gas_price),
-        reth::primitives::Transaction::Eip2930(tx) => Some(tx.gas_price),
-        _ => None,
-    };
-
-    let gas = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(tx) => tx.gas_limit,
-        reth::primitives::Transaction::Eip2930(tx) => tx.gas_limit,
-        reth::primitives::Transaction::Eip1559(tx) => tx.gas_limit,
-        reth::primitives::Transaction::Eip4844(tx) => tx.gas_limit,
-        reth::primitives::Transaction::Eip7702(tx) => tx.gas_limit,
-    };
-
-    let max_fee_per_gas = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(_) => None,
-        reth::primitives::Transaction::Eip2930(_) => None,
-        reth::primitives::Transaction::Eip1559(tx) => Some(tx.max_fee_per_gas),
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.max_fee_per_gas),
-        reth::primitives::Transaction::Eip7702(tx) => Some(tx.max_fee_per_gas),
-    };
-
-    let max_priority_fee_per_gas = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(_) => None,
-        reth::primitives::Transaction::Eip2930(_) => None,
-        reth::primitives::Transaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.max_priority_fee_per_gas),
-        reth::primitives::Transaction::Eip7702(tx) => Some(tx.max_priority_fee_per_gas),
-    };
-
-    let max_fee_per_blob_gas = match &tx.transaction {
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.max_fee_per_blob_gas),
-        _ => None,
-    };
-
-    let chain_id = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(tx) => tx.chain_id,
-        reth::primitives::Transaction::Eip2930(tx) => Some(tx.chain_id),
-        reth::primitives::Transaction::Eip1559(tx) => Some(tx.chain_id),
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.chain_id),
-        reth::primitives::Transaction::Eip7702(tx) => Some(tx.chain_id),
-    };
-
-    let blob_versioned_hashes = match &tx.transaction {
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.blob_versioned_hashes.clone()),
-        _ => None,
-    };
-
-    let transaction_type = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(_) => Some(0),
-        reth::primitives::Transaction::Eip2930(_) => Some(1),
-        reth::primitives::Transaction::Eip1559(_) => Some(2),
-        reth::primitives::Transaction::Eip4844(_) => Some(3),
-        reth::primitives::Transaction::Eip7702(_) => Some(4),
-    };
-
-    let authorization_list = match &tx.transaction {
-        reth::primitives::Transaction::Eip7702(tx) => Some(tx.authorization_list.clone()),
-        _ => None,
-    };
-
-    let signature = alloy_rpc_types::Signature {
-        r: tx.signature.r(),
-        s: tx.signature.s(),
-        v: U256::from(tx.signature.v().to_u64()),
-        y_parity: Some(tx.signature.v().y_parity().into()),
-    };
-
-    let access_list = match &tx.transaction {
-        reth::primitives::Transaction::Legacy(_) => None,
-        reth::primitives::Transaction::Eip2930(tx) => Some(tx.access_list.clone()),
-        reth::primitives::Transaction::Eip1559(tx) => Some(tx.access_list.clone()),
-        reth::primitives::Transaction::Eip4844(tx) => Some(tx.access_list.clone()),
-        reth::primitives::Transaction::Eip7702(tx) => Some(tx.access_list.clone()),
-    };
-
-    Transaction {
-        hash: tx.hash(),
-        nonce,
-        block_hash: None,
-        block_number: None,
-        transaction_index: None,
-        from: tx.recover_signer().unwrap(),
-        to: tx.to(),
-        value,
-        gas_price,
-        gas,
-        max_fee_per_gas,
-        max_priority_fee_per_gas,
-        max_fee_per_blob_gas,
-        input: tx.input().clone(),
-        signature: Some(signature),
-        chain_id,
-        blob_versioned_hashes,
-        access_list,
-        transaction_type,
-        authorization_list,
     }
 }
 
