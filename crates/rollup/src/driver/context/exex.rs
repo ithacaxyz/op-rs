@@ -1,10 +1,9 @@
-use alloy_eips::eip1898::BlockNumHash;
+use alloy_eips::BlockNumHash;
 use async_trait::async_trait;
 use futures::StreamExt;
 use kona_providers_local::InMemoryChainProvider;
 use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
-use tokio::sync::mpsc::error::SendError;
 
 use crate::driver::{ChainNotification, DriverContext};
 
@@ -30,7 +29,7 @@ impl<N: FullNodeComponents> ExExHeraContext<N> {
 #[async_trait]
 impl<N: FullNodeComponents> DriverContext for ExExHeraContext<N> {
     async fn recv_notification(&mut self) -> Option<ChainNotification> {
-        let exex_notification = self.ctx.notifications.next().await?;
+        let exex_notification = self.ctx.notifications.next().await?.ok()?;
 
         // Commit the new chain to the L1 cache to make it available to the pipeline
         if let Some(chain) = exex_notification.committed_chain() {
@@ -40,10 +39,10 @@ impl<N: FullNodeComponents> DriverContext for ExExHeraContext<N> {
         Some(ChainNotification::from(exex_notification))
     }
 
-    fn send_processed_tip_event(
-        &mut self,
-        tip: BlockNumHash,
-    ) -> Result<(), SendError<BlockNumHash>> {
-        self.ctx.events.send(ExExEvent::FinishedHeight(tip)).map_err(|_| SendError(tip))
+    fn send_processed_tip_event(&mut self, tip: BlockNumHash) {
+        // The only way this unbounded sender can error is if the receiver is dropped.
+        // For that to happen, the entire ExEx context would be dropped, so we can safely
+        // ignore the error here.
+        let _ = self.ctx.events.send(ExExEvent::FinishedHeight(tip));
     }
 }

@@ -1,7 +1,7 @@
 [workspace.package]
 version = "0.0.0"
 edition = "2021"
-rust-version = "1.81"
+rust-version = "1.82"
 authors = []
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ithacaxyz/op-rs"
@@ -42,7 +42,6 @@ kona-providers-local = { path = "crates/providers-local" }
 # Kona
 kona-derive = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-kona-primitives = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 
 # Superchain
@@ -50,45 +49,46 @@ superchain = { git = "https://github.com/anton-rs/superchain", branch = "main", 
 
 # Alloy
 alloy-rlp = { version = "0.3.8", default-features = false }
-alloy-eips = { version = "0.4", default-features = false }
-alloy-signer = { version = "0.4.2", default-features = false }
-alloy-network = { version = "0.4.2", default-features = false }
-alloy-provider = { version = "0.4.2", default-features = false }
-alloy-contract = { version = "0.4.2", default-features = false }
-alloy-transport = { version = "0.4.2", default-features = false }
-alloy-rpc-types = { version = "0.4.2", default-features = false }
-alloy-consensus = { version = "0.4.2", default-features = false }
+alloy-eips = { version = "0.5", default-features = false }
+alloy-signer = { version = "0.5.2", default-features = false }
+alloy-network = { version = "0.5.2", default-features = false }
+alloy-provider = { version = "0.5.2", default-features = false }
+alloy-contract = { version = "0.5.2", default-features = false }
+alloy-transport = { version = "0.5.2", default-features = false }
+alloy-rpc-types = { version = "0.5.2", default-features = false }
+alloy-consensus = { version = "0.5.2", default-features = false }
 alloy-primitives = { version = "0.8.8", default-features = false }
-alloy-rpc-client = { version = "0.4.2", default-features = false }
-alloy-transport-http = { version = "0.4.2", default-features = false }
-alloy-rpc-types-engine = { version = "0.4.2", default-features = false }
+alloy-rpc-client = { version = "0.5.2", default-features = false }
+alloy-rpc-types-eth = { version = "0.5.2", default-features = false }
+alloy-transport-http = { version = "0.5.2", default-features = false }
+alloy-rpc-types-engine = { version = "0.5.2", default-features = false }
 
 # Op Alloy
-op-alloy-genesis = { version = "0.4.0", default-features = false }
-op-alloy-provider = { version = "0.4.0", default-features = false }
-op-alloy-protocol = { version = "0.4.0", default-features = false }
-op-alloy-consensus = { version = "0.4.0", default-features = false }
-op-alloy-rpc-types = { version = "0.4.0", default-features = false }
-op-alloy-rpc-jsonrpsee = { version = "0.4.0", default-features = false }
-op-alloy-rpc-types-engine = { version = "0.4.0", default-features = false }
+op-alloy-genesis = { version = "0.5.0", default-features = false }
+op-alloy-provider = { version = "0.5.0", default-features = false }
+op-alloy-protocol = { version = "0.5.0", default-features = false }
+op-alloy-consensus = { version = "0.5.0", default-features = false }
+op-alloy-rpc-types = { version = "0.5.0", default-features = false }
+op-alloy-rpc-jsonrpsee = { version = "0.5.0", default-features = false }
+op-alloy-rpc-types-engine = { version = "0.5.0", default-features = false }
 
 # Reth
-reth = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-exex = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-discv5 = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-node-api = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-chainspec = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-network-peers = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-execution-types = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
-reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", rev = "a846cbd" }
+reth = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-exex = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-discv5 = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-network-peers = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }

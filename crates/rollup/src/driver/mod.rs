@@ -1,7 +1,6 @@
 //! Rollup Node Driver
 
-use alloy_eips::eip1898::BlockNumHash;
-use reth::rpc::types::engine::JwtSecret;
+use alloy_rpc_types_engine::JwtSecret;
 use std::{fmt::Debug, sync::Arc};
 
 use eyre::{bail, eyre, Result};
@@ -136,18 +135,15 @@ where
             if let Some(notification) = self.ctx.recv_notification().await {
                 if let Some(new_chain) = notification.new_chain() {
                     let tip = new_chain.tip();
+                    self.ctx.send_processed_tip_event(tip);
 
-                    if let Err(err) = self.ctx.send_processed_tip_event(BlockNumHash {
-                        number: tip,
-                        ..Default::default()
-                    }) {
-                        bail!("Failed to send processed tip event: {:?}", err);
-                    }
-
-                    if tip >= self.cfg.genesis.l1.number {
+                    if tip.number >= self.cfg.genesis.l1.number {
                         break Ok(());
                     }
-                    debug!("Chain not yet synced to rollup genesis. L1 block number: {}", tip);
+                    debug!(
+                        "Chain not yet synced to rollup genesis. L1 block number: {}",
+                        tip.number
+                    );
                 }
             }
         }
@@ -268,37 +264,22 @@ where
             // The reverted chain contains the list of blocks that were invalidated by the
             // reorg. we need to reset the cursor to the last canonical block, which corresponds
             // to the block before the reorg happened.
-            let fork_block = reverted_chain.fork_block();
+            let fork_block = reverted_chain.fork_block_number();
 
             // Find the last known L2 block that is still valid after the reorg,
             // and reset the cursor and pipeline to it.
-            let (l2_safe_tip, l2_safe_tip_l1_origin) = self.cursor.reset(fork_block);
+            let (l2_safe_head, l1_origin) = self.cursor.reset(fork_block);
 
-            warn!("Reverting derivation pipeline to L2 block: {}", l2_safe_tip.block_info.number);
-            if let Err(e) = pipeline
-                .signal(
-                    ResetSignal {
-                        l1_origin: l2_safe_tip_l1_origin,
-                        l2_safe_head: l2_safe_tip,
-                        ..Default::default()
-                    }
-                    .signal(),
-                )
-                .await
-            {
+            warn!("Resetting derivation pipeline to L2 block: {}", l2_safe_head.block_info.number);
+            let reset_signal = ResetSignal { l1_origin, l2_safe_head, ..Default::default() };
+            if let Err(e) = pipeline.signal(reset_signal.signal()).await {
                 bail!("Failed to reset pipeline: {:?}", e);
             }
         }
 
         if let Some(new_chain) = notification.new_chain() {
             let tip = new_chain.tip();
-
-            if let Err(err) = self
-                .ctx
-                .send_processed_tip_event(BlockNumHash { number: tip, ..Default::default() })
-            {
-                bail!("Failed to send processed tip event: {:?}", err);
-            }
+            self.ctx.send_processed_tip_event(tip);
         }
 
         Ok(())

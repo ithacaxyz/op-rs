@@ -23,10 +23,10 @@ alloy-provider = { workspace = true, features = ["ipc"] }
 alloy-transport.workspace = true
 alloy-transport-http = { workspace = true, features = ["jwt-auth"] }
 alloy-network.workspace = true
-alloy-consensus.workspace = true
 alloy-rpc-types = { workspace = true, features = ["ssz"] }
 alloy-rpc-client.workspace = true
 alloy-rpc-types-engine.workspace = true
+alloy-rpc-types-eth.workspace = true
 
 # Op Alloy
 op-alloy-genesis.workspace = true

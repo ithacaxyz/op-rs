@@ -7,8 +7,7 @@ use alloy_eips::eip4844::Blob;
 use alloy_primitives::B256;
 use async_trait::async_trait;
 use eyre::{eyre, Result};
-use kona_derive::{errors::BlobProviderError, traits::BlobProvider};
-use kona_primitives::IndexedBlobHash;
+use kona_derive::{errors::BlobProviderError, sources::IndexedBlobHash, traits::BlobProvider};
 use kona_providers_alloy::{
     OnlineBeaconClient, OnlineBlobProviderBuilder, OnlineBlobProviderWithFallback,
 };
@@ -120,7 +119,7 @@ impl LayeredBlobProvider {
         &mut self,
         block_ref: &BlockInfo,
         blob_hashes: &[IndexedBlobHash],
-    ) -> Result<Vec<Blob>> {
+    ) -> Result<Vec<Box<Blob>>> {
         let locked = self.memory.lock();
 
         let sidecars_for_block = locked
@@ -136,7 +135,7 @@ impl LayeredBlobProvider {
         for sidecar in sidecars_for_block {
             for (hash, blob) in sidecar.versioned_hashes().zip(&sidecar.blobs) {
                 if requested_hashes.contains(&hash) {
-                    blobs.push(*blob);
+                    blobs.push(Box::new(*blob));
                 }
             }
         }
@@ -150,7 +149,7 @@ impl LayeredBlobProvider {
         &mut self,
         block_ref: &BlockInfo,
         blob_hashes: &[IndexedBlobHash],
-    ) -> Result<Vec<Blob>, BlobProviderError> {
+    ) -> Result<Vec<Box<Blob>>, BlobProviderError> {
         self.online.get_blobs(block_ref, blob_hashes).await
     }
 }
@@ -164,7 +163,7 @@ impl BlobProvider for LayeredBlobProvider {
         &mut self,
         block_ref: &BlockInfo,
         blob_hashes: &[IndexedBlobHash],
-    ) -> Result<Vec<Blob>, BlobProviderError> {
+    ) -> Result<Vec<Box<Blob>>, BlobProviderError> {
         if let Ok(b) = self.memory_blob_load(block_ref, blob_hashes).await {
             return Ok(b);
         }

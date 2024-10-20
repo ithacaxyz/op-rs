@@ -1,21 +1,16 @@
 use hashbrown::HashMap;
 use std::{collections::BTreeMap, time::Duration};
 
-use alloy_consensus::TxEnvelope;
 use alloy_eips::{eip1898::BlockNumHash, BlockId};
 use alloy_network::Ethereum;
 use alloy_primitives::{BlockNumber, B256};
 use alloy_provider::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect};
-use alloy_rpc_types::Block;
+use alloy_rpc_types_eth::Block;
 use alloy_transport::{TransportErrorKind, TransportResult};
 
 use async_trait::async_trait;
 use futures::StreamExt;
-use reth::rpc::types::BlockTransactions;
-use tokio::{
-    sync::mpsc::{self, error::SendError},
-    task::JoinHandle,
-};
+use tokio::{sync::mpsc, task::JoinHandle};
 use tracing::{debug, error, warn};
 use url::Url;
 
@@ -35,14 +30,14 @@ pub struct StandaloneHeraContext {
     /// The current tip of the L1 chain listener, used to detect reorgs
     l1_tip: BlockNumHash,
     /// Channel that receives new blocks from the L1 node
-    new_block_rx: mpsc::Receiver<Block<TxEnvelope>>,
+    new_block_rx: mpsc::Receiver<Block>,
     /// The highest block that was successfully processed by the driver.
     /// We can safely prune all cached blocks below this tip once they
     /// become finalized on L1.
     processed_tip: BlockNumHash,
     /// Cache of blocks that might be reorged out. In normal conditions,
     /// this cache will not grow beyond [`FINALIZATION_TIMEOUT`] keys.
-    reorg_cache: BTreeMap<BlockNumber, HashMap<B256, Block<TxEnvelope>>>,
+    reorg_cache: BTreeMap<BlockNumber, HashMap<B256, Block>>,
     /// Handle to the background task that fetches and processes new blocks.
     _handle: JoinHandle<()>,
 }
@@ -74,10 +69,9 @@ impl StandaloneHeraContext {
                 let mut stream = new_block_hashes.into_stream();
                 while let Some(hashes) = stream.next().await {
                     for hash in hashes {
-                        match client.get_block_by_hash(hash, true.into()).await {
+                        match client.get_block_by_hash(hash, false.into()).await {
                             Ok(Some(block)) => {
-                                let block_with_txs = parse_reth_rpc_block(block);
-                                if let Err(e) = new_block_tx.try_send(block_with_txs) {
+                                if let Err(e) = new_block_tx.try_send(block) {
                                     error!("Failed to send new block to channel: {:?}", e);
                                 }
                             }
@@ -117,11 +111,12 @@ impl StandaloneHeraContext {
                                 hash = block.header.hash;
 
                                 // Every time we get a new hash, fetch the full block
-                                match client.get_block_by_hash(block.header.hash, true.into()).await
+                                match client
+                                    .get_block_by_hash(block.header.hash, false.into())
+                                    .await
                                 {
                                     Ok(Some(full_block)) => {
-                                        let block_with_txs = parse_reth_rpc_block(full_block);
-                                        if let Err(e) = new_block_tx.try_send(block_with_txs) {
+                                        if let Err(e) = new_block_tx.try_send(full_block) {
                                             error!("Failed to send new block to channel: {:?}", e);
                                         }
                                     }
@@ -155,8 +150,7 @@ impl StandaloneHeraContext {
         let mut block_sub = client.subscribe_blocks().await?.into_stream();
         let _handle = tokio::spawn(async move {
             while let Some(block) = block_sub.next().await {
-                let block_with_txs_decoded = parse_reth_rpc_block(block);
-                if let Err(e) = new_block_tx.try_send(block_with_txs_decoded) {
+                if let Err(e) = new_block_tx.try_send(block) {
                     error!("Failed to send new block to channel: {:?}", e);
                 }
             }
@@ -174,8 +168,7 @@ impl StandaloneHeraContext {
         let mut block_sub = client.subscribe_blocks().await?.into_stream();
         let _handle = tokio::spawn(async move {
             while let Some(block) = block_sub.next().await {
-                let block_with_txs_decoded = parse_reth_rpc_block(block);
-                if let Err(e) = new_block_tx.try_send(block_with_txs_decoded) {
+                if let Err(e) = new_block_tx.try_send(block) {
                     error!("Failed to send new block to channel: {:?}", e);
                 }
             }
@@ -185,10 +178,7 @@ impl StandaloneHeraContext {
     }
 
     /// Create a new standalone context with the given new block receiver and handle.
-    fn with_defaults(
-        new_block_rx: mpsc::Receiver<Block<TxEnvelope>>,
-        _handle: JoinHandle<()>,
-    ) -> Self {
+    fn with_defaults(new_block_rx: mpsc::Receiver<Block>, _handle: JoinHandle<()>) -> Self {
         Self {
             new_block_rx,
             _handle,
@@ -225,39 +215,15 @@ impl DriverContext for StandaloneHeraContext {
         Some(ChainNotification::New { new_blocks: Blocks::from(block) })
     }
 
-    fn send_processed_tip_event(
-        &mut self,
-        tip: BlockNumHash,
-    ) -> Result<(), SendError<BlockNumHash>> {
+    fn send_processed_tip_event(&mut self, tip: BlockNumHash) {
         self.processed_tip = tip;
-        Ok(())
-    }
-}
-
-// from reth::rpc::types::Block to alloy_rpc_types::Block<TxEnvelope>
-fn parse_reth_rpc_block(block: Block) -> Block<TxEnvelope> {
-    let txs = block
-        .transactions
-        .as_transactions()
-        .unwrap_or_default()
-        .iter()
-        .cloned()
-        .flat_map(|tx| TxEnvelope::try_from(tx).ok())
-        .collect::<Vec<_>>();
-
-    Block {
-        header: block.header,
-        uncles: block.uncles,
-        transactions: BlockTransactions::Full(txs),
-        size: block.size,
-        withdrawals: block.withdrawals,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_rpc_types::Header;
+    use alloy_rpc_types::{BlockTransactions, Header};
 
     #[tokio::test]
     async fn test_http_poller() -> eyre::Result<()> {
@@ -330,13 +296,11 @@ mod tests {
         let mut ctx = StandaloneHeraContext::with_defaults(rx, handle);
 
         // Send a processed tip event
-        let result =
-            ctx.send_processed_tip_event(BlockNumHash { number: 100, ..Default::default() });
-        assert!(result.is_ok());
+        ctx.send_processed_tip_event(BlockNumHash { number: 100, ..Default::default() });
     }
 
     // Helper function to create a mock Block<TxEnvelope>
-    fn create_mock_block(number: u64) -> Block<TxEnvelope> {
+    fn create_mock_block(number: u64) -> Block {
         Block {
             header: Header { number, hash: B256::random(), ..Default::default() },
             transactions: BlockTransactions::Full(vec![]),

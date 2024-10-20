@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use eyre::{bail, Result};
-use reth::{args::utils::EthereumChainSpecParser, cli::Cli};
+use reth::{chainspec::EthereumChainSpecParser, cli::Cli};
 use reth_node_ethereum::EthereumNode;
 use tracing::{info, warn};
 
