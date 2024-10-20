@@ -69,7 +69,7 @@ impl StandaloneHeraContext {
                 let mut stream = new_block_hashes.into_stream();
                 while let Some(hashes) = stream.next().await {
                     for hash in hashes {
-                        match client.get_block_by_hash(hash, true.into()).await {
+                        match client.get_block_by_hash(hash, false.into()).await {
                             Ok(Some(block)) => {
                                 if let Err(e) = new_block_tx.try_send(block) {
                                     error!("Failed to send new block to channel: {:?}", e);
@@ -111,7 +111,9 @@ impl StandaloneHeraContext {
                                 hash = block.header.hash;
 
                                 // Every time we get a new hash, fetch the full block
-                                match client.get_block_by_hash(block.header.hash, true.into()).await
+                                match client
+                                    .get_block_by_hash(block.header.hash, false.into())
+                                    .await
                                 {
                                     Ok(Some(full_block)) => {
                                         if let Err(e) = new_block_tx.try_send(full_block) {
