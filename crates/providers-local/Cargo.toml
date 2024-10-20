@@ -25,7 +25,6 @@ op-alloy-protocol.workspace = true
 kona-derive.workspace = true
 kona-providers.workspace = true
 kona-providers-alloy.workspace = true
-kona-primitives.workspace = true
 
 # Reth
 reth.workspace = true

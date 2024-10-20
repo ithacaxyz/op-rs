@@ -105,8 +105,7 @@ impl InMemoryChainProviderInner {
     /// Commits [Header]s to the provider.
     fn commit_headers(&mut self, chain: &Arc<Chain>) {
         for header in chain.headers() {
-            // TODO: won't need to coerce once reth uses alloy types
-            self.hash_to_header.insert(header.hash(), reth_to_alloy_header(&header));
+            self.hash_to_header.insert(header.hash(), (*header).clone());
         }
     }
 
@@ -220,32 +219,6 @@ impl ChainProvider for InMemoryChainProvider {
             self.0.read().hash_to_txs.get(&hash).cloned().ok_or_else(|| eyre!("Tx not found"))?;
 
         Ok((block_info, txs))
-    }
-}
-
-pub fn reth_to_alloy_header(header: &reth::primitives::SealedHeader) -> Header {
-    Header {
-        parent_hash: header.parent_hash,
-        ommers_hash: header.ommers_hash,
-        beneficiary: header.beneficiary,
-        state_root: header.state_root,
-        requests_root: header.requests_root,
-        transactions_root: header.transactions_root,
-        receipts_root: header.receipts_root,
-        withdrawals_root: header.withdrawals_root,
-        logs_bloom: header.logs_bloom,
-        difficulty: header.difficulty,
-        number: header.number,
-        gas_limit: header.gas_limit,
-        gas_used: header.gas_used,
-        timestamp: header.timestamp,
-        mix_hash: header.mix_hash,
-        nonce: header.nonce,
-        base_fee_per_gas: header.base_fee_per_gas,
-        blob_gas_used: header.blob_gas_used,
-        excess_blob_gas: header.excess_blob_gas,
-        parent_beacon_block_root: header.parent_beacon_block_root,
-        extra_data: header.extra_data.clone(),
     }
 }
 

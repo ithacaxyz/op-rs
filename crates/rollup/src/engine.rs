@@ -4,6 +4,7 @@ use alloy_network::AnyNetwork;
 use alloy_primitives::Bytes;
 use alloy_provider::RootProvider;
 use alloy_rpc_client::RpcClient;
+use alloy_rpc_types_engine::{ForkchoiceState, JwtSecret};
 use alloy_transport_http::{
     hyper_util::{
         client::legacy::{connect::HttpConnector, Client},
@@ -15,7 +16,6 @@ use eyre::Result;
 use http_body_util::Full;
 use op_alloy_provider::ext::engine::OpEngineApi;
 use op_alloy_rpc_types_engine::OpAttributesWithParent;
-use reth::rpc::types::engine::{ForkchoiceState, JwtSecret};
 use tower::ServiceBuilder;
 use tracing::warn;
 use url::Url;
