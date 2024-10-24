@@ -20,7 +20,7 @@ pub struct GossipCommand {
 }
 
 impl GossipCommand {
-    /// Run the discovery subcommand.
+    /// Run the gossip subcommand.
     pub async fn run(self, args: &GlobalArgs) -> Result<()> {
         let signer = ROLLUP_CONFIGS
             .get(&args.l2_chain_id)
