@@ -62,7 +62,7 @@ impl InnerBlobProvider {
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             capacity: cap,
-            blocks_to_blob_sidecars: HashMap::with_capacity(cap),
+            blocks_to_blob_sidecars: HashMap::default(),
             key_order: VecDeque::with_capacity(cap),
         }
     }

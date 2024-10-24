@@ -4241,7 +4241,7 @@ dependencies = [
 [[package]]
 name = "kona-derive"
 version = "0.0.3"
-source = "git+https://github.com/anton-rs/kona?branch=main#3d859f45b6576a37acebecd69499aa8f29a00f19"
+source = "git+https://github.com/anton-rs/kona?branch=main#330deeb1380c1e9cdca9efaf075e43a789211559"
 dependencies = [
  "alloc-no-stdlib",
  "alloy-consensus",
@@ -4265,7 +4265,7 @@ dependencies = [
 [[package]]
 name = "kona-derive-alloy"
 version = "0.0.1"
-source = "git+https://github.com/anton-rs/kona?branch=main#3d859f45b6576a37acebecd69499aa8f29a00f19"
+source = "git+https://github.com/anton-rs/kona?branch=main#330deeb1380c1e9cdca9efaf075e43a789211559"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -9952,9 +9952,8 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "superchain"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c68564637ddd4598be6a84dbb420e0fe08bacb79a4372ba67733d8b3488ce26d"
+version = "0.9.2"
+source = "git+https://github.com/anton-rs/superchain?branch=main#ebb7ee237da081a2107466da3adb29fac97f64ae"
 dependencies = [
  "alloy-primitives",
  "lazy_static",

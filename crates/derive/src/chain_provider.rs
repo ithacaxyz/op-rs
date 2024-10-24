@@ -72,10 +72,10 @@ impl InMemoryChainProviderInner {
         Self {
             capacity: cap,
             key_order: VecDeque::new(),
-            hash_to_header: HashMap::with_capacity(cap),
-            hash_to_block_info: HashMap::with_capacity(cap),
-            hash_to_receipts: HashMap::with_capacity(cap),
-            hash_to_txs: HashMap::with_capacity(cap),
+            hash_to_header: HashMap::default(),
+            hash_to_block_info: HashMap::default(),
+            hash_to_receipts: HashMap::default(),
+            hash_to_txs: HashMap::default(),
         }
     }
 
