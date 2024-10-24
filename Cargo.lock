@@ -4241,7 +4241,7 @@ dependencies = [
 [[package]]
 name = "kona-derive"
 version = "0.0.3"
-source = "git+https://github.com/anton-rs/kona?branch=main#d3793d86d2ca4f59b111ef41aba4638c32c5daaa"
+source = "git+https://github.com/anton-rs/kona?branch=main#3d859f45b6576a37acebecd69499aa8f29a00f19"
 dependencies = [
  "alloc-no-stdlib",
  "alloy-consensus",
@@ -4265,7 +4265,7 @@ dependencies = [
 [[package]]
 name = "kona-derive-alloy"
 version = "0.0.1"
-source = "git+https://github.com/anton-rs/kona?branch=main#d3793d86d2ca4f59b111ef41aba4638c32c5daaa"
+source = "git+https://github.com/anton-rs/kona?branch=main#3d859f45b6576a37acebecd69499aa8f29a00f19"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
