@@ -1,37 +1,28 @@
-//! Networking subcommand for Hera.
+//! Gossip subcommand for Hera.
 
 use crate::globals::GlobalArgs;
 use clap::Args;
 use eyre::Result;
-use op_net::{discovery::builder::DiscoveryBuilder, driver::NetworkDriver};
+use op_net::driver::NetworkDriver;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use superchain::ROLLUP_CONFIGS;
 
-/// The Hera network subcommand.
+/// The Hera gossip subcommand.
 #[derive(Debug, Clone, Args)]
 #[non_exhaustive]
-pub struct NetworkCommand {
-    /// Run the peer discovery service.
-    #[clap(long, short = 'p', help = "Runs only peer discovery")]
-    pub only_disc: bool,
+pub struct GossipCommand {
     /// Port to listen for gossip on.
     #[clap(long, short = 'l', default_value = "9099", help = "Port to listen for gossip on")]
     pub gossip_port: u16,
+    /// Interval to send discovery packets.
+    #[clap(long, short = 'i', default_value = "1", help = "Interval to send discovery packets")]
+    pub interval: u64,
 }
 
-impl NetworkCommand {
-    /// Run the network subcommand.
+impl GossipCommand {
+    /// Run the discovery subcommand.
     pub async fn run(self, args: &GlobalArgs) -> Result<()> {
-        if self.only_disc {
-            self.run_discovery(args).await
-        } else {
-            self.run_network(args)
-        }
-    }
-
-    /// Runs the full network.
-    pub fn run_network(&self, args: &GlobalArgs) -> Result<()> {
-        let signer = ROLLUP_CONFIGS
+         let signer = ROLLUP_CONFIGS
             .get(&args.l2_chain_id)
             .ok_or(eyre::eyre!("No rollup config found for chain ID"))?
             .genesis
@@ -39,16 +30,21 @@ impl NetworkCommand {
             .as_ref()
             .ok_or(eyre::eyre!("No system config found for chain ID"))?
             .batcher_address;
+        tracing::info!("Gossip configured with signer: {:?}", signer);
+
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), self.gossip_port);
+        tracing::info!("Starting gossip driver on {:?}", socket);
+
         let mut driver = NetworkDriver::builder()
             .with_chain_id(args.l2_chain_id)
             .with_unsafe_block_signer(signer)
             .with_gossip_addr(socket)
+            .with_interval(std::time::Duration::from_secs(self.interval))
             .build()?;
         let recv =
             driver.take_unsafe_block_recv().ok_or(eyre::eyre!("No unsafe block receiver"))?;
         driver.start()?;
-        tracing::info!("Running network service");
+        tracing::info!("Gossip driver started, receiving blocks.");
         loop {
             match recv.recv() {
                 Ok(block) => {
@@ -56,25 +52,6 @@ impl NetworkCommand {
                 }
                 Err(e) => {
                     tracing::warn!("Failed to receive unsafe block: {:?}", e);
-                }
-            }
-        }
-    }
-
-    /// Runs only the discovery service.
-    pub async fn run_discovery(&self, args: &GlobalArgs) -> Result<()> {
-        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), self.gossip_port);
-        let mut discovery_builder =
-            DiscoveryBuilder::new().with_address(socket).with_chain_id(args.l2_chain_id);
-        let discovery = discovery_builder.build()?;
-        let mut peer_recv = discovery.start()?;
-        loop {
-            match peer_recv.recv().await {
-                Some(peer) => {
-                    tracing::info!("Received peer: {:?}", peer);
-                }
-                None => {
-                    tracing::warn!("Failed to receive peer");
                 }
             }
         }

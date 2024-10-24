@@ -24,6 +24,8 @@ pub struct DiscoveryDriver {
     pub disc: Discv5,
     /// The chain ID of the network.
     pub chain_id: u64,
+    /// The interval to discovery random nodes.
+    pub interval: Duration,
 }
 
 impl DiscoveryDriver {
@@ -34,7 +36,7 @@ impl DiscoveryDriver {
 
     /// Instantiates a new [DiscoveryDriver].
     pub fn new(disc: Discv5, chain_id: u64) -> Self {
-        Self { disc, chain_id }
+        Self { disc, chain_id, interval: Duration::from_secs(10) }
     }
 
     /// Spawns a new [Discv5] discovery service in a new tokio task.
@@ -108,7 +110,7 @@ impl DiscoveryDriver {
                     }
                 }
 
-                sleep(Duration::from_secs(10)).await;
+                sleep(self.interval).await;
             }
         });
 

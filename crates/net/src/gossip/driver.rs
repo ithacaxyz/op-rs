@@ -43,13 +43,19 @@ impl GossipDriver {
         self.swarm.select_next_some().await
     }
 
+    /// Returns the number of connected peers.
+    pub fn connected_peers(&self) -> usize {
+        self.swarm.connected_peers().count()
+    }
+
     /// Dials the given [`Option<Multiaddr>`].
     pub async fn dial_opt(&mut self, peer: Option<impl Into<Multiaddr>>) {
         let Some(addr) = peer else {
             return;
         };
-        if let Err(e) = self.dial(addr).await {
-            error!("Failed to dial peer: {:?}", e);
+        match self.dial(addr).await {
+            Ok(_) => info!("Dialed peer"),
+            Err(e) => error!("Failed to dial peer: {:?}", e),
         }
     }
 
