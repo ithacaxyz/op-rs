@@ -1,7 +1,7 @@
 use alloy_eips::BlockNumHash;
 use async_trait::async_trait;
 use futures::StreamExt;
-use kona_providers_local::InMemoryChainProvider;
+use kona_derive_local::InMemoryChainProvider;
 use reth_exex::{ExExContext, ExExEvent};
 use reth_node_api::FullNodeComponents;
 

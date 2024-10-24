@@ -7,11 +7,10 @@ use eyre::{bail, eyre, Result};
 use kona_derive::{
     errors::{PipelineError, PipelineErrorKind},
     pipeline::{Pipeline, StepResult},
-    traits::{BlobProvider, ResetSignal, SignalReceiver},
+    traits::{BlobProvider, ChainProvider, L2ChainProvider, ResetSignal, SignalReceiver},
 };
-use kona_providers::{ChainProvider, L2ChainProvider};
-use kona_providers_alloy::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder};
-use kona_providers_local::{DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider};
+use kona_derive_alloy::{AlloyChainProvider, AlloyL2ChainProvider, OnlineBlobProviderBuilder};
+use kona_derive_local::{DurableBlobProvider, InMemoryChainProvider, LayeredBlobProvider};
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};
 use reth_exex::ExExContext;

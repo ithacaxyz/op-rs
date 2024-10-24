@@ -7,13 +7,12 @@ use kona_derive::{
     pipeline::{DerivationPipeline, PipelineBuilder},
     sources::EthereumDataSource,
     stages::{
-        AttributesQueue, BatchQueue, BatchStream, ChannelProvider, ChannelReader, FrameQueue,
+        AttributesQueue, BatchProvider, BatchStream, ChannelProvider, ChannelReader, FrameQueue,
         L1Retrieval, L1Traversal,
     },
-    traits::BlobProvider,
+    traits::{BlobProvider, ChainProvider},
 };
-use kona_providers::ChainProvider;
-use kona_providers_alloy::AlloyL2ChainProvider;
+use kona_derive_alloy::AlloyL2ChainProvider;
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::BlockInfo;
 
@@ -22,9 +21,9 @@ use op_alloy_protocol::BlockInfo;
 type L1FrameQueue<CP, BP> = FrameQueue<L1Retrieval<EthereumDataSource<CP, BP>, L1Traversal<CP>>>;
 
 /// A concrete [NextAttributes](kona_derive::traits::NextAttributes) stage implementation that
-/// accepts batches from the [BatchQueue] stage and transforms them into payload attributes.
+/// accepts batches from the [BatchProvider] stage and transforms them into payload attributes.
 type L1AttributesQueue<CP, BP, L2CP> = AttributesQueue<
-    BatchQueue<BatchStream<ChannelReader<ChannelProvider<L1FrameQueue<CP, BP>>>, L2CP>, L2CP>,
+    BatchProvider<BatchStream<ChannelReader<ChannelProvider<L1FrameQueue<CP, BP>>>, L2CP>, L2CP>,
     StatefulAttributesBuilder<CP, L2CP>,
 >;
 

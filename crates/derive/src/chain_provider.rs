@@ -1,19 +1,18 @@
 //! Chain Provider
 
 use alloc::{boxed::Box, collections::vec_deque::VecDeque, sync::Arc, vec::Vec};
-use hashbrown::HashMap;
+use alloy_primitives::{map::HashMap, B256};
 
 use alloy_consensus::{
     Header, Receipt, Signed, TxEip1559, TxEip2930, TxEip4844, TxEip4844Variant, TxEnvelope,
     TxLegacy,
 };
 use alloy_eips::BlockNumHash;
-use alloy_primitives::B256;
 use alloy_rlp::{Decodable, Encodable};
 use alloy_signer::Signature;
 use async_trait::async_trait;
 use eyre::eyre;
-use kona_providers::ChainProvider;
+use kona_derive::traits::ChainProvider;
 use op_alloy_protocol::BlockInfo;
 use parking_lot::RwLock;
 use reth::{primitives::Transaction, providers::Chain};
@@ -73,10 +72,10 @@ impl InMemoryChainProviderInner {
         Self {
             capacity: cap,
             key_order: VecDeque::new(),
-            hash_to_header: HashMap::with_capacity(cap),
-            hash_to_block_info: HashMap::with_capacity(cap),
-            hash_to_receipts: HashMap::with_capacity(cap),
-            hash_to_txs: HashMap::with_capacity(cap),
+            hash_to_header: HashMap::default(),
+            hash_to_block_info: HashMap::default(),
+            hash_to_receipts: HashMap::default(),
+            hash_to_txs: HashMap::default(),
         }
     }
 

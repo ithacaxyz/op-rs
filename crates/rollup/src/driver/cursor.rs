@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use alloy_primitives::map::HashMap;
 use std::collections::{BTreeMap, VecDeque};
 
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};
@@ -35,7 +35,7 @@ impl SyncCursor {
             capacity,
             channel_timeout,
             l1_origin_key_order: VecDeque::with_capacity(capacity),
-            l1_origin_block_info: HashMap::with_capacity(capacity),
+            l1_origin_block_info: HashMap::default(),
             l1_origin_to_l2_blocks: BTreeMap::new(),
         }
     }

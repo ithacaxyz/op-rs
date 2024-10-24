@@ -1,9 +1,8 @@
-use hashbrown::HashMap;
 use std::{collections::BTreeMap, time::Duration};
 
 use alloy_eips::{eip1898::BlockNumHash, BlockId};
 use alloy_network::Ethereum;
-use alloy_primitives::{BlockNumber, B256};
+use alloy_primitives::{map::HashMap, BlockNumber, B256};
 use alloy_provider::{IpcConnect, Provider, ProviderBuilder, ReqwestProvider, WsConnect};
 use alloy_rpc_types_eth::Block;
 use alloy_transport::{TransportErrorKind, TransportResult};

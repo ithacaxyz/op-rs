@@ -12,13 +12,12 @@ categories.workspace = true
 [dependencies]
 # Kona
 kona-derive.workspace = true
-kona-providers.workspace = true
-kona-providers-alloy.workspace = true
-kona-providers-local.workspace = true
+kona-derive-alloy.workspace = true
+kona-derive-local.workspace = true
 
 # Alloy
 alloy-eips.workspace = true
-alloy-primitives.workspace = true
+alloy-primitives = { workspace = true, features = ["map"] }
 alloy-provider = { workspace = true, features = ["ipc"] }
 alloy-transport.workspace = true
 alloy-transport-http = { workspace = true, features = ["jwt-auth"] }
@@ -44,10 +43,10 @@ reth-execution-types.workspace = true
 reth-exex = { workspace = true, features = ["serde"] }
 
 # Telemetry
-tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }   
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "fmt"] }
 metrics-exporter-prometheus = { version = "0.16.0", features = ["http-listener"] }
 
-# Misc 
+# Misc
 url.workspace = true
 serde_json.workspace = true
 eyre.workspace = true
@@ -55,7 +54,6 @@ tracing.workspace = true
 async-trait.workspace = true
 tokio.workspace = true
 futures.workspace = true
-hashbrown.workspace = true
 tower.workspace = true
 http-body-util.workspace = true
 clap = { workspace = true, features = ["derive", "env"] }
