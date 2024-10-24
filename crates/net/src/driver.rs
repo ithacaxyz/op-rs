@@ -53,13 +53,11 @@ impl NetworkDriver {
             loop {
                 select! {
                     peer = peer_recv.recv() => {
-                        tracing::info!("Received peer from discovery: {:?}", peer);
-                        tracing::info!("Dialing peer: {:?}", peer);
-                        self.gossip.dial_opt(peer).await;
-                        tracing::info!("Connected peers: {:?}", self.gossip.connected_peers());
+                        self.gossip.dial_opt(peer.clone()).await;
+                        tracing::info!("Received peer: {:?} | Connected peers: {:?}", peer, self.gossip.connected_peers());
                     },
                     event = self.gossip.select_next_some() => {
-                        tracing::info!("Received event: {:?}", event);
+                        tracing::debug!("Received event: {:?}", event);
                         self.gossip.handle_event(event);
                     },
                 }

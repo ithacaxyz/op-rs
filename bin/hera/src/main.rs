@@ -8,8 +8,8 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-mod globals;
 mod disc;
+mod globals;
 mod gossip;
 mod node;
 
