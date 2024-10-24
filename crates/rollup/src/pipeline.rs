@@ -10,10 +10,9 @@ use kona_derive::{
         AttributesQueue, BatchQueue, BatchStream, ChannelProvider, ChannelReader, FrameQueue,
         L1Retrieval, L1Traversal,
     },
-    traits::BlobProvider,
+    traits::{BlobProvider, ChainProvider},
 };
-use kona_providers::ChainProvider;
-use kona_providers_alloy::AlloyL2ChainProvider;
+use kona_derive_alloy::AlloyL2ChainProvider;
 use op_alloy_genesis::RollupConfig;
 use op_alloy_protocol::BlockInfo;
 

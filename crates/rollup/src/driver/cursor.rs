@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use alloy_primitives::map::HashMap;
 use std::collections::{BTreeMap, VecDeque};
 
 use op_alloy_protocol::{BlockInfo, L2BlockInfo};

@@ -1,14 +1,13 @@
 //! Blob Providers
 
 use alloc::{boxed::Box, collections::VecDeque, string::ToString, sync::Arc, vec::Vec};
-use hashbrown::HashMap;
 
 use alloy_eips::eip4844::Blob;
-use alloy_primitives::B256;
+use alloy_primitives::{map::HashMap, B256};
 use async_trait::async_trait;
 use eyre::{eyre, Result};
 use kona_derive::{errors::BlobProviderError, sources::IndexedBlobHash, traits::BlobProvider};
-use kona_providers_alloy::{
+use kona_derive_alloy::{
     OnlineBeaconClient, OnlineBlobProviderBuilder, OnlineBlobProviderWithFallback,
 };
 use op_alloy_protocol::BlockInfo;

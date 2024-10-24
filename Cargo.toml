@@ -9,17 +9,14 @@ keywords = ["ethereum", "crypto"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 
 [workspace]
+resolver = "2"
 members = ["bin/*", "crates/*"]
 default-members = ["bin/hera"]
 
-# Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
-# https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
-resolver = "2"
-
 [profile.release]
-strip = "debuginfo"
 lto = "thin"
 panic = "unwind"
+strip = "debuginfo"
 codegen-units = 1
 incremental = false
 
@@ -28,15 +25,12 @@ incremental = false
 ser = { path = "crates/ser" }
 op-net = { path = "crates/net" }
 rollup = { path = "crates/rollup" }
-kona-providers-local = { path = "crates/providers-local" }
+kona-derive-local = { path = "crates/derive" }
 
-# Kona
-kona-derive = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-kona-providers = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-kona-providers-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
-
-# Superchain
+# Kona + Superchain
 superchain = { version = "0.8.2", default-features = false }
+kona-derive = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
+kona-derive-alloy = { git = "https://github.com/anton-rs/kona", branch = "main", default-features = true }
 
 # Alloy
 alloy-rlp = { version = "0.3.9", default-features = false }
@@ -64,22 +58,22 @@ op-alloy-rpc-jsonrpsee = { version = "0.5.1", default-features = false }
 op-alloy-rpc-types-engine = { version = "0.5.1", default-features = false }
 
 # Reth
-reth = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-exex = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-discv5 = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-node-api = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-chainspec = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-network-peers = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-execution-types = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
-reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", rev = "1efa764" }
+reth = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-exex = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-discv5 = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-tracing = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-network-peers = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-node-ethereum = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
+reth-execution-errors = { git = "https://github.com/paradigmxyz/reth", rev = "2fba3c0" }
 
 # Tokio
 tokio = { version = "1.21", default-features = false }
@@ -113,7 +107,6 @@ thiserror = "1.0"
 lazy_static = "1.5.0"
 futures = "0.3.30"
 async-trait = "0.1.83"
-hashbrown = "0.15.0"
 parking_lot = "0.12.3"
 unsigned-varint = "0.8.0"
 tower = "0.5"
