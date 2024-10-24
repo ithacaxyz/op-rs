@@ -8,8 +8,9 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
+mod disc;
 mod globals;
-mod network;
+mod gossip;
 mod node;
 
 /// The Hera CLI Arguments.
@@ -30,8 +31,10 @@ pub(crate) struct HeraArgs {
 pub(crate) enum HeraSubcommand {
     /// Run the standalone Hera node.
     Node(node::NodeCommand),
-    /// Networking utility commands.
-    Network(network::NetworkCommand),
+    /// Discovery service command.
+    Disc(disc::DiscCommand),
+    /// Gossip service command.
+    Gossip(gossip::GossipCommand),
 }
 
 #[tokio::main]
@@ -45,6 +48,7 @@ async fn main() -> Result<()> {
     // Dispatch on subcommand.
     match args.subcommand {
         HeraSubcommand::Node(node) => node.run(&args.global).await,
-        HeraSubcommand::Network(network) => network.run(&args.global).await,
+        HeraSubcommand::Disc(disc) => disc.run(&args.global).await,
+        HeraSubcommand::Gossip(gossip) => gossip.run(&args.global).await,
     }
 }

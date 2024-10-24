@@ -4,6 +4,13 @@ Contains a gossipsub driver to run discv5 peer discovery and block gossip.
 
 ### Example
 
+> **Warning**
+>
+> Notice, the socket address uses `0.0.0.0`.
+> If you are experiencing issues connecting to peers for discovery,
+> check to make sure you are not using the loopback address,
+> `127.0.0.1` aka "localhost", which can prevent outward facing connections.
+
 ```rust,no_run
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use alloy_primitives::address;
@@ -25,15 +32,9 @@ driver.start().expect("Failed to start network driver");
 println!("NetworkDriver started.");
 ```
 
-> [!WARNING]
->
-> Notice, the socket address uses `0.0.0.0`.
-> If you are experiencing issues connecting to peers for discovery,
-> check to make sure you are not using the loopback address,
-> `127.0.0.1` aka "localhost", which can prevent outward facing connections.
-
 [!WARNING]: ###example
 
 ### Acknowledgements
 
 Largely based off [magi](https://github.com/a16z/magi)'s [p2p module](https://github.com/a16z/magi/tree/master/src/network).
+

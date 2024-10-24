@@ -34,7 +34,8 @@ pub struct NetworkDriverBuilder {
     pub discovery_addr: Option<ListenConfig>,
     /// The [GossipConfig] constructs the config for `gossipsub`.
     pub gossip_config: Option<GossipConfig>,
-
+    /// The interval to discovery random nodes.
+    pub interval: Option<Duration>,
     /// The [Config] constructs the config for `discv5`.
     pub discovery_config: Option<Config>,
     /// The [Keypair] for the node.
@@ -64,6 +65,12 @@ impl NetworkDriverBuilder {
     /// Specifies the unsafe block signer.
     pub fn with_unsafe_block_signer(&mut self, unsafe_block_signer: Address) -> &mut Self {
         self.unsafe_block_signer = Some(unsafe_block_signer);
+        self
+    }
+
+    /// Specifies the interval to discovery random nodes.
+    pub fn with_interval(&mut self, interval: Duration) -> &mut Self {
+        self.interval = Some(interval);
         self
     }
 
@@ -278,7 +285,8 @@ impl NetworkDriverBuilder {
             discovery_builder = discovery_builder.with_discovery_config(discovery_config);
         }
 
-        let discovery = discovery_builder.build()?;
+        let mut discovery = discovery_builder.build()?;
+        discovery.interval = self.interval.unwrap_or(Duration::from_secs(10));
 
         Ok(NetworkDriver {
             discovery,

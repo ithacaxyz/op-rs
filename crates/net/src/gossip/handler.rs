@@ -49,10 +49,13 @@ impl Handler for BlockHandler {
         tracing::debug!("received block");
 
         let decoded = if msg.topic == self.blocks_v1_topic.hash() {
+            tracing::debug!("received v1 block");
             OpNetworkPayloadEnvelope::decode_v1(&msg.data)
         } else if msg.topic == self.blocks_v2_topic.hash() {
+            tracing::debug!("received v2 block");
             OpNetworkPayloadEnvelope::decode_v2(&msg.data)
         } else if msg.topic == self.blocks_v3_topic.hash() {
+            tracing::debug!("received v3 block");
             OpNetworkPayloadEnvelope::decode_v3(&msg.data)
         } else {
             return MessageAcceptance::Reject;
@@ -115,11 +118,12 @@ impl BlockHandler {
 
         let msg = envelope.payload_hash.signature_message(self.chain_id);
         let block_signer = *self.unsafe_signer_recv.borrow();
-        let Ok(msg_signer) = envelope.signature.recover_address_from_msg(msg) else {
-            // TODO: add telemetry here if this happens.
+        let Ok(msg_signer) = envelope.signature.recover_address_from_prehash(&msg) else {
+            tracing::warn!("Failed to recover address from message");
             return false;
         };
 
-        time_valid && msg_signer == block_signer
+        let signer_valid = msg_signer == block_signer;
+        time_valid && signer_valid
     }
 }
