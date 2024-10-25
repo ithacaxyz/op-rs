@@ -24,19 +24,25 @@
 
 ## Overview
 
-_**op**timism-**r**ust_
-
-`op-rs` is a suite of portable, modular `std` OP Stack components.
+**op**_timism_-**r**_ust_ (`op-rs`) is a suite of portable, modular `std` OP Stack components.
 
 [bin/](./bin/) provides a host of binary applications that compose [crates](./crates/).
+
+
+## Development Status
+
+`op-rs` is currently in active development, and is not yet ready for use in production.
+
 
 ## Security
 
 Specifications around security are provided in [Security.md](./Security.md).
 
+
 ## Contributing
 
 Contributing guidelines are outlined in [Contributing.md](./Contributing.md).
+
 
 ## License
 
