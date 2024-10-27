@@ -1,17 +1,24 @@
-use std::{io::IsTerminal, net::SocketAddr};
+use std::{io::IsTerminal, net::SocketAddr, str::FromStr};
 
 use eyre::{bail, Result};
 use metrics_exporter_prometheus::PrometheusBuilder;
 use tracing::{info, Level};
 use tracing_subscriber::{
-    fmt::Layer as FmtLayer, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
+    filter::Directive, fmt::Layer as FmtLayer, layer::SubscriberExt, util::SubscriberInitExt,
+    EnvFilter, Layer,
 };
 
 /// Initialize the tracing stack and Prometheus metrics recorder.
 ///
 /// This function should be called at the beginning of the program.
-pub fn init_telemetry_stack(metrics_port: u16) -> Result<()> {
-    let filter = EnvFilter::builder().with_default_directive("hera=info".parse()?).from_env_lossy();
+pub fn init_telemetry_stack(metrics_port: u16, verbosity: u8) -> Result<()> {
+    let default_directive = match verbosity {
+        0 => Directive::from_str("hera=info")?,
+        1 => Directive::from_str("hera=debug")?,
+        _ => Directive::from_str("hera=trace")?,
+    };
+
+    let filter = EnvFilter::builder().with_default_directive(default_directive).from_env_lossy();
 
     // Whether to use ANSI formatting and colors in the console output.
     // If unset, always use colors if stdout is a tty.

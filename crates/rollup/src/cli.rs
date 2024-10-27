@@ -20,7 +20,7 @@ pub const DEFAULT_L1_RPC_URL: &str = "https://cloudflare-eth.com";
 pub const DEFAULT_L2_RPC_URL: &str = "https://optimism.llamarpc.com/";
 
 /// The default L1 Beacon Client RPC URL to use.
-pub const DEFAULT_L1_BEACON_CLIENT_URL: &str = "http://localhost:5052/";
+pub const DEFAULT_L1_BEACON_CLIENT_URL: &str = "https://eth-beacon-chain.drpc.org/rest/";
 
 /// The Hera Execution Extension CLI Arguments.
 #[derive(Debug, Clone, Args)]

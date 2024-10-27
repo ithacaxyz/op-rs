@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
     let args = HeraArgs::parse();
 
     // Initialize the telemetry stack.
-    rollup::init_telemetry_stack(args.global.metrics_port)?;
+    rollup::init_telemetry_stack(args.global.metrics_port, args.global.v)?;
 
     // Dispatch on subcommand.
     match args.subcommand {
