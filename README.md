@@ -7,8 +7,11 @@
 </h4>
 
 <p align="center">
-  <a href="https://github.com/ithacaxyz/op-rs/actions?query=workflow%3ACI+branch%3Amain"><img src="https://github.com/ithacaxyz/op-rs/workflows/unit/badge.svg" alt="License"></a>
+  <a href="https://github.com/ithacaxyz/op-rs/actions?query=workflow%3ACI+branch%3Amain"><img src="https://github.com/ithacaxyz/op-rs/workflows/unit/badge.svg" alt="License">
+    </a>
+    <a href="https://github.com/ithacaxyz/op-rs/blob/main/LICENSE-MIT">
   <img src="https://img.shields.io/badge/License-MIT-d1d1f6.svg?label=license&labelColor=2a2f35" alt="License">
+    </a>    
     <a href="https://github.com/ithacaxyz/op-rs/blob/main/LICENSE-APACHE">
   <img src="https://img.shields.io/badge/License-Apache%202.0-d1d1f6.svg?label=license&labelColor=2a2f35" alt="License">
     </a>   
